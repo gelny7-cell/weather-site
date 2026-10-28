@@ -214,13 +214,13 @@ def mt_detail(m, with_map=True):
 
 
 def mountains_page(mts):
-    days = [d["date"] for d in mts[0]["days"]]
+    days = [d["date"] for d in mts[0]["days"][:TOP_DAYS]]   # 一覧は7日、詳細は全日数
     regions = ["北海道", "東北", "関東", "中部", "近畿", "中国・四国", "九州"]
     head = "".join(f"<th>{day_label(d)}</th>" for d in days)
     rows = ""
     for m in mts:
         cells = ""
-        for d in m["days"]:
+        for d in m["days"][:TOP_DAYS]:
             mark, cls = RATE[d["score"]]
             icon, _ = wx(d["code"])
             cells += (f"<td class='{cls}' title='{e(wx(d['code'])[1])} 風{d['wind']:.0f}m/s "
@@ -238,7 +238,7 @@ def mountains_page(mts):
     return f"""
 <h1>日本百名山＋関西百名山 登山天気</h1>
 <p class='lead'>日本百名山と<span class='tag'>関西百名山</span>(山と溪谷社『関西百名山』)の予報です。両方に入る伊吹山・大台ヶ原山・大峰山は1つにまとめています。
-山頂の標高での予報(6〜15時)から、登山に向いた天気かを判定しています。山名を押すと日ごとの詳細が開きます。</p>
+山頂の標高での予報(6〜15時)から、登山に向いた天気かを判定しています。表は7日間で、山名を押すと最大16日間の詳細が開きます。</p>
 <div class='filters'><input id='q' type='search' placeholder='山名で絞り込み(例: 槍、ふじ)' aria-label='山名で絞り込み'>
 <div class='chips'>{chips}</div></div>
 <div class='scroll'><table class='grid' id='mt'><thead><tr><th class='nm'>山名</th>{head}</tr></thead>{rows}</table></div>
@@ -337,7 +337,7 @@ def ski_detail(s, with_map=True):
 
 
 def ski_page(ski):
-    days = [d["date"] for d in ski[0]["days"]]
+    days = [d["date"] for d in ski[0]["days"][:TOP_DAYS]]   # 一覧は7日、詳細は全日数
     head = "".join(f"<th>{day_label(d)}</th>" for d in days)
     used = []
     rows = ""
@@ -346,16 +346,16 @@ def ski_page(ski):
             if r not in used:
                 used.append(r)
             cells = ""
-            for d in s["days"]:
+            for d in s["days"][:TOP_DAYS]:
                 icon, label = wx(d["code"])
                 snow_cls = "big" if d["snow"] >= 20 else ("mid" if d["snow"] >= 5 else "muted")
                 cells += (f"<td title='{e(label)} {round(d['tmin'])}〜{round(d['tmax'])}℃'>"
                           f"<b class='{snow_cls}'>{d['snow']:.0f}</b><small>{icon}</small></td>")
-            total = sum(d["snow"] for d in s["days"])
+            total7 = sum(d["snow"] for d in s["days"][:TOP_DAYS])
             rows += (
                 f"<tbody class='mt' data-region='{r}' data-name='{e(s['name'] + s.get('yomi', ''))}'>"
                 f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
-                f"<span>{e(s['name'])}</span><small>{e(s['pref'])} · {len(s['days'])}日間 {total:.0f}cm</small>"
+                f"<span>{e(s['name'])}</span><small>{e(s['pref'])} · 7日間 {total7:.0f}cm</small>"
                 f"</button></th>{cells}</tr>"
                 f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{ski_detail(s)}</td></tr></tbody>")
     chips = "<button class='chip on' data-r=''>すべて</button>" + "".join(
@@ -366,7 +366,7 @@ def ski_page(ski):
 <div class='scroll'><table class='grid'><thead><tr><th class='nm'>スキー場</th>{head}</tr></thead>{rows}</table></div>"""
     return f"""
 <h1>スノーボード 雪と天気</h1>
-<p class='lead'>標高差の大きいスキー場100か所＋志賀高原 焼額山です。表の数字は1日の降雪量(cm)の予報で、スキー場名を押すと積雪・気温・0℃の高さ・風の詳細が開きます。</p>
+<p class='lead'>標高差の大きいスキー場100か所＋志賀高原 焼額山です。表の数字は1日の降雪量(cm)の予報で、表は7日間で、スキー場名を押すと最大16日間の積雪・気温・0℃の高さ・風の詳細が開きます。</p>
 {cards}
 <div class='note'><ul><li><span class='tag'>パウダー期待</span> 新雪10cm以上で、最高気温が-2℃以下</li>
 <li><span class='tag warn'>雨</span> 予報の標高で雨の予報(雪質が重くなりやすい)</li>
