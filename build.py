@@ -170,7 +170,7 @@ def build_mountains():
     return mts
 
 
-def mt_detail(m):
+def mt_detail(m, with_map=True):
     """山の7日間の詳細(登山口の地図ボタン付き)"""
     rows = "".join(
         f"<tr><td>{day_label(d['date'])}</td><td>{wx(d['code'])[0]} {wx(d['code'])[1]}</td>"
@@ -179,7 +179,8 @@ def mt_detail(m):
         f"<td>{'—' if d['fl'] is None else f'{d['fl']:,.0f}m'}</td>"
         f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b></td></tr>"
         for d in m["days"])
-    return (f"{maplink(trailhead(m), '登山口の地図: ' + trailhead(m))}<div class='scroll'><table class='sub'>"
+    link = maplink(trailhead(m), '登山口の地図: ' + trailhead(m)) if with_map else ""
+    return (f"{link}<div class='scroll'><table class='sub'>"
             "<tr><th>日付</th><th>天気(6〜15時)</th><th>山頂付近の気温</th><th>最大風速</th>"
             f"<th>降水量</th><th>0℃の高さ</th><th>判定</th></tr>{rows}</table></div>")
 
@@ -276,7 +277,7 @@ SKI_REGIONS = {
 PREF_SKI_REGION = {p: r for r, ps in SKI_REGIONS.items() for p in ps}
 
 
-def ski_detail(s):
+def ski_detail(s, with_map=True):
     """スキー場の7日間の詳細(駐車場の地図ボタン付き)"""
     rows = ""
     for d in s["days"]:
@@ -289,7 +290,8 @@ def ski_detail(s):
                  f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td>"
                  f"<td>{'—' if d['fl'] is None else f'{d['fl']:,.0f}m'}</td>"
                  f"<td>{d['gust']:.0f}m/s</td></tr>")
-    return (f"{maplink(s['name'] + ' 第1駐車場', '駐車場の地図')} "
+    link = maplink(s['name'] + ' 第1駐車場', '駐車場の地図') + ' ' if with_map else ""
+    return (f"{link}"
             f"<p class='muted'>予報の標高 {s['elev']:,}m · 標高差 {s['drop']:,}m</p><div class='scroll'><table class='sub'>"
             "<tr><th>日付</th><th>天気</th><th>新雪</th><th>積雪(朝)</th><th>気温</th>"
             f"<th>0℃の高さ(日中)</th><th>最大瞬間風速</th></tr>{rows}</table></div>")
@@ -491,7 +493,7 @@ def index_page(mts, ski, spots):
         tag = tags(m)
         mt_rows += expand_row(f"<b>{e(m['name'])}</b>{tag}<br><small class='muted'>"
                               f"{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>",
-                              cells + f"<td>{maplink(trailhead(m), '登山口')}</td>", mt_detail(m), 4)
+                              cells + f"<td>{maplink(trailhead(m), '登山口')}</td>", mt_detail(m, with_map=False), 4)
     we_head = "".join(f"<th>{day_label(d)}</th>" for d in we)
     mt_list = (f"<div class='scroll'><table class='sub'><tr><th>山</th>{we_head}<th>地図</th></tr>"
                f"{mt_rows}</table></div>" if mt_rows else "<p>週末に条件の良い山は見当たりません</p>")
@@ -508,7 +510,7 @@ def index_page(mts, ski, spots):
                         for d in s["days"] if d["date"] in we)
         until = sum(d["snow"] for d in s["days"] if d["date"] <= upto)
         fav_rows += expand_row(f"<b>{e(n)}</b><br><small class='muted'>週末まで {until:.0f}cm</small>",
-                               cells + f"<td>{maplink(n + ' 第1駐車場', '駐車場')}</td>", ski_detail(s), 4)
+                               cells + f"<td>{maplink(n + ' 第1駐車場', '駐車場')}</td>", ski_detail(s, with_map=False), 4)
     fav = (f"<div class='scroll'><table class='sub'><tr><th></th>"
            + "".join(f"<th>{day_label(d)}</th>" for d in we)
            + f"<th></th></tr>{fav_rows}</table></div>")
