@@ -415,6 +415,7 @@ def ski_detail(s, with_map=True, simple=False):
 
 
 def ski_page(ski):
+    favs = set(json.loads((ROOT / "data/favorites.json").read_text(encoding="utf-8")).get("ski", []))
     days = [d["date"] for d in ski[0]["days"][:TOP_DAYS]]   # 一覧は7日、詳細は全日数
     head = "".join(f"<th>{day_label(d)}</th>" for d in days)
     used = []
@@ -431,13 +432,15 @@ def ski_page(ski):
                           f"<b class='{snow_cls}'>{d['snow']:.0f}</b><small>{icon}</small></td>")
             total7 = sum(d["snow"] for d in s["days"][:TOP_DAYS])
             rows += (
-                f"<tbody class='mt' data-region='{r}' data-name='{e(s['name'] + s.get('yomi', ''))}'>"
+                f"<tbody class='mt' data-region='{r}' data-name='{e(s['name'] + s.get('yomi', ''))}'"
+                + (" data-fav='1'" if s["name"] in favs else "") + ">"
                 f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
                 f"<span>{e(s['name'])}</span><small>{e(s['pref'])} · 7日間 {total7:.0f}cm</small>"
                 f"</button></th>{cells}</tr>"
                 f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{ski_detail(s)}</td></tr></tbody>")
-    chips = "<button class='chip on' data-r=''>すべて</button>" + "".join(
-        f"<button class='chip' data-r='{r}'>{r}</button>" for r in used)
+    chips = ("<button class='chip on' data-r=''>すべて</button>"
+             + ("<button class='chip' data-r='fav'>★お気に入り</button>" if favs else "")
+             + "".join(f"<button class='chip' data-r='{r}'>{r}</button>" for r in used))
     cards = f"""
 <div class='filters'><input id='q' type='search' placeholder='スキー場名で絞り込み' aria-label='スキー場名で絞り込み'>
 <div class='chips'>{chips}</div></div>
@@ -742,7 +745,8 @@ if(q){
   let region='';
   const apply=()=>{const t=q.value.trim();
     document.querySelectorAll('tbody.mt').forEach(b=>{
-      b.hidden=!((!region||b.dataset.region===region)&&(!t||b.dataset.name.includes(t)));});};
+      const inRegion=!region||b.dataset.region===region||(region==='fav'&&b.dataset.fav);
+      b.hidden=!(inRegion&&(!t||b.dataset.name.includes(t)));});};
   q.addEventListener('input',apply);
   document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
     document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===c));
