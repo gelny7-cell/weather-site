@@ -395,7 +395,7 @@ def ski_detail(s, with_map=True, simple=False):
                  f"<td>{weather(d['code'], d['rain'])}</td><td>{weather(d['code_base'], d['rain_base'])}</td>"
                  f"<td>{d['snow']:.0f}cm{powder}</td><td>{d['snow_base']:.0f}cm</td>"
                  f"<td>{d['depth']:.0f}cm</td>"
-                 f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td><td>{round(d['bmin'])}〜{round(d['bmax'])}℃</td>"
+                 f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td>"
                  f"<td>{d['fl']:,.0f}m</td><td>{d['wind_avg']:.0f}m/s</td><td>{d['gust']:.0f}m/s</td></tr>")
     link = maplink(s['name'] + ' 第1駐車場', '駐車場の地図') + ' ' if with_map else ""
     am = s.get("amedas")
@@ -408,9 +408,9 @@ def ski_detail(s, with_map=True, simple=False):
     return (f"{link}{obs}"
             f"<p class='muted'>上部 {s['top']:,}m / 下部 {s['base']:,}m</p><div class='scroll'><table class='sub'>"
             "<tr><th rowspan='2' class='dt'>日付</th><th colspan='2'>天気</th><th colspan='2'>新雪</th><th rowspan='2'>積雪<br>(上部)</th>"
-            "<th colspan='2'>気温</th><th rowspan='2'>0℃の高さ<br>(日中)</th><th rowspan='2'>平均風速<br>(上部)</th>"
+            "<th rowspan='2'>気温<br>(上部)</th><th rowspan='2'>0℃の高さ<br>(日中)</th><th rowspan='2'>平均風速<br>(上部)</th>"
             "<th rowspan='2'>最大瞬間風速<br>(上部)</th></tr>"
-            "<tr><th>上部</th><th>下部</th><th>上部</th><th>下部</th><th>上部</th><th>下部</th></tr>"
+            "<tr><th>上部</th><th>下部</th><th>上部</th><th>下部</th></tr>"
             f"{rows}</table></div>")
 
 
