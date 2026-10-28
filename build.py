@@ -304,7 +304,7 @@ def ski_page(ski):
 <div class='scroll'><table class='grid'><thead><tr><th class='nm'>スキー場</th>{head}</tr></thead>{rows}</table></div>"""
     return f"""
 <h1>スノーボード 雪と天気</h1>
-<p class='lead'>標高差の大きいスキー場100か所です。表の数字は1日の降雪量(cm)の予報で、スキー場名を押すと積雪・気温・0℃の高さ・風の詳細が開きます。</p>
+<p class='lead'>標高差の大きいスキー場100か所＋志賀高原 焼額山です。表の数字は1日の降雪量(cm)の予報で、スキー場名を押すと積雪・気温・0℃の高さ・風の詳細が開きます。</p>
 {cards}
 <div class='note'><ul><li><span class='tag'>パウダー期待</span> 新雪10cm以上で、最高気温が-2℃以下</li>
 <li><span class='tag warn'>雨</span> 予報の標高で雨の予報(雪質が重くなりやすい)</li>
@@ -465,15 +465,8 @@ def index_page(mts, ski, spots):
     we_head = "".join(f"<th>{day_label(d)}</th>" for d in we)
     mt_list = (f"<div class='scroll'><table class='sub'><tr><th>山</th>{we_head}<th>地図</th></tr>"
                f"{mt_rows}</table></div>" if mt_rows else "<p>週末に条件の良い山は見当たりません</p>")
-    # スノー: 週末までの降雪が多い順
+    # スノー: よく行くスキー場(data/favorites.json)を常に表示する
     upto = we[-1]
-    snow = sorted(ski, key=lambda s: -sum(d["snow"] for d in s["days"] if d["date"] <= upto))
-    ski_list = "".join(
-        f"<li><b>{e(s['name'])}</b> <small>{e(s['pref'])}</small> "
-        f"週末までの降雪 {sum(d['snow'] for d in s['days'] if d['date'] <= upto):.0f}cm "
-        f"{maplink(s['name'] + ' 第1駐車場', '駐車場')}</li>"
-        for s in snow[:5])
-    # よく行くスキー場(data/favorites.json)は常に表示する
     favs = json.loads((ROOT / "data/favorites.json").read_text(encoding="utf-8")).get("ski", [])
     by_name = {s["name"]: s for s in ski}
     fav_rows = ""
@@ -486,10 +479,9 @@ def index_page(mts, ski, spots):
         until = sum(d["snow"] for d in s["days"] if d["date"] <= upto)
         fav_rows += (f"<tr><td class='l'><b>{e(n)}</b><br><small class='muted'>週末まで {until:.0f}cm</small></td>"
                      f"{cells}<td>{maplink(n + ' 第1駐車場', '駐車場')}</td></tr>")
-    fav = (f"<h3>よく行くスキー場</h3><div class='scroll'><table class='sub'><tr><th></th>"
+    fav = (f"<div class='scroll'><table class='sub'><tr><th></th>"
            + "".join(f"<th>{day_label(d)}</th>" for d in we)
-           + f"<th></th></tr>{fav_rows}</table></div><h3 style='margin-top:14px'>週末までの降雪が多い順</h3>"
-           if fav_rows else "<p class='muted'>週末までの降雪が多い順</p>")
+           + f"<th></th></tr>{fav_rows}</table></div>")
     # サーフ: 予報コメント + 週末4枠(土朝・土昼・日朝・日昼)の判定表
     surf_comment = "".join(f"<p class='comment'><b>{c}</b> {e(t)}</p>"
                            for c, t in surf_comments(spots, we))
@@ -515,7 +507,7 @@ def index_page(mts, ski, spots):
 <p class='muted'>週末の両日が○以上の山(上位15座、判定が良く風の弱い順)。気温・風は山頂付近の6〜15時</p>{mt_list}
 <p><a href='mountains.html'>百名山＋関西の名山をすべて見る →</a></p></section>
 <div class='cards2'>
-<section class='card'><h2><a href='snow.html'>🏂 スノーボード</a></h2>{fav}<ul>{ski_list}</ul>
+<section class='card'><h2><a href='snow.html'>🏂 スノーボード</a></h2>{fav}
 <p><a href='snow.html'>スキー場の詳細 →</a></p></section>
 <section class='card'><h2><a href='surf.html'>🏄 サーフィン</a></h2>{surf_list}
 <p><a href='surf.html'>波の詳細 →</a></p></section>
