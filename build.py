@@ -126,6 +126,7 @@ def mean_dir(degs, weights=None):
 
 
 RATE = {3: ("◎", "r3"), 2: ("○", "r2"), 1: ("△", "r1"), 0: ("×", "r0")}
+THUNDER = {2: "⚡雷雨", 1: "⚠️注意", 0: "なし"}
 
 
 def tags(m):
@@ -161,7 +162,7 @@ def build_mountains():
     mts = json.loads((ROOT / "data/mountains.json").read_text(encoding="utf-8"))
     res = forecast([(m["lat"], m["lon"], m["elev"]) for m in mts], hourly=",".join([
         "temperature_2m", "precipitation", "weather_code",
-        "wind_speed_850hPa", "wind_speed_700hPa", "freezing_level_height"]))
+        "wind_speed_850hPa", "wind_speed_700hPa", "freezing_level_height", "cape"]))
     day_hours = range(6, 16)          # 行動する時間帯(6〜15時)
     for m, r in zip(mts, res):
         m["days"] = []
@@ -176,13 +177,17 @@ def build_mountains():
             codes = hours_of(h, "weather_code", d, day_hours)
             if not (rains and winds and temps and codes):
                 continue                # 値のない日は表示しない
-            rain, wind = sum(rains), max(winds)
+            rain, wind, wind_avg = sum(rains), max(winds), sum(winds) / len(winds)
             fls = hours_of(h, "freezing_level_height", d, day_hours)
             if not fls:
                 continue
             fl = min(fls)
-            thunder = any(c >= 95 for c in codes)
-            if thunder or rain >= 10 or wind >= 20:
+            capes = hours_of(h, "cape", d, day_hours)
+            if not capes:
+                continue
+            # 雷: 2=雷雨の予報、1=大気が不安定で雷に注意(CAPE 1,000J/kg以上)、0=なし
+            thunder = 2 if any(c >= 95 for c in codes) else (1 if max(capes) >= 1000 else 0)
+            if thunder == 2 or rain >= 10 or wind >= 20:
                 score = 0
             elif rain >= 3 or wind >= 15:
                 score = 1
@@ -190,7 +195,9 @@ def build_mountains():
                 score = 2
             else:
                 score = 3
-            m["days"].append({"date": d, "score": score, "rain": rain, "wind": wind,
+            if thunder == 1:
+                score = min(score, 1)
+            m["days"].append({"date": d, "score": score, "rain": rain, "wind": wind, "wind_avg": wind_avg,
                               "tmin": min(temps) if temps else None,
                               "tmax": max(temps) if temps else None,
                               "code": max(codes) if codes else None, "fl": fl,
@@ -201,16 +208,15 @@ def build_mountains():
 def mt_detail(m, with_map=True):
     """山の日ごとの詳細(登山口の地図ボタン付き)"""
     rows = "".join(
-        f"<tr><td>{day_label(d['date'])}</td><td>{wx(d['code'])[0]} {wx(d['code'])[1]}</td>"
-        f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td><td>{d['wind']:.0f}m/s</td>"
-        f"<td>{d['rain']:.1f}mm</td>"
-        f"<td>{'—' if d['fl'] is None else f'{d['fl']:,.0f}m'}</td>"
+        f"<tr><td class='dt'>{day_label(d['date'])}</td><td>{wx(d['code'])[0]} {wx(d['code'])[1]}</td>"
+        f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td><td>{d['wind_avg']:.0f}m/s</td><td>{d['wind']:.0f}m/s</td>"
+        f"<td>{d['rain']:.1f}mm</td><td>{THUNDER[d['thunder']]}</td>"
         f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b></td></tr>"
         for d in m["days"])
     link = maplink(trailhead(m), '登山口の地図: ' + trailhead(m)) if with_map else ""
     return (f"{link}<div class='scroll'><table class='sub'>"
-            "<tr><th>日付</th><th>天気(6〜15時)</th><th>山頂付近の気温</th><th>最大風速</th>"
-            f"<th>降水量</th><th>0℃の高さ</th><th>判定</th></tr>{rows}</table></div>")
+            "<tr><th class='dt'>日付</th><th>天気(6〜15時)</th><th>山頂付近の気温</th><th>平均風速</th><th>最大風速</th>"
+            f"<th>降水量</th><th>雷</th><th>判定</th></tr>{rows}</table></div>")
 
 
 def mountains_page(mts):
@@ -224,7 +230,7 @@ def mountains_page(mts):
             mark, cls = RATE[d["score"]]
             icon, _ = wx(d["code"])
             cells += (f"<td class='{cls}' title='{e(wx(d['code'])[1])} 風{d['wind']:.0f}m/s "
-                      f"雨{d['rain']:.0f}mm'><b>{mark}</b><small>{icon}</small></td>")
+                      f"雨{d['rain']:.0f}mm 雷{THUNDER[d['thunder']]}'><b>{mark}</b><small>{icon}</small></td>")
         rows += (
             f"<tbody class='mt' data-region='{e(m['region'])}' data-name='{e(m['name'] + m['yomi'])}'>"
             f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
@@ -246,60 +252,106 @@ def mountains_page(mts):
 <li><b class='r3'>◎</b> 降水0.5mm未満、風速10m/s未満</li>
 <li><b class='r2'>○</b> 降水3mm未満、風速15m/s未満</li>
 <li><b class='r1'>△</b> 降水10mm未満、風速20m/s未満</li>
-<li><b class='r0'>×</b> それ以上、または雷雨の予報</li></ul>
+<li><b class='r0'>×</b> それ以上、または雷雨の予報(⚡雷雨)</li></ul>
+<p>雷: ⚡雷雨=6〜15時に雷雨の予報があり、判定は×。⚠️注意=大気が不安定で雷が発生しやすい状態(CAPE 1,000J/kg以上)で、判定は最高でも△。山では早めの下山を。</p>
 <p>風速は山頂付近の上空(標高2,200m以上は約3,000m、それ未満は約1,500m)の予報です。稜線の実際の風とは異なることがあり、突風はさらに強くなります。</p></div>
 """
 
 
 # ---------------------------------------------------------------- スノーボード
-def dem_elevation(points):
-    """地形の標高(Open-Meteo の90m標高データ)。100地点ずつ"""
-    out = []
-    for i in range(0, len(points), 100):
-        chunk = points[i:i + 100]
-        out += fetch("https://api.open-meteo.com/v1/elevation", {
-            "latitude": ",".join(str(p[0]) for p in chunk),
-            "longitude": ",".join(str(p[1]) for p in chunk)})[0]["elevation"]
-    return out
+def amedas_snow():
+    """気象庁アメダスの積雪の観測値(最新の正時)。取得できなければ None
+    戻り値: (観測時刻, [(地点名, 緯度, 経度, 標高, 積雪cm, 24時間降雪cm)])"""
+    base = "https://www.jma.go.jp/bosai/amedas"
+    try:
+        req = urllib.request.Request(f"{base}/data/latest_time.txt", headers={"User-Agent": "weather-site"})
+        latest = datetime.fromisoformat(urllib.request.urlopen(req, timeout=30).read().decode().strip())
+        hour = latest.replace(minute=0, second=0)
+        table = fetch(f"{base}/const/amedastable.json", {})[0]
+        obs = fetch(f"{base}/data/map/{hour:%Y%m%d%H%M%S}.json", {})[0]
+    except Exception as ex:
+        print(f"アメダスの取得に失敗: {type(ex).__name__}")
+        return None
+    stations = []
+    for k, v in obs.items():
+        snow = (v.get("snow") or [None])[0]
+        if snow is None or k not in table:
+            continue
+        t = table[k]
+        stations.append((t["kjName"], t["lat"][0] + t["lat"][1] / 60, t["lon"][0] + t["lon"][1] / 60,
+                         t["alt"], snow, (v.get("snow24h") or [None])[0]))
+    return hour, stations
+
+
+def attach_amedas(ski):
+    """15km以内で、ゲレンデ下部との標高差が300m以内の観測点があれば、その積雪を付ける"""
+    am = amedas_snow()
+    if not am:
+        return
+    hour, stations = am
+    for s in ski:
+        best = None
+        for st in stations:
+            km = ((st[1] - s["lat"]) * 111) ** 2 + ((st[2] - s["lon"]) * 91) ** 2
+            km = km ** 0.5
+            if km <= 15 and abs(st[3] - s["base"]) <= 300 and (best is None or km < best[0]):
+                best = (km, st)
+        if best:
+            km, (name, _, _, alt, snow, snow24) = best
+            s["amedas"] = {"name": name, "alt": alt, "km": km, "snow": snow, "snow24h": snow24, "time": hour}
+
+
+def overnight_snow(h, day):
+    """前日17時〜当日8時(ゲレンデが閉まってから開くまで)の降雪量(cm)。
+    1時間ごとの値はその前の1時間の量なので、前日18時〜当日8時の値を合計する。データが欠けていれば None"""
+    prev = (date.fromisoformat(day) - timedelta(days=1)).isoformat()
+    vals = hours_of(h, "snowfall", prev, range(18, 24)) + hours_of(h, "snowfall", day, range(0, 9))
+    return sum(vals) if len(vals) == 15 else None
 
 
 def build_ski():
-    """予報はスキー場の座標の地形の標高(elev があればその標高=ゲレンデ中腹)で取得する"""
+    """ゲレンデ上部(top)と下部(base)の標高で、それぞれ予報を取得する"""
     ski = json.loads((ROOT / "data/ski.json").read_text(encoding="utf-8"))
-    try:
-        dem = dem_elevation([(s["lat"], s["lon"]) for s in ski])
-    except Exception as ex:            # 標高が取れなければ、標高を登録済みのスキー場だけ表示する
-        print(f"標高の取得に失敗: {type(ex).__name__}")
-        dem = [None] * len(ski)
-    for s, z in zip(ski, dem):
-        s["elev"] = s.get("elev") or (round(z) if z is not None else None)
-    ski = [s for s in ski if s["elev"] is not None]
-    res = forecast([(s["lat"], s["lon"], s["elev"]) for s in ski],
-                   daily=",".join(["weather_code", "temperature_2m_max", "temperature_2m_min",
-                                   "snowfall_sum", "rain_sum", "wind_gusts_10m_max"]),
-                   hourly="snow_depth,freezing_level_height")
-    for s, r in zip(ski, res):
+    daily = ",".join(["weather_code", "temperature_2m_max", "temperature_2m_min",
+                      "snowfall_sum", "rain_sum", "wind_gusts_10m_max"])
+    keys = daily.split(",")
+    # 前日の夜の降雪も数えるため、前日分(past_days=1)も取得する。前日そのものは表示しない
+    top = forecast([(s["lat"], s["lon"], s["top"]) for s in ski], daily=daily, past_days=1,
+                   hourly="snow_depth,freezing_level_height,wind_speed_10m,snowfall")
+    base = forecast([(s["lat"], s["lon"], s["base"]) for s in ski], daily=daily, past_days=1,
+                    hourly="snowfall")
+    today = datetime.now(JST).date().isoformat()
+    for s, t, b in zip(ski, top, base):
         s["days"] = []
-        if r is None:
+        if t is None or b is None:
             continue
-        dd, h = r["daily"], r["hourly"]
-        for i, d in enumerate(dd["time"]):
+        td, bd, h = t["daily"], b["daily"], t["hourly"]
+        bi = {d: i for i, d in enumerate(bd["time"])}
+        for i, d in enumerate(td["time"]):
+            if d < today:
+                continue
+            j = bi.get(d)
+            night = overnight_snow(h, d)                # 上部の新雪(前日17時〜当日8時)
+            night_base = overnight_snow(b["hourly"], d)
             depth = hours_of(h, "snow_depth", d, [9])
             fl = hours_of(h, "freezing_level_height", d, range(6, 18))
-            keys = ["weather_code", "snowfall_sum", "temperature_2m_min", "temperature_2m_max",
-                    "rain_sum", "wind_gusts_10m_max"]
-            if not depth or not fl or any(dd[k][i] is None for k in keys):
+            ws = hours_of(h, "wind_speed_10m", d, range(8, 17))     # 営業時間帯(8〜16時)
+            if (j is None or night is None or night_base is None or not depth or not fl or not ws or any(td[k][i] is None for k in keys)
+                    or any(bd[k][j] is None for k in keys)):
                 continue                # 値のない日は表示しない
             s["days"].append({
-                "date": d, "code": dd["weather_code"][i],
-                "snow": dd["snowfall_sum"][i] or 0,
-                "depth": depth[0] * 100 if depth else None,
-                "tmin": dd["temperature_2m_min"][i], "tmax": dd["temperature_2m_max"][i],
-                "rain": dd["rain_sum"][i] or 0,
-                "fl": min(fl) if fl else None,
-                "gust": dd["wind_gusts_10m_max"][i] or 0,
+                "date": d,
+                "code": td["weather_code"][i], "code_base": bd["weather_code"][j],
+                "snow": night, "snow_base": night_base, "snow_day": td["snowfall_sum"][i],
+                "depth": depth[0] * 100,
+                "tmin": td["temperature_2m_min"][i], "tmax": td["temperature_2m_max"][i],
+                "bmin": bd["temperature_2m_min"][j], "bmax": bd["temperature_2m_max"][j],
+                "rain": td["rain_sum"][i], "rain_base": bd["rain_sum"][j],
+                "fl": min(fl), "gust": td["wind_gusts_10m_max"][i], "wind_avg": sum(ws) / len(ws),
             })
-    return align(ski, "スノーボード")
+    ski = align(ski, "スノーボード")
+    attach_amedas(ski)
+    return ski
 
 
 SKI_REGIONS = {
@@ -316,24 +368,50 @@ SKI_REGIONS = {
 PREF_SKI_REGION = {p: r for r, ps in SKI_REGIONS.items() for p in ps}
 
 
-def ski_detail(s, with_map=True):
-    """スキー場の日ごとの詳細(駐車場の地図ボタン付き)"""
+def ski_detail(s, with_map=True, simple=False):
+    """スキー場の日ごとの詳細。上部と下部の天気・気温を並べる(駐車場の地図ボタン付き)。
+    simple=True はトップページ用で、これまでどおり1列ずつ(値はゲレンデ上部)"""
+    if simple:
+        rows = ""
+        for d in s["days"]:
+            icon, label = wx(d["code"])
+            powder = " <span class='tag'>パウダー期待</span>" if d["snow"] >= 10 and d["tmax"] <= -2 else ""
+            rain = f" <span class='tag warn'>雨{d['rain']:.0f}mm</span>" if d["rain"] >= 1 else ""
+            rows += (f"<tr><td class='dt'>{day_label(d['date'])}</td><td>{icon} {label}{rain}</td>"
+                     f"<td>{d['snow']:.0f}cm{powder}</td><td>{d['depth']:.0f}cm</td>"
+                     f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td><td>{d['fl']:,.0f}m</td>"
+                     f"<td>{d['gust']:.0f}m/s</td></tr>")
+        return ("<div class='scroll'><table class='sub'><tr><th class='dt'>日付</th><th>天気</th><th>新雪</th>"
+                "<th>積雪</th><th>気温</th><th>0℃の高さ(日中)</th><th>最大瞬間風速</th></tr>"
+                f"{rows}</table></div>")
+    def weather(code, rain):
+        icon, label = wx(code)
+        tag = f" <span class='tag warn'>雨{rain:.0f}mm</span>" if rain >= 1 else ""
+        return f"{icon} {label}{tag}"
     rows = ""
     for d in s["days"]:
-        icon, label = wx(d["code"])
         powder = " <span class='tag'>パウダー期待</span>" if d["snow"] >= 10 and d["tmax"] <= -2 else ""
-        rain = f" <span class='tag warn'>雨{d['rain']:.0f}mm</span>" if d["rain"] >= 1 else ""
-        rows += (f"<tr><td>{day_label(d['date'])}</td><td>{icon} {label}{rain}</td>"
-                 f"<td>{d['snow']:.0f}cm{powder}</td>"
-                 f"<td>{'—' if d['depth'] is None else f'{d['depth']:.0f}cm'}</td>"
-                 f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td>"
-                 f"<td>{'—' if d['fl'] is None else f'{d['fl']:,.0f}m'}</td>"
-                 f"<td>{d['gust']:.0f}m/s</td></tr>")
+        rows += (f"<tr><td class='dt'>{day_label(d['date'])}</td>"
+                 f"<td>{weather(d['code'], d['rain'])}</td><td>{weather(d['code_base'], d['rain_base'])}</td>"
+                 f"<td>{d['snow']:.0f}cm{powder}</td><td>{d['snow_base']:.0f}cm</td>"
+                 f"<td>{d['depth']:.0f}cm</td>"
+                 f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td><td>{round(d['bmin'])}〜{round(d['bmax'])}℃</td>"
+                 f"<td>{d['fl']:,.0f}m</td><td>{d['wind_avg']:.0f}m/s</td><td>{d['gust']:.0f}m/s</td></tr>")
     link = maplink(s['name'] + ' 第1駐車場', '駐車場の地図') + ' ' if with_map else ""
-    return (f"{link}"
-            f"<p class='muted'>予報の標高 {s['elev']:,}m · 標高差 {s['drop']:,}m</p><div class='scroll'><table class='sub'>"
-            "<tr><th>日付</th><th>天気</th><th>新雪</th><th>積雪(朝)</th><th>気温</th>"
-            f"<th>0℃の高さ(日中)</th><th>最大瞬間風速</th></tr>{rows}</table></div>")
+    am = s.get("amedas")
+    obs = ""
+    if am:
+        fresh = f" ／ 過去24時間の降雪 {am['snow24h']}cm" if am["snow24h"] is not None else ""
+        obs = (f"<p class='obs'>下部付近の積雪(観測): <b>{am['snow']}cm</b>{fresh}"
+               f"<small class='muted'> · {e(am['name'])}(標高{am['alt']:,}m・{am['km']:.0f}km) "
+               f"{am['time'].month}/{am['time'].day} {am['time'].hour}時 気象庁アメダス</small></p>")
+    return (f"{link}{obs}"
+            f"<p class='muted'>上部 {s['top']:,}m / 下部 {s['base']:,}m</p><div class='scroll'><table class='sub'>"
+            "<tr><th rowspan='2' class='dt'>日付</th><th colspan='2'>天気</th><th colspan='2'>新雪</th><th rowspan='2'>積雪<br>(上部)</th>"
+            "<th colspan='2'>気温</th><th rowspan='2'>0℃の高さ<br>(日中)</th><th rowspan='2'>平均風速<br>(上部)</th>"
+            "<th rowspan='2'>最大瞬間風速<br>(上部)</th></tr>"
+            "<tr><th>上部</th><th>下部</th><th>上部</th><th>下部</th><th>上部</th><th>下部</th></tr>"
+            f"{rows}</table></div>")
 
 
 def ski_page(ski):
@@ -366,14 +444,16 @@ def ski_page(ski):
 <div class='scroll'><table class='grid'><thead><tr><th class='nm'>スキー場</th>{head}</tr></thead>{rows}</table></div>"""
     return f"""
 <h1>スノーボード 雪と天気</h1>
-<p class='lead'>標高差の大きいスキー場100か所＋志賀高原 焼額山です。表の数字は1日の降雪量(cm)の予報で、表は7日間で、スキー場名を押すと最大16日間の積雪・気温・0℃の高さ・風の詳細が開きます。</p>
+<p class='lead'>標高差の大きいスキー場100か所＋志賀高原 焼額山です。表の数字はゲレンデ上部の新雪(前日17時〜当日8時、閉場から開場までに積もる雪)の予報(cm)です。表は7日間で、スキー場名を押すと最大16日間の積雪・気温・0℃の高さ・風の詳細が開きます。</p>
 {cards}
-<div class='note'><ul><li><span class='tag'>パウダー期待</span> 新雪10cm以上で、最高気温が-2℃以下</li>
-<li><span class='tag warn'>雨</span> 予報の標高で雨の予報(雪質が重くなりやすい)</li>
-<li>予報の標高は、Wikipediaにあるスキー場の座標の地形の標高です(一部はゲレンデ中腹の標高)。
-ゲレンデ上部の天気は「0℃の高さ」を目安にしてください(それより高い所は雪、低い所は雨になりやすい)。</li>
-<li>積雪の予報はモデルの推定で、実際の積雪と大きく異なることがあります。各スキー場の発表を確認してください。</li>
-<li>スキー場の一覧・標高差: Wikipedia、Wikidata</li></ul></div>
+<div class='note'><ul>
+<li>新雪: 前日17時〜当日8時(ゲレンデが閉まってから開くまで)に降る雪の量の予報</li>
+<li>積雪: 朝9時に積もっている雪の深さの予報(気象モデルの推定。実際の積雪と大きく違うことがあります)</li>
+<li>下部付近の積雪(観測): 15km以内に気象庁アメダスの観測点があり、ゲレンデ下部との標高差が300m以内のスキー場だけ表示しています(圧雪・人工降雪は含みません)</li>
+<li><span class='tag'>パウダー期待</span> 上部の新雪が10cm以上で、上部の最高気温が-2℃以下</li>
+<li><span class='tag warn'>雨</span> 雨の予報(雪質が重くなりやすい)</li>
+<li>上部・下部の標高: OpenStreetMap のリフトの位置と地形の標高から求めた値(一部は手作業で補正)。概算です</li>
+<li>スキー場の一覧・標高差: Wikipedia、Wikidata。リフトの位置: © OpenStreetMap contributors</li></ul></div>
 """
 
 
@@ -435,14 +515,14 @@ def surf_table(s):
     for d in s["days"]:
         for i, sl in enumerate(d["slots"]):
             mark, cls = RATE[sl["score"]]
-            date_cell = (f"<td rowspan='{len(d['slots'])}'>{day_label(d['date'])}</td>" if i == 0 else "")
+            date_cell = (f"<td rowspan='{len(d['slots'])}' class='dt'>{day_label(d['date'])}</td>" if i == 0 else "")
             rows += (f"<tr>{date_cell}<td>{sl['slot']}</td><td class='{cls}'><b>{mark}</b></td>"
                      f"<td>{sl['height']:.1f}m <small>{_size(sl['height'])}</small></td><td>{sl['period']:.0f}秒</td>"
                      f"<td>{dir_name(sl['wave_dir'])}</td>"
                      f"<td>{dir_name(sl['wind_dir'])} {sl['wind']:.0f}m/s <small>{sl['kind']}</small></td>"
                      f"<td>{wx(sl['code'])[0]}</td></tr>")
     return ("<div class='scroll'><table class='sub'>"
-            "<tr><th>日付</th><th></th><th>判定</th><th>波の高さ</th><th>周期</th><th>波の向き</th>"
+            "<tr><th class='dt'>日付</th><th></th><th>判定</th><th>波の高さ</th><th>周期</th><th>波の向き</th>"
             f"<th>風</th><th>天気</th></tr>{rows}</table></div>")
 
 
@@ -554,7 +634,7 @@ def index_page(mts, ski, spots):
                         for d in s["days"] if d["date"] in we)
         until = sum(d["snow"] for d in s["days"] if d["date"] <= upto)
         fav_rows += expand_row(f"<b>{e(n)}</b><br><small class='muted'>週末まで {until:.0f}cm</small>",
-                               cells + f"<td>{maplink(n + ' 第1駐車場', '駐車場')}</td>", ski_detail(s, with_map=False), 4)
+                               cells + f"<td>{maplink(n + ' 第1駐車場', '駐車場')}</td>", ski_detail(s, with_map=False, simple=True), 4)
     fav = (f"<div class='scroll'><table class='sub'><tr><th></th>"
            + "".join(f"<th>{day_label(d)}</th>" for d in we)
            + f"<th></th></tr>{fav_rows}</table></div>")
@@ -621,6 +701,10 @@ tr.detail .mapbtn{margin:0 0 8px}
 .xbtn{all:unset;cursor:pointer;display:block}.xbtn b{color:var(--accent);text-decoration:underline;
 text-decoration-thickness:1px;text-underline-offset:3px}.xbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .xbtn[aria-expanded='true'] b::after{content:' ▲';font-size:10px}.xbtn[aria-expanded='false'] b::after{content:' ▼';font-size:10px}
+.sub .dt,.sub td.l,.grid .nm{position:sticky;left:0;z-index:1;background:var(--card)}
+tr.detail .sub .dt{background:var(--hl)}
+tr.detail td>*{position:sticky;left:8px;max-width:calc(100vw - 72px)}.sub .dt{box-shadow:1px 0 0 var(--line)}
+.obs{margin:6px 0}
 .comment{background:var(--hl);border-radius:8px;padding:8px 12px;margin:0 0 8px;font-size:14px}
 .sub.mini td,.sub.mini th{text-align:center;padding:4px 6px}.sub.mini td b{display:block}
 .sub.mini td.l{text-align:left}
@@ -683,7 +767,7 @@ def layout(file, title, body, updated):
 <header><nav>{nav}</nav></header>
 <main>{body}<p class='muted'>更新: {updated:%Y年%-m月%-d日 %H:%M}(3時間ごとに自動更新)</p></main>
 <footer>予報は目安です。登山・海に出る前に、気象庁の警報・注意報と現地の情報を必ず確認してください。<br>
-気象データ: <a href="https://open-meteo.com/">Open-Meteo.com</a>(CC BY 4.0) ·
+気象データ: <a href="https://open-meteo.com/">Open-Meteo.com</a>(CC BY 4.0) · 積雪の観測: 気象庁(アメダス) · リフトの位置: © OpenStreetMap contributors ·
 山の一覧・座標: Wikipedia「日本百名山」、Wikidata、ヤマレコ「関西百名山」</footer>
 <script>{JS}</script></body></html>"""
 
