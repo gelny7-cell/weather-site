@@ -292,7 +292,7 @@ def ski_page(ski):
                 f"<span>{e(s['name'])}</span><small>{e(s['pref'])} · 7日間 {total:.0f}cm</small>"
                 f"</button></th>{cells}</tr>"
                 f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>"
-                f"{maplink(s['name'] + ' 第1駐車場', '第1駐車場の地図')} "
+                f"{maplink(s['name'] + ' 第1駐車場', '駐車場の地図')} "
                 f"<p class='muted'>予報の標高 {s['elev']:,}m · 標高差 {s['drop']:,}m</p><div class='scroll'><table class='sub'>"
                 "<tr><th>日付</th><th>天気</th><th>新雪</th><th>積雪(朝)</th><th>気温</th>"
                 f"<th>0℃の高さ(日中)</th><th>最大瞬間風速</th></tr>{detail}</table></div></td></tr></tbody>")
@@ -396,6 +396,49 @@ def surf_page(spots):
 """
 
 
+def _size(h):
+    return ("フラット" if h < 0.3 else "ひざ〜もも" if h < 0.6 else "こし〜むね" if h < 1.2
+            else "かた〜あたま" if h < 2.0 else "頭オーバー")
+
+
+def _swell(p):
+    return ("長い周期の良いうねり" if p >= 10 else "まとまりのあるうねり" if p >= 7
+            else "短めの周期の風波まじり" if p >= 5 else "まとまりのない風波")
+
+
+def surf_comments(spots, we):
+    """週末の予報から、海側ごとに2〜3文のコメントを作る(数値からの自動生成)"""
+    out = []
+    for coast in ("太平洋側", "日本海側"):
+        group = [s for s in spots if s.get("coast") == coast]
+        slots = [(s, d["date"], sl) for s in group for d in s["days"] if d["date"] in we for sl in d["slots"]]
+        if not slots:
+            continue
+        s, dt, sl = max(slots, key=lambda x: (x[2]["score"], -abs(x[2]["height"] - 1.2)))
+        dd = date.fromisoformat(dt)
+        when = f"{WEEK[dd.weekday()]}曜の{sl['slot']}"
+        if sl["score"] == 0:
+            text = (f"週末は{'波がほとんどなく' if sl['height'] < 0.3 else '海が荒れて'}、"
+                    "サーフィンには厳しそうです。")
+        else:
+            text = (f"{when}の{s['name']}が{RATE[sl['score']][0]}。{_size(sl['height'])}({sl['height']:.1f}m)の"
+                    f"{dir_name(sl['wave_dir'])}からの{_swell(sl['period'])}(周期{sl['period']:.0f}秒)に、"
+                    f"{dir_name(sl['wind_dir'])}の風{sl['wind']:.0f}m/s({sl['kind']})の予報です。")
+        # 土日の波の高さの変化
+        if len(we) == 2:
+            avg = [sum(x[2]["height"] for x in slots if x[1] == d) / max(1, sum(1 for x in slots if x[1] == d))
+                   for d in we]
+            diff = avg[1] - avg[0]
+            text += ("日曜にかけて波は上がり調子。" if diff >= 0.3 else
+                     "日曜にかけて波は下がり気味。" if diff <= -0.3 else "土日とも波の大きさはほぼ同じです。")
+        if any(x[2]["kind"] == "オンショア" and x[2]["wind"] >= 5 for x in slots):
+            text += "オンショアが強まる時間帯は面が乱れそうです。"
+        if any(x[2]["height"] > 2.0 for x in slots):
+            text += "大きめの時間帯もあるので、無理は禁物です。"
+        out.append((coast, text))
+    return out
+
+
 # ---------------------------------------------------------------- トップ
 def index_page(mts, ski, spots):
     days = [d["date"] for d in mts[0]["days"]]
@@ -428,7 +471,7 @@ def index_page(mts, ski, spots):
     ski_list = "".join(
         f"<li><b>{e(s['name'])}</b> <small>{e(s['pref'])}</small> "
         f"週末までの降雪 {sum(d['snow'] for d in s['days'] if d['date'] <= upto):.0f}cm "
-        f"{maplink(s['name'] + ' 第1駐車場', '第1駐車場')}</li>"
+        f"{maplink(s['name'] + ' 第1駐車場', '駐車場')}</li>"
         for s in snow[:5])
     # よく行くスキー場(data/favorites.json)は常に表示する
     favs = json.loads((ROOT / "data/favorites.json").read_text(encoding="utf-8")).get("ski", [])
@@ -442,22 +485,29 @@ def index_page(mts, ski, spots):
                         for d in s["days"] if d["date"] in we)
         until = sum(d["snow"] for d in s["days"] if d["date"] <= upto)
         fav_rows += (f"<tr><td class='l'><b>{e(n)}</b><br><small class='muted'>週末まで {until:.0f}cm</small></td>"
-                     f"{cells}<td>{maplink(n + ' 第1駐車場', '第1駐車場')}</td></tr>")
+                     f"{cells}<td>{maplink(n + ' 第1駐車場', '駐車場')}</td></tr>")
     fav = (f"<h3>よく行くスキー場</h3><div class='scroll'><table class='sub'><tr><th></th>"
            + "".join(f"<th>{day_label(d)}</th>" for d in we)
            + f"<th></th></tr>{fav_rows}</table></div><h3 style='margin-top:14px'>週末までの降雪が多い順</h3>"
            if fav_rows else "<p class='muted'>週末までの降雪が多い順</p>")
-    # サーフ: 週末で一番良い時間帯
-    surf_list = ""
+    # サーフ: 予報コメント + 週末4枠(土朝・土昼・日朝・日昼)の判定表
+    surf_comment = "".join(f"<p class='comment'><b>{c}</b> {e(t)}</p>"
+                           for c, t in surf_comments(spots, we))
+    heads = "".join(f"<th>{day_label(d)}<br><small>{sl}</small></th>" for d in we for sl in ("朝", "昼"))
+    surf_rows = ""
     for s in spots:
-        slots = [(d["date"], sl) for d in s["days"] if d["date"] in we for sl in d["slots"]]
-        if not slots:
-            continue
-        dt, sl = max(slots, key=lambda x: (x[1]["score"], -abs(x[1]["height"] - 1.2)))
-        dd = date.fromisoformat(dt)
-        surf_list += (f"<li><b>{e(s['name'])}</b> <span class='{RATE[sl['score']][1]}'>"
-                      f"{RATE[sl['score']][0]}</span> {dd.month}/{dd.day}{sl['slot']} "
-                      f"{sl['height']:.1f}m・{sl['period']:.0f}秒・{sl['kind']} {maplink(s['parking'], '駐車場')}</li>")
+        cells = ""
+        for d in s["days"]:
+            if d["date"] not in we:
+                continue
+            for sl in d["slots"]:
+                mark, cls = RATE[sl["score"]]
+                cells += (f"<td class='{cls}' title='{sl['height']:.1f}m {sl['period']:.0f}秒 {sl['kind']}'>"
+                          f"<b>{mark}</b><small class='muted'>{sl['height']:.1f}m</small></td>")
+        surf_rows += (f"<tr><td class='l'><b>{e(s['name'])}</b></td>{cells}"
+                      f"<td>{maplink(s['parking'], '駐車場')}</td></tr>")
+    surf_list = (f"{surf_comment}<div class='scroll'><table class='sub mini'><tr><th></th>{heads}<th></th></tr>"
+                 f"{surf_rows}</table></div>")
     return f"""
 <h1>今週末の山と雪と波</h1>
 <p class='lead'>{label} の予報から、よさそうな場所をまとめました。</p>
@@ -467,7 +517,7 @@ def index_page(mts, ski, spots):
 <div class='cards2'>
 <section class='card'><h2><a href='snow.html'>🏂 スノーボード</a></h2>{fav}<ul>{ski_list}</ul>
 <p><a href='snow.html'>スキー場の詳細 →</a></p></section>
-<section class='card'><h2><a href='surf.html'>🏄 サーフィン</a></h2><p class='muted'>週末で一番よさそうな時間帯</p><ul>{surf_list}</ul>
+<section class='card'><h2><a href='surf.html'>🏄 サーフィン</a></h2>{surf_list}
 <p><a href='surf.html'>波の詳細 →</a></p></section>
 </div>
 """
@@ -500,6 +550,9 @@ a{color:var(--accent)}
 background:var(--card);color:var(--accent);text-decoration:none;white-space:nowrap}
 .mapbtn:hover{border-color:var(--accent)}
 tr.detail .mapbtn{margin:0 0 8px}
+.comment{background:var(--hl);border-radius:8px;padding:8px 12px;margin:0 0 8px;font-size:14px}
+.sub.mini td,.sub.mini th{text-align:center;padding:4px 6px}.sub.mini td b{display:block}
+.sub.mini td.l{text-align:left}
 .scroll{overflow-x:auto}
 table{border-collapse:collapse;font-variant-numeric:tabular-nums}
 .sub{width:100%}.sub th,.sub td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}

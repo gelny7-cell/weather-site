@@ -7,7 +7,8 @@
   "sea_lat": 34.31,
   "sea_lon": 136.9,
   "facing": 120,
-  "parking": "国府の浜 駐車場"
+  "parking": "国府の浜 駐車場",
+  "coast": "太平洋側"
  },
  {
   "name": "難波江",
@@ -17,7 +18,8 @@
   "sea_lat": 35.53,
   "sea_lon": 135.465,
   "facing": 0,
-  "parking": "難波江海水浴場 駐車場"
+  "parking": "難波江海水浴場 駐車場",
+  "coast": "日本海側"
  },
  {
   "name": "八丁浜",
@@ -27,7 +29,8 @@
   "sea_lat": 35.71,
   "sea_lon": 135.03,
   "facing": 340,
-  "parking": "八丁浜 駐車場"
+  "parking": "八丁浜 駐車場",
+  "coast": "日本海側"
  },
  {
   "name": "小松海岸",
@@ -37,6 +40,7 @@
   "sea_lat": 34.11,
   "sea_lon": 134.65,
   "facing": 100,
-  "parking": "小松海岸 駐車場 徳島"
+  "parking": "小松海岸 駐車場 徳島",
+  "coast": "太平洋側"
  }
 ]
