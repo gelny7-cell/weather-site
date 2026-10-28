@@ -12,7 +12,8 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).parent
 OUT = ROOT / "public"
 JST = ZoneInfo("Asia/Tokyo")
-DAYS = 7
+DAYS = 16          # 取得する日数(APIの上限)。値のない日は表示しない
+TOP_DAYS = 7       # トップページに出す日数
 WEEK = "月火水木金土日"
 e = html.escape
 
@@ -36,21 +37,41 @@ def forecast(points, **params):
     out = []
     for i in range(0, len(points), 50):
         chunk = points[i:i + 50]
-        out += fetch("https://api.open-meteo.com/v1/forecast", {
-            "latitude": ",".join(str(p[0]) for p in chunk),
-            "longitude": ",".join(str(p[1]) for p in chunk),
-            "elevation": ",".join(str(p[2]) for p in chunk),
-            "timezone": "Asia/Tokyo", "wind_speed_unit": "ms", "forecast_days": DAYS, **params})
+        try:
+            out += fetch("https://api.open-meteo.com/v1/forecast", {
+                "latitude": ",".join(str(p[0]) for p in chunk),
+                "longitude": ",".join(str(p[1]) for p in chunk),
+                "elevation": ",".join(str(p[2]) for p in chunk),
+                "timezone": "Asia/Tokyo", "wind_speed_unit": "ms", "forecast_days": DAYS, **params})
+        except Exception as ex:        # 取得できなかった地点は表示しない
+            print(f"天気の取得に失敗({len(chunk)}地点): {type(ex).__name__}")
+            out += [None] * len(chunk)
     return out
 
 
 def marine(points, **params):
     out = []
     for lat, lon in points:
-        out += fetch("https://marine-api.open-meteo.com/v1/marine", {
-            "latitude": lat, "longitude": lon, "timezone": "Asia/Tokyo",
-            "forecast_days": DAYS, **params})
+        try:
+            out += fetch("https://marine-api.open-meteo.com/v1/marine", {
+                "latitude": lat, "longitude": lon, "timezone": "Asia/Tokyo",
+                "forecast_days": DAYS, **params})
+        except Exception as ex:        # 取得できなかった地点は表示しない
+            print(f"波の取得に失敗({lat}, {lon}): {type(ex).__name__}")
+            out.append(None)
     return out
+
+
+def align(items, what):
+    """取得できなかった地点を除き、全地点で値のそろった日だけを残す(表に空欄を作らない)。
+    1地点も取得できなければ例外にして、前回公開したサイトをそのまま残す"""
+    items = [x for x in items if x.get("days")]
+    if not items:
+        raise RuntimeError(f"{what}の予報を1地点も取得できませんでした")
+    common = set.intersection(*({d["date"] for d in x["days"]} for x in items))
+    for x in items:
+        x["days"] = [d for d in x["days"] if d["date"] in common]
+    return items
 
 
 def hours_of(h, key, day, hours):
@@ -143,16 +164,23 @@ def build_mountains():
         "wind_speed_850hPa", "wind_speed_700hPa", "freezing_level_height"]))
     day_hours = range(6, 16)          # 行動する時間帯(6〜15時)
     for m, r in zip(mts, res):
+        m["days"] = []
+        if r is None:
+            continue
         h = r["hourly"]
         level = "wind_speed_700hPa" if m["elev"] >= 2200 else "wind_speed_850hPa"
-        m["days"] = []
         for d in sorted({t[:10] for t in h["time"]}):
-            rain = sum(hours_of(h, "precipitation", d, day_hours))
-            wind = max(hours_of(h, level, d, day_hours) or [0])
+            rains = hours_of(h, "precipitation", d, day_hours)
+            winds = hours_of(h, level, d, day_hours)
             temps = hours_of(h, "temperature_2m", d, day_hours)
             codes = hours_of(h, "weather_code", d, day_hours)
-            fl = min(hours_of(h, "freezing_level_height", d, day_hours) or [None]) if \
-                hours_of(h, "freezing_level_height", d, day_hours) else None
+            if not (rains and winds and temps and codes):
+                continue                # 値のない日は表示しない
+            rain, wind = sum(rains), max(winds)
+            fls = hours_of(h, "freezing_level_height", d, day_hours)
+            if not fls:
+                continue
+            fl = min(fls)
             thunder = any(c >= 95 for c in codes)
             if thunder or rain >= 10 or wind >= 20:
                 score = 0
@@ -167,11 +195,11 @@ def build_mountains():
                               "tmax": max(temps) if temps else None,
                               "code": max(codes) if codes else None, "fl": fl,
                               "thunder": thunder})
-    return mts
+    return align(mts, "登山")
 
 
 def mt_detail(m, with_map=True):
-    """山の7日間の詳細(登山口の地図ボタン付き)"""
+    """山の日ごとの詳細(登山口の地図ボタン付き)"""
     rows = "".join(
         f"<tr><td>{day_label(d['date'])}</td><td>{wx(d['code'])[0]} {wx(d['code'])[1]}</td>"
         f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td><td>{d['wind']:.0f}m/s</td>"
@@ -210,7 +238,7 @@ def mountains_page(mts):
     return f"""
 <h1>日本百名山＋関西百名山 登山天気</h1>
 <p class='lead'>日本百名山と<span class='tag'>関西百名山</span>(山と溪谷社『関西百名山』)の予報です。両方に入る伊吹山・大台ヶ原山・大峰山は1つにまとめています。
-山頂の標高での予報(6〜15時)から、登山に向いた天気かを判定しています。山名を押すと7日間の詳細が開きます。</p>
+山頂の標高での予報(6〜15時)から、登山に向いた天気かを判定しています。山名を押すと日ごとの詳細が開きます。</p>
 <div class='filters'><input id='q' type='search' placeholder='山名で絞り込み(例: 槍、ふじ)' aria-label='山名で絞り込み'>
 <div class='chips'>{chips}</div></div>
 <div class='scroll'><table class='grid' id='mt'><thead><tr><th class='nm'>山名</th>{head}</tr></thead>{rows}</table></div>
@@ -238,19 +266,30 @@ def dem_elevation(points):
 def build_ski():
     """予報はスキー場の座標の地形の標高(elev があればその標高=ゲレンデ中腹)で取得する"""
     ski = json.loads((ROOT / "data/ski.json").read_text(encoding="utf-8"))
-    dem = dem_elevation([(s["lat"], s["lon"]) for s in ski])
+    try:
+        dem = dem_elevation([(s["lat"], s["lon"]) for s in ski])
+    except Exception as ex:            # 標高が取れなければ、標高を登録済みのスキー場だけ表示する
+        print(f"標高の取得に失敗: {type(ex).__name__}")
+        dem = [None] * len(ski)
     for s, z in zip(ski, dem):
-        s["elev"] = s.get("elev") or round(z)
+        s["elev"] = s.get("elev") or (round(z) if z is not None else None)
+    ski = [s for s in ski if s["elev"] is not None]
     res = forecast([(s["lat"], s["lon"], s["elev"]) for s in ski],
                    daily=",".join(["weather_code", "temperature_2m_max", "temperature_2m_min",
                                    "snowfall_sum", "rain_sum", "wind_gusts_10m_max"]),
                    hourly="snow_depth,freezing_level_height")
     for s, r in zip(ski, res):
         s["days"] = []
+        if r is None:
+            continue
         dd, h = r["daily"], r["hourly"]
         for i, d in enumerate(dd["time"]):
             depth = hours_of(h, "snow_depth", d, [9])
             fl = hours_of(h, "freezing_level_height", d, range(6, 18))
+            keys = ["weather_code", "snowfall_sum", "temperature_2m_min", "temperature_2m_max",
+                    "rain_sum", "wind_gusts_10m_max"]
+            if not depth or not fl or any(dd[k][i] is None for k in keys):
+                continue                # 値のない日は表示しない
             s["days"].append({
                 "date": d, "code": dd["weather_code"][i],
                 "snow": dd["snowfall_sum"][i] or 0,
@@ -260,7 +299,7 @@ def build_ski():
                 "fl": min(fl) if fl else None,
                 "gust": dd["wind_gusts_10m_max"][i] or 0,
             })
-    return ski
+    return align(ski, "スノーボード")
 
 
 SKI_REGIONS = {
@@ -278,7 +317,7 @@ PREF_SKI_REGION = {p: r for r, ps in SKI_REGIONS.items() for p in ps}
 
 
 def ski_detail(s, with_map=True):
-    """スキー場の7日間の詳細(駐車場の地図ボタン付き)"""
+    """スキー場の日ごとの詳細(駐車場の地図ボタン付き)"""
     rows = ""
     for d in s["days"]:
         icon, label = wx(d["code"])
@@ -316,7 +355,7 @@ def ski_page(ski):
             rows += (
                 f"<tbody class='mt' data-region='{r}' data-name='{e(s['name'] + s.get('yomi', ''))}'>"
                 f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
-                f"<span>{e(s['name'])}</span><small>{e(s['pref'])} · 7日間 {total:.0f}cm</small>"
+                f"<span>{e(s['name'])}</span><small>{e(s['pref'])} · {len(s['days'])}日間 {total:.0f}cm</small>"
                 f"</button></th>{cells}</tr>"
                 f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{ski_detail(s)}</td></tr></tbody>")
     chips = "<button class='chip on' data-r=''>すべて</button>" + "".join(
@@ -346,8 +385,10 @@ def build_surf():
     winds = forecast([(s["lat"], s["lon"], 0) for s in spots],
                      hourly="wind_speed_10m,wind_direction_10m,weather_code")
     for s, w, f in zip(spots, waves, winds):
-        s["grid"] = (w["latitude"], w["longitude"])
         s["days"] = []
+        if w is None or f is None:
+            continue
+        s["grid"] = (w["latitude"], w["longitude"])
         for d in sorted({t[:10] for t in w["hourly"]["time"]}):
             slots = []
             for name, hrs in (("朝", range(6, 12)), ("昼", range(12, 18))):
@@ -356,7 +397,9 @@ def build_surf():
                 wdir = hours_of(w["hourly"], "wave_direction", d, hrs)
                 ws = hours_of(f["hourly"], "wind_speed_10m", d, hrs)
                 wd = hours_of(f["hourly"], "wind_direction_10m", d, hrs)
-                if not hgt or not ws:
+                codes = hours_of(f["hourly"], "weather_code", d, hrs)
+                # 時間帯の半分以上の時刻に値がなければ、その時間帯は表示しない
+                if min(len(hgt), len(per), len(wdir), len(ws), len(wd), len(codes)) < len(hrs) / 2:
                     continue
                 h_, p_, w_ = sum(hgt) / len(hgt), sum(per) / len(per), sum(ws) / len(ws)
                 wdeg = mean_dir(wd, ws)
@@ -380,13 +423,14 @@ def build_surf():
                 slots.append({"slot": name, "height": h_, "period": p_,
                               "wave_dir": mean_dir(wdir), "wind": w_, "wind_dir": wdeg,
                               "kind": kind, "score": score,
-                              "code": max(hours_of(f["hourly"], "weather_code", d, hrs) or [None])})
-            s["days"].append({"date": d, "slots": slots})
-    return spots
+                              "code": max(codes)})
+            if len(slots) == 2:         # 朝・昼の両方がそろった日だけ表示する
+                s["days"].append({"date": d, "slots": slots})
+    return align(spots, "サーフィン")
 
 
 def surf_table(s):
-    """サーフポイントの7日間の朝・昼の表"""
+    """サーフポイントの朝・昼の表"""
     rows = ""
     for d in s["days"]:
         for i, sl in enumerate(d["slots"]):
@@ -465,7 +509,7 @@ def surf_comments(spots, we):
 
 
 def expand_row(name_html, cells_html, detail_html, ncols):
-    """名前を押すと、下に7日間の詳細が開く行(トップページ用)"""
+    """名前を押すと、下に日ごとの詳細が開く行(トップページ用)"""
     return (f"<tbody><tr><td class='l'><button type='button' class='xbtn' aria-expanded='false'>"
             f"{name_html}</button></td>{cells_html}</tr>"
             f"<tr class='detail' hidden><td colspan='{ncols}'>{detail_html}</td></tr></tbody>")
@@ -648,7 +692,9 @@ def main():
     updated = datetime.now(JST)
     mts, ski, spots = build_mountains(), build_ski(), build_surf()
     OUT.mkdir(exist_ok=True)
-    bodies = {"index.html": ("今週末", index_page(mts, ski, spots)),
+    def first(items):                  # トップページは最初の TOP_DAYS 日だけ
+        return [{**x, "days": x["days"][:TOP_DAYS]} for x in items]
+    bodies = {"index.html": ("今週末", index_page(first(mts), first(ski), first(spots))),
               "mountains.html": ("登山天気", mountains_page(mts)),
               "snow.html": ("スノーボード", ski_page(ski)),
               "surf.html": ("サーフィン", surf_page(spots))}
