@@ -107,6 +107,13 @@ def mean_dir(degs, weights=None):
 RATE = {3: ("◎", "r3"), 2: ("○", "r2"), 1: ("△", "r1"), 0: ("×", "r0")}
 
 
+def maplink(query, label):
+    """Google マップの検索リンク(場所名で検索する。新しいタブで開く)"""
+    url = "https://www.google.com/maps/search/?api=1&query=" + urllib.parse.quote(query)
+    return (f"<a class='mapbtn' href='{e(url)}' target='_blank' rel='noopener' "
+            f"title='{e(query)}'>📍 {e(label)}</a>")
+
+
 def day_label(d):
     dt = date.fromisoformat(d)
     cls = "sat" if dt.weekday() == 5 else ("sun" if dt.weekday() == 6 else "")
@@ -179,7 +186,8 @@ def mountains_page(mts):
             + (" <span class='tag'>関西の名山</span>" if m.get("list") == "関西" else "")
             + f"<small>{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>"
             f"</button></th>{cells}</tr>"
-            f"<tr class='detail' hidden><td colspan='{len(days) + 1}'><div class='scroll'><table class='sub'>"
+            f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>"
+            f"{maplink(m['trailhead'], '登山口の地図: ' + m['trailhead'])}<div class='scroll'><table class='sub'>"
             "<tr><th>日付</th><th>天気(6〜15時)</th><th>山頂付近の気温</th><th>最大風速</th>"
             f"<th>降水量</th><th>0℃の高さ</th><th>判定</th></tr>{detail}</table></div></td></tr></tbody>")
     chips = "<button class='chip on' data-r=''>すべて</button>" + "".join(
@@ -284,6 +292,7 @@ def ski_page(ski):
                 f"<span>{e(s['name'])}</span><small>{e(s['pref'])} · 7日間 {total:.0f}cm</small>"
                 f"</button></th>{cells}</tr>"
                 f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>"
+                f"{maplink(s['name'] + ' 第1駐車場', '第1駐車場の地図')} "
                 f"<p class='muted'>予報の標高 {s['elev']:,}m · 標高差 {s['drop']:,}m</p><div class='scroll'><table class='sub'>"
                 "<tr><th>日付</th><th>天気</th><th>新雪</th><th>積雪(朝)</th><th>気温</th>"
                 f"<th>0℃の高さ(日中)</th><th>最大瞬間風速</th></tr>{detail}</table></div></td></tr></tbody>")
@@ -370,7 +379,8 @@ def surf_page(spots):
                          f"<td>{dir_name(sl['wind_dir'])} {sl['wind']:.0f}m/s <small>{sl['kind']}</small></td>"
                          f"<td>{wx(sl['code'])[0]}</td></tr>")
         cards += (f"<section class='card'><h3>{e(s['name'])} <small>{e(s['pref'])} · "
-                  f"浜の向き {dir_name(s['facing'])}</small></h3><div class='scroll'><table class='sub'>"
+                  f"浜の向き {dir_name(s['facing'])}</small> {maplink(s['parking'], '駐車場の地図')}</h3>"
+                  "<div class='scroll'><table class='sub'>"
                   "<tr><th>日付</th><th></th><th>判定</th><th>波の高さ</th><th>周期</th><th>波の向き</th>"
                   f"<th>風</th><th>天気</th></tr>{rows}</table></div>"
                   f"<p class='muted'>波は沖合({s['grid'][0]:.2f}, {s['grid'][1]:.2f})の予報</p></section>")
@@ -396,18 +406,47 @@ def index_page(mts, ski, spots):
     best = sorted(mts, key=lambda m: (-sum(d["score"] for d in m["days"] if d["date"] in we),
                                       max(d["wind"] for d in m["days"] if d["date"] in we)))
     good = [m for m in best if all(d["score"] >= 2 for d in m["days"] if d["date"] in we)]
-    mt_list = "".join(
-        f"<li><b>{e(m['name'])}</b> <small>{m['elev']:,}m · {e(m['prefs'][0])}</small> "
-        + " ".join(f"<span class='{RATE[d['score']][1]}'>{RATE[d['score']][0]}</span>"
-                   for d in m["days"] if d["date"] in we) + "</li>"
-        for m in good[:10]) or "<li>週末に条件の良い山は見当たりません</li>"
+    mt_rows = ""
+    for m in good[:15]:
+        cells = ""
+        for d in m["days"]:
+            if d["date"] in we:
+                icon, _ = wx(d["code"])
+                cells += (f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b> {icon}"
+                          f"<small class='muted'> {round(d['tmin'])}〜{round(d['tmax'])}℃ · "
+                          f"風{d['wind']:.0f}m/s</small></td>")
+        tag = " <span class='tag'>関西の名山</span>" if m.get("list") == "関西" else ""
+        mt_rows += (f"<tr><td class='l'><b>{e(m['name'])}</b>{tag}<br><small class='muted'>"
+                    f"{m['elev']:,}m · {e('・'.join(m['prefs']))}</small></td>{cells}"
+                    f"<td>{maplink(m['trailhead'], '登山口')}</td></tr>")
+    we_head = "".join(f"<th>{day_label(d)}</th>" for d in we)
+    mt_list = (f"<div class='scroll'><table class='sub'><tr><th>山</th>{we_head}<th>地図</th></tr>"
+               f"{mt_rows}</table></div>" if mt_rows else "<p>週末に条件の良い山は見当たりません</p>")
     # スノー: 週末までの降雪が多い順
     upto = we[-1]
     snow = sorted(ski, key=lambda s: -sum(d["snow"] for d in s["days"] if d["date"] <= upto))
     ski_list = "".join(
         f"<li><b>{e(s['name'])}</b> <small>{e(s['pref'])}</small> "
-        f"週末までの降雪 {sum(d['snow'] for d in s['days'] if d['date'] <= upto):.0f}cm</li>"
+        f"週末までの降雪 {sum(d['snow'] for d in s['days'] if d['date'] <= upto):.0f}cm "
+        f"{maplink(s['name'] + ' 第1駐車場', '第1駐車場')}</li>"
         for s in snow[:5])
+    # よく行くスキー場(data/favorites.json)は常に表示する
+    favs = json.loads((ROOT / "data/favorites.json").read_text(encoding="utf-8")).get("ski", [])
+    by_name = {s["name"]: s for s in ski}
+    fav_rows = ""
+    for n in favs:
+        s = by_name.get(n)
+        if not s:
+            continue
+        cells = "".join(f"<td>{wx(d['code'])[0]} {d['snow']:.0f}cm</td>"
+                        for d in s["days"] if d["date"] in we)
+        until = sum(d["snow"] for d in s["days"] if d["date"] <= upto)
+        fav_rows += (f"<tr><td class='l'><b>{e(n)}</b><br><small class='muted'>週末まで {until:.0f}cm</small></td>"
+                     f"{cells}<td>{maplink(n + ' 第1駐車場', '第1駐車場')}</td></tr>")
+    fav = (f"<h3>よく行くスキー場</h3><div class='scroll'><table class='sub'><tr><th></th>"
+           + "".join(f"<th>{day_label(d)}</th>" for d in we)
+           + f"<th></th></tr>{fav_rows}</table></div><h3 style='margin-top:14px'>週末までの降雪が多い順</h3>"
+           if fav_rows else "<p class='muted'>週末までの降雪が多い順</p>")
     # サーフ: 週末で一番良い時間帯
     surf_list = ""
     for s in spots:
@@ -418,14 +457,15 @@ def index_page(mts, ski, spots):
         dd = date.fromisoformat(dt)
         surf_list += (f"<li><b>{e(s['name'])}</b> <span class='{RATE[sl['score']][1]}'>"
                       f"{RATE[sl['score']][0]}</span> {dd.month}/{dd.day}{sl['slot']} "
-                      f"{sl['height']:.1f}m・{sl['period']:.0f}秒・{sl['kind']}</li>")
+                      f"{sl['height']:.1f}m・{sl['period']:.0f}秒・{sl['kind']} {maplink(s['parking'], '駐車場')}</li>")
     return f"""
 <h1>今週末の山と雪と波</h1>
 <p class='lead'>{label} の予報から、よさそうな場所をまとめました。</p>
-<div class='cards3'>
-<section class='card'><h2><a href='mountains.html'>⛰️ 登山</a></h2><p class='muted'>週末の両日が○以上の山(風の弱い順)</p><ul>{mt_list}</ul>
+<section class='card big'><h2><a href='mountains.html'>⛰️ 登山</a></h2>
+<p class='muted'>週末の両日が○以上の山(上位15座、判定が良く風の弱い順)。気温・風は山頂付近の6〜15時</p>{mt_list}
 <p><a href='mountains.html'>百名山＋関西の名山をすべて見る →</a></p></section>
-<section class='card'><h2><a href='snow.html'>🏂 スノーボード</a></h2><p class='muted'>週末までの降雪が多い順</p><ul>{ski_list}</ul>
+<div class='cards2'>
+<section class='card'><h2><a href='snow.html'>🏂 スノーボード</a></h2>{fav}<ul>{ski_list}</ul>
 <p><a href='snow.html'>スキー場の詳細 →</a></p></section>
 <section class='card'><h2><a href='surf.html'>🏄 サーフィン</a></h2><p class='muted'>週末で一番よさそうな時間帯</p><ul>{surf_list}</ul>
 <p><a href='surf.html'>波の詳細 →</a></p></section>
@@ -452,9 +492,14 @@ h3 small,li small{color:var(--muted);font-weight:400}
 .lead{color:var(--sub);margin:0 0 16px}.muted{color:var(--muted);font-size:13px}
 a{color:var(--accent)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:12px 0}
-.cards3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
-.cards3 .card{margin:0}.cards3 h2{margin-top:0}.cards3 h2 a{text-decoration:none;color:var(--text)}
-.cards3 ul{padding-left:18px;margin:6px 0}
+.cards2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.cards2 .card{margin:0}.card h2{margin-top:0}.card h2 a{text-decoration:none;color:var(--text)}
+.card ul{padding-left:18px;margin:6px 0}.card.big{margin:0 0 12px}
+.sub td.l{white-space:normal;min-width:120px}
+.mapbtn{display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;border:1px solid var(--line);
+background:var(--card);color:var(--accent);text-decoration:none;white-space:nowrap}
+.mapbtn:hover{border-color:var(--accent)}
+tr.detail .mapbtn{margin:0 0 8px}
 .scroll{overflow-x:auto}
 table{border-collapse:collapse;font-variant-numeric:tabular-nums}
 .sub{width:100%}.sub th,.sub td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
