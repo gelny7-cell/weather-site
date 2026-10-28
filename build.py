@@ -107,6 +107,16 @@ def mean_dir(degs, weights=None):
 RATE = {3: ("◎", "r3"), 2: ("○", "r2"), 1: ("△", "r1"), 0: ("×", "r0")}
 
 
+def tags(m):
+    """日本百名山以外の一覧に入っている山に印を付ける"""
+    return "".join(f" <span class='tag'>{t}</span>" for t in m.get("lists", []) if t != "百名山")
+
+
+def trailhead(m):
+    """登山口の検索語。登録がなければ「山名 登山口 都道府県」で検索する(同名の山と区別するため)"""
+    return m.get("trailhead") or f"{m['name']} 登山口 {m['prefs'][0]}"
+
+
 def maplink(query, label):
     """Google マップの検索リンク(場所名で検索する。新しいタブで開く)"""
     url = "https://www.google.com/maps/search/?api=1&query=" + urllib.parse.quote(query)
@@ -183,18 +193,18 @@ def mountains_page(mts):
             f"<tbody class='mt' data-region='{e(m['region'])}' data-name='{e(m['name'] + m['yomi'])}'>"
             f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
             f"<span>{e(m['name'])}</span>"
-            + (" <span class='tag'>関西の名山</span>" if m.get("list") == "関西" else "")
+            + tags(m)
             + f"<small>{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>"
             f"</button></th>{cells}</tr>"
             f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>"
-            f"{maplink(m['trailhead'], '登山口の地図: ' + m['trailhead'])}<div class='scroll'><table class='sub'>"
+            f"{maplink(trailhead(m), '登山口の地図: ' + trailhead(m))}<div class='scroll'><table class='sub'>"
             "<tr><th>日付</th><th>天気(6〜15時)</th><th>山頂付近の気温</th><th>最大風速</th>"
             f"<th>降水量</th><th>0℃の高さ</th><th>判定</th></tr>{detail}</table></div></td></tr></tbody>")
     chips = "<button class='chip on' data-r=''>すべて</button>" + "".join(
         f"<button class='chip' data-r='{r}'>{r}</button>" for r in regions)
     return f"""
-<h1>日本百名山＋関西の名山 登山天気</h1>
-<p class='lead'>日本百名山と、近畿の人気の山20座(<span class='tag'>関西の名山</span>)の予報です。
+<h1>日本百名山＋関西百名山 登山天気</h1>
+<p class='lead'>日本百名山と<span class='tag'>関西百名山</span>(山と溪谷社『関西百名山』)の予報です。両方に入る伊吹山・大台ヶ原山・大峰山は1つにまとめています。
 山頂の標高での予報(6〜15時)から、登山に向いた天気かを判定しています。山名を押すと7日間の詳細が開きます。</p>
 <div class='filters'><input id='q' type='search' placeholder='山名で絞り込み(例: 槍、ふじ)' aria-label='山名で絞り込み'>
 <div class='chips'>{chips}</div></div>
@@ -458,10 +468,10 @@ def index_page(mts, ski, spots):
                 cells += (f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b> {icon}"
                           f"<small class='muted'> {round(d['tmin'])}〜{round(d['tmax'])}℃ · "
                           f"風{d['wind']:.0f}m/s</small></td>")
-        tag = " <span class='tag'>関西の名山</span>" if m.get("list") == "関西" else ""
+        tag = tags(m)
         mt_rows += (f"<tr><td class='l'><b>{e(m['name'])}</b>{tag}<br><small class='muted'>"
                     f"{m['elev']:,}m · {e('・'.join(m['prefs']))}</small></td>{cells}"
-                    f"<td>{maplink(m['trailhead'], '登山口')}</td></tr>")
+                    f"<td>{maplink(trailhead(m), '登山口')}</td></tr>")
     we_head = "".join(f"<th>{day_label(d)}</th>" for d in we)
     mt_list = (f"<div class='scroll'><table class='sub'><tr><th>山</th>{we_head}<th>地図</th></tr>"
                f"{mt_rows}</table></div>" if mt_rows else "<p>週末に条件の良い山は見当たりません</p>")
@@ -505,7 +515,7 @@ def index_page(mts, ski, spots):
 <p class='lead'>{label} の予報から、よさそうな場所をまとめました。</p>
 <section class='card big'><h2><a href='mountains.html'>⛰️ 登山</a></h2>
 <p class='muted'>週末の両日が○以上の山(上位15座、判定が良く風の弱い順)。気温・風は山頂付近の6〜15時</p>{mt_list}
-<p><a href='mountains.html'>百名山＋関西の名山をすべて見る →</a></p></section>
+<p><a href='mountains.html'>日本百名山＋関西百名山をすべて見る →</a></p></section>
 <div class='cards2'>
 <section class='card'><h2><a href='snow.html'>🏂 スノーボード</a></h2>{fav}
 <p><a href='snow.html'>スキー場の詳細 →</a></p></section>
@@ -599,13 +609,13 @@ def layout(file, title, body, updated):
     return f"""<!doctype html><html lang="ja"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{title} | 山と雪と波の天気</title>
-<meta name="description" content="日本百名山と関西の名山の登山天気、スキー場の降雪、サーフポイントの波と風の予報をまとめたサイト">
+<meta name="description" content="日本百名山と関西百名山の登山天気、スキー場の降雪、サーフポイントの波と風の予報をまとめたサイト">
 <style>{CSS}</style></head><body>
 <header><nav>{nav}</nav></header>
 <main>{body}<p class='muted'>更新: {updated:%Y年%-m月%-d日 %H:%M}(3時間ごとに自動更新)</p></main>
 <footer>予報は目安です。登山・海に出る前に、気象庁の警報・注意報と現地の情報を必ず確認してください。<br>
 気象データ: <a href="https://open-meteo.com/">Open-Meteo.com</a>(CC BY 4.0) ·
-山の一覧・座標: Wikipedia「日本百名山」、Wikidata</footer>
+山の一覧・座標: Wikipedia「日本百名山」、Wikidata、ヤマレコ「関西百名山」</footer>
 <script>{JS}</script></body></html>"""
 
 
