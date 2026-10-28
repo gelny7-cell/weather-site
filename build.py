@@ -170,6 +170,20 @@ def build_mountains():
     return mts
 
 
+def mt_detail(m):
+    """山の7日間の詳細(登山口の地図ボタン付き)"""
+    rows = "".join(
+        f"<tr><td>{day_label(d['date'])}</td><td>{wx(d['code'])[0]} {wx(d['code'])[1]}</td>"
+        f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td><td>{d['wind']:.0f}m/s</td>"
+        f"<td>{d['rain']:.1f}mm</td>"
+        f"<td>{'—' if d['fl'] is None else f'{d['fl']:,.0f}m'}</td>"
+        f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b></td></tr>"
+        for d in m["days"])
+    return (f"{maplink(trailhead(m), '登山口の地図: ' + trailhead(m))}<div class='scroll'><table class='sub'>"
+            "<tr><th>日付</th><th>天気(6〜15時)</th><th>山頂付近の気温</th><th>最大風速</th>"
+            f"<th>降水量</th><th>0℃の高さ</th><th>判定</th></tr>{rows}</table></div>")
+
+
 def mountains_page(mts):
     days = [d["date"] for d in mts[0]["days"]]
     regions = ["北海道", "東北", "関東", "中部", "近畿", "中国・四国", "九州"]
@@ -182,13 +196,6 @@ def mountains_page(mts):
             icon, _ = wx(d["code"])
             cells += (f"<td class='{cls}' title='{e(wx(d['code'])[1])} 風{d['wind']:.0f}m/s "
                       f"雨{d['rain']:.0f}mm'><b>{mark}</b><small>{icon}</small></td>")
-        detail = "".join(
-            f"<tr><td>{day_label(d['date'])}</td><td>{wx(d['code'])[0]} {wx(d['code'])[1]}</td>"
-            f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td><td>{d['wind']:.0f}m/s</td>"
-            f"<td>{d['rain']:.1f}mm</td>"
-            f"<td>{'—' if d['fl'] is None else f'{d['fl']:,.0f}m'}</td>"
-            f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b></td></tr>"
-            for d in m["days"])
         rows += (
             f"<tbody class='mt' data-region='{e(m['region'])}' data-name='{e(m['name'] + m['yomi'])}'>"
             f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
@@ -196,10 +203,7 @@ def mountains_page(mts):
             + tags(m)
             + f"<small>{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>"
             f"</button></th>{cells}</tr>"
-            f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>"
-            f"{maplink(trailhead(m), '登山口の地図: ' + trailhead(m))}<div class='scroll'><table class='sub'>"
-            "<tr><th>日付</th><th>天気(6〜15時)</th><th>山頂付近の気温</th><th>最大風速</th>"
-            f"<th>降水量</th><th>0℃の高さ</th><th>判定</th></tr>{detail}</table></div></td></tr></tbody>")
+            f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{mt_detail(m)}</td></tr></tbody>")
     chips = "<button class='chip on' data-r=''>すべて</button>" + "".join(
         f"<button class='chip' data-r='{r}'>{r}</button>" for r in regions)
     return f"""
@@ -272,6 +276,25 @@ SKI_REGIONS = {
 PREF_SKI_REGION = {p: r for r, ps in SKI_REGIONS.items() for p in ps}
 
 
+def ski_detail(s):
+    """スキー場の7日間の詳細(駐車場の地図ボタン付き)"""
+    rows = ""
+    for d in s["days"]:
+        icon, label = wx(d["code"])
+        powder = " <span class='tag'>パウダー期待</span>" if d["snow"] >= 10 and d["tmax"] <= -2 else ""
+        rain = f" <span class='tag warn'>雨{d['rain']:.0f}mm</span>" if d["rain"] >= 1 else ""
+        rows += (f"<tr><td>{day_label(d['date'])}</td><td>{icon} {label}{rain}</td>"
+                 f"<td>{d['snow']:.0f}cm{powder}</td>"
+                 f"<td>{'—' if d['depth'] is None else f'{d['depth']:.0f}cm'}</td>"
+                 f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td>"
+                 f"<td>{'—' if d['fl'] is None else f'{d['fl']:,.0f}m'}</td>"
+                 f"<td>{d['gust']:.0f}m/s</td></tr>")
+    return (f"{maplink(s['name'] + ' 第1駐車場', '駐車場の地図')} "
+            f"<p class='muted'>予報の標高 {s['elev']:,}m · 標高差 {s['drop']:,}m</p><div class='scroll'><table class='sub'>"
+            "<tr><th>日付</th><th>天気</th><th>新雪</th><th>積雪(朝)</th><th>気温</th>"
+            f"<th>0℃の高さ(日中)</th><th>最大瞬間風速</th></tr>{rows}</table></div>")
+
+
 def ski_page(ski):
     days = [d["date"] for d in ski[0]["days"]]
     head = "".join(f"<th>{day_label(d)}</th>" for d in days)
@@ -281,31 +304,19 @@ def ski_page(ski):
         for s in [x for x in ski if PREF_SKI_REGION[x["pref"]] == r]:
             if r not in used:
                 used.append(r)
-            cells, detail = "", ""
+            cells = ""
             for d in s["days"]:
                 icon, label = wx(d["code"])
                 snow_cls = "big" if d["snow"] >= 20 else ("mid" if d["snow"] >= 5 else "muted")
                 cells += (f"<td title='{e(label)} {round(d['tmin'])}〜{round(d['tmax'])}℃'>"
                           f"<b class='{snow_cls}'>{d['snow']:.0f}</b><small>{icon}</small></td>")
-                powder = " <span class='tag'>パウダー期待</span>" if d["snow"] >= 10 and d["tmax"] <= -2 else ""
-                rain = f" <span class='tag warn'>雨{d['rain']:.0f}mm</span>" if d["rain"] >= 1 else ""
-                detail += (f"<tr><td>{day_label(d['date'])}</td><td>{icon} {label}{rain}</td>"
-                           f"<td>{d['snow']:.0f}cm{powder}</td>"
-                           f"<td>{'—' if d['depth'] is None else f'{d['depth']:.0f}cm'}</td>"
-                           f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td>"
-                           f"<td>{'—' if d['fl'] is None else f'{d['fl']:,.0f}m'}</td>"
-                           f"<td>{d['gust']:.0f}m/s</td></tr>")
             total = sum(d["snow"] for d in s["days"])
             rows += (
                 f"<tbody class='mt' data-region='{r}' data-name='{e(s['name'] + s.get('yomi', ''))}'>"
                 f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
                 f"<span>{e(s['name'])}</span><small>{e(s['pref'])} · 7日間 {total:.0f}cm</small>"
                 f"</button></th>{cells}</tr>"
-                f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>"
-                f"{maplink(s['name'] + ' 第1駐車場', '駐車場の地図')} "
-                f"<p class='muted'>予報の標高 {s['elev']:,}m · 標高差 {s['drop']:,}m</p><div class='scroll'><table class='sub'>"
-                "<tr><th>日付</th><th>天気</th><th>新雪</th><th>積雪(朝)</th><th>気温</th>"
-                f"<th>0℃の高さ(日中)</th><th>最大瞬間風速</th></tr>{detail}</table></div></td></tr></tbody>")
+                f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{ski_detail(s)}</td></tr></tbody>")
     chips = "<button class='chip on' data-r=''>すべて</button>" + "".join(
         f"<button class='chip' data-r='{r}'>{r}</button>" for r in used)
     cards = f"""
@@ -372,27 +383,29 @@ def build_surf():
     return spots
 
 
+def surf_table(s):
+    """サーフポイントの7日間の朝・昼の表"""
+    rows = ""
+    for d in s["days"]:
+        for i, sl in enumerate(d["slots"]):
+            mark, cls = RATE[sl["score"]]
+            date_cell = (f"<td rowspan='{len(d['slots'])}'>{day_label(d['date'])}</td>" if i == 0 else "")
+            rows += (f"<tr>{date_cell}<td>{sl['slot']}</td><td class='{cls}'><b>{mark}</b></td>"
+                     f"<td>{sl['height']:.1f}m <small>{_size(sl['height'])}</small></td><td>{sl['period']:.0f}秒</td>"
+                     f"<td>{dir_name(sl['wave_dir'])}</td>"
+                     f"<td>{dir_name(sl['wind_dir'])} {sl['wind']:.0f}m/s <small>{sl['kind']}</small></td>"
+                     f"<td>{wx(sl['code'])[0]}</td></tr>")
+    return ("<div class='scroll'><table class='sub'>"
+            "<tr><th>日付</th><th></th><th>判定</th><th>波の高さ</th><th>周期</th><th>波の向き</th>"
+            f"<th>風</th><th>天気</th></tr>{rows}</table></div>")
+
+
 def surf_page(spots):
     cards = ""
     for s in spots:
-        rows = ""
-        for d in s["days"]:
-            for i, sl in enumerate(d["slots"]):
-                mark, cls = RATE[sl["score"]]
-                size = ("フラット" if sl["height"] < 0.3 else "ひざ〜もも" if sl["height"] < 0.6 else
-                        "こし〜むね" if sl["height"] < 1.2 else "かた〜あたま" if sl["height"] < 2.0 else
-                        "頭オーバー")
-                date_cell = (f"<td rowspan='{len(d['slots'])}'>{day_label(d['date'])}</td>" if i == 0 else "")
-                rows += (f"<tr>{date_cell}<td>{sl['slot']}</td><td class='{cls}'><b>{mark}</b></td>"
-                         f"<td>{sl['height']:.1f}m <small>{size}</small></td><td>{sl['period']:.0f}秒</td>"
-                         f"<td>{dir_name(sl['wave_dir'])}</td>"
-                         f"<td>{dir_name(sl['wind_dir'])} {sl['wind']:.0f}m/s <small>{sl['kind']}</small></td>"
-                         f"<td>{wx(sl['code'])[0]}</td></tr>")
         cards += (f"<section class='card'><h3>{e(s['name'])} <small>{e(s['pref'])} · "
                   f"浜の向き {dir_name(s['facing'])}</small> {maplink(s['parking'], '駐車場の地図')}</h3>"
-                  "<div class='scroll'><table class='sub'>"
-                  "<tr><th>日付</th><th></th><th>判定</th><th>波の高さ</th><th>周期</th><th>波の向き</th>"
-                  f"<th>風</th><th>天気</th></tr>{rows}</table></div>"
+                  f"{surf_table(s)}"
                   f"<p class='muted'>波は沖合({s['grid'][0]:.2f}, {s['grid'][1]:.2f})の予報</p></section>")
     return f"""
 <h1>サーフィン 波と風</h1>
@@ -449,6 +462,13 @@ def surf_comments(spots, we):
     return out
 
 
+def expand_row(name_html, cells_html, detail_html, ncols):
+    """名前を押すと、下に7日間の詳細が開く行(トップページ用)"""
+    return (f"<tbody><tr><td class='l'><button type='button' class='xbtn' aria-expanded='false'>"
+            f"{name_html}</button></td>{cells_html}</tr>"
+            f"<tr class='detail' hidden><td colspan='{ncols}'>{detail_html}</td></tr></tbody>")
+
+
 # ---------------------------------------------------------------- トップ
 def index_page(mts, ski, spots):
     days = [d["date"] for d in mts[0]["days"]]
@@ -469,9 +489,9 @@ def index_page(mts, ski, spots):
                           f"<small class='muted'> {round(d['tmin'])}〜{round(d['tmax'])}℃ · "
                           f"風{d['wind']:.0f}m/s</small></td>")
         tag = tags(m)
-        mt_rows += (f"<tr><td class='l'><b>{e(m['name'])}</b>{tag}<br><small class='muted'>"
-                    f"{m['elev']:,}m · {e('・'.join(m['prefs']))}</small></td>{cells}"
-                    f"<td>{maplink(trailhead(m), '登山口')}</td></tr>")
+        mt_rows += expand_row(f"<b>{e(m['name'])}</b>{tag}<br><small class='muted'>"
+                              f"{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>",
+                              cells + f"<td>{maplink(trailhead(m), '登山口')}</td>", mt_detail(m), 4)
     we_head = "".join(f"<th>{day_label(d)}</th>" for d in we)
     mt_list = (f"<div class='scroll'><table class='sub'><tr><th>山</th>{we_head}<th>地図</th></tr>"
                f"{mt_rows}</table></div>" if mt_rows else "<p>週末に条件の良い山は見当たりません</p>")
@@ -487,8 +507,8 @@ def index_page(mts, ski, spots):
         cells = "".join(f"<td>{wx(d['code'])[0]} {d['snow']:.0f}cm</td>"
                         for d in s["days"] if d["date"] in we)
         until = sum(d["snow"] for d in s["days"] if d["date"] <= upto)
-        fav_rows += (f"<tr><td class='l'><b>{e(n)}</b><br><small class='muted'>週末まで {until:.0f}cm</small></td>"
-                     f"{cells}<td>{maplink(n + ' 第1駐車場', '駐車場')}</td></tr>")
+        fav_rows += expand_row(f"<b>{e(n)}</b><br><small class='muted'>週末まで {until:.0f}cm</small>",
+                               cells + f"<td>{maplink(n + ' 第1駐車場', '駐車場')}</td>", ski_detail(s), 4)
     fav = (f"<div class='scroll'><table class='sub'><tr><th></th>"
            + "".join(f"<th>{day_label(d)}</th>" for d in we)
            + f"<th></th></tr>{fav_rows}</table></div>")
@@ -506,15 +526,15 @@ def index_page(mts, ski, spots):
                 mark, cls = RATE[sl["score"]]
                 cells += (f"<td class='{cls}' title='{sl['height']:.1f}m {sl['period']:.0f}秒 {sl['kind']}'>"
                           f"<b>{mark}</b><small class='muted'>{sl['height']:.1f}m</small></td>")
-        surf_rows += (f"<tr><td class='l'><b>{e(s['name'])}</b></td>{cells}"
-                      f"<td>{maplink(s['parking'], '駐車場')}</td></tr>")
+        surf_rows += expand_row(f"<b>{e(s['name'])}</b>",
+                                cells + f"<td>{maplink(s['parking'], '駐車場')}</td>", surf_table(s), 6)
     surf_list = (f"{surf_comment}<div class='scroll'><table class='sub mini'><tr><th></th>{heads}<th></th></tr>"
                  f"{surf_rows}</table></div>")
     return f"""
 <h1>今週末の山と雪と波</h1>
 <p class='lead'>{label} の予報から、よさそうな場所をまとめました。</p>
 <section class='card big'><h2><a href='mountains.html'>⛰️ 登山</a></h2>
-<p class='muted'>週末の両日が○以上の山(上位15座、判定が良く風の弱い順)。気温・風は山頂付近の6〜15時</p>{mt_list}
+<p class='muted'>週末の両日が○以上の山(上位15座、判定が良く風の弱い順)。気温・風は山頂付近の6〜15時。山名を押すと7日間の予報が開きます</p>{mt_list}
 <p><a href='mountains.html'>日本百名山＋関西百名山をすべて見る →</a></p></section>
 <div class='cards2'>
 <section class='card'><h2><a href='snow.html'>🏂 スノーボード</a></h2>{fav}
@@ -552,6 +572,9 @@ a{color:var(--accent)}
 background:var(--card);color:var(--accent);text-decoration:none;white-space:nowrap}
 .mapbtn:hover{border-color:var(--accent)}
 tr.detail .mapbtn{margin:0 0 8px}
+.xbtn{all:unset;cursor:pointer;display:block}.xbtn b{color:var(--accent);text-decoration:underline;
+text-decoration-thickness:1px;text-underline-offset:3px}.xbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.xbtn[aria-expanded='true'] b::after{content:' ▲';font-size:10px}.xbtn[aria-expanded='false'] b::after{content:' ▼';font-size:10px}
 .comment{background:var(--hl);border-radius:8px;padding:8px 12px;margin:0 0 8px;font-size:14px}
 .sub.mini td,.sub.mini th{text-align:center;padding:4px 6px}.sub.mini td b{display:block}
 .sub.mini td.l{text-align:left}
@@ -594,10 +617,10 @@ if(q){
   document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
     document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===c));
     region=c.dataset.r;apply();}));
-  document.querySelectorAll('.nm button').forEach(btn=>btn.addEventListener('click',()=>{
-    const d=btn.closest('tbody').querySelector('tr.detail');d.hidden=!d.hidden;
-    btn.setAttribute('aria-expanded',String(!d.hidden));}));
 }
+document.querySelectorAll('.nm button, .xbtn').forEach(btn=>btn.addEventListener('click',()=>{
+  const d=btn.closest('tbody').querySelector('tr.detail');d.hidden=!d.hidden;
+  btn.setAttribute('aria-expanded',String(!d.hidden));}));
 """
 
 PAGES = [("index.html", "週末"), ("mountains.html", "登山"), ("snow.html", "スノーボード"),
