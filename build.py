@@ -175,7 +175,9 @@ def mountains_page(mts):
         rows += (
             f"<tbody class='mt' data-region='{e(m['region'])}' data-name='{e(m['name'] + m['yomi'])}'>"
             f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
-            f"<span>{e(m['name'])}</span><small>{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>"
+            f"<span>{e(m['name'])}</span>"
+            + (" <span class='tag'>関西の名山</span>" if m.get("list") == "関西" else "")
+            + f"<small>{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>"
             f"</button></th>{cells}</tr>"
             f"<tr class='detail' hidden><td colspan='{len(days) + 1}'><div class='scroll'><table class='sub'>"
             "<tr><th>日付</th><th>天気(6〜15時)</th><th>山頂付近の気温</th><th>最大風速</th>"
@@ -183,8 +185,9 @@ def mountains_page(mts):
     chips = "<button class='chip on' data-r=''>すべて</button>" + "".join(
         f"<button class='chip' data-r='{r}'>{r}</button>" for r in regions)
     return f"""
-<h1>日本百名山の登山天気</h1>
-<p class='lead'>山頂の標高での予報(6〜15時)から、登山に向いた天気かを判定しています。山名を押すと7日間の詳細が開きます。</p>
+<h1>日本百名山＋関西の名山 登山天気</h1>
+<p class='lead'>日本百名山と、近畿の人気の山20座(<span class='tag'>関西の名山</span>)の予報です。
+山頂の標高での予報(6〜15時)から、登山に向いた天気かを判定しています。山名を押すと7日間の詳細が開きます。</p>
 <div class='filters'><input id='q' type='search' placeholder='山名で絞り込み(例: 槍、ふじ)' aria-label='山名で絞り込み'>
 <div class='chips'>{chips}</div></div>
 <div class='scroll'><table class='grid' id='mt'><thead><tr><th class='nm'>山名</th>{head}</tr></thead>{rows}</table></div>
@@ -221,33 +224,62 @@ def build_ski():
     return ski
 
 
+SKI_REGIONS = {
+    "北海道": ["北海道"],
+    "東北": ["青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県"],
+    "関東": ["茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県"],
+    "甲信越": ["新潟県", "長野県", "山梨県"],
+    "北陸": ["富山県", "石川県", "福井県"],
+    "東海": ["岐阜県", "静岡県", "愛知県"],
+    "近畿": ["三重県", "滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県"],
+    "中国・四国": ["鳥取県", "島根県", "岡山県", "広島県", "山口県", "徳島県", "香川県", "愛媛県", "高知県"],
+    "九州": ["福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県"],
+}
+PREF_SKI_REGION = {p: r for r, ps in SKI_REGIONS.items() for p in ps}
+
+
 def ski_page(ski):
     days = [d["date"] for d in ski[0]["days"]]
-    cards = ""
-    for pref in ["滋賀県", "岐阜県", "長野県", "新潟県"]:
-        cards += f"<h2>{pref}</h2>"
-        for s in [x for x in ski if x["pref"] == pref]:
-            rows = ""
+    head = "".join(f"<th>{day_label(d)}</th>" for d in days)
+    used = []
+    rows = ""
+    for r in SKI_REGIONS:                       # 地方の順に並べる
+        for s in [x for x in ski if PREF_SKI_REGION[x["pref"]] == r]:
+            if r not in used:
+                used.append(r)
+            cells, detail = "", ""
             for d in s["days"]:
                 icon, label = wx(d["code"])
-                snow_cls = "big" if d["snow"] >= 20 else ("mid" if d["snow"] >= 5 else "")
+                snow_cls = "big" if d["snow"] >= 20 else ("mid" if d["snow"] >= 5 else "muted")
+                cells += (f"<td title='{e(label)} 山頂{round(d['top_min'])}〜{round(d['top_max'])}℃'>"
+                          f"<b class='{snow_cls}'>{d['snow']:.0f}</b><small>{icon}</small></td>")
                 powder = " <span class='tag'>パウダー期待</span>" if d["snow"] >= 10 and d["top_max"] <= -2 else ""
                 rain = (f" <span class='tag warn'>ふもと雨{d['base_rain']:.0f}mm</span>"
                         if d["base_rain"] >= 1 else "")
-                rows += (f"<tr><td>{day_label(d['date'])}</td><td>{icon} {label}</td>"
-                         f"<td class='{snow_cls}'>{d['snow']:.0f}cm{powder}</td>"
-                         f"<td>{'—' if d['depth'] is None else f'{d['depth']:.0f}cm'}</td>"
-                         f"<td>{round(d['top_min'])}〜{round(d['top_max'])}℃</td>"
-                         f"<td>{round(d['base_max'])}℃{rain}</td><td>{d['gust']:.0f}m/s</td></tr>")
+                detail += (f"<tr><td>{day_label(d['date'])}</td><td>{icon} {label}</td>"
+                           f"<td>{d['snow']:.0f}cm{powder}</td>"
+                           f"<td>{'—' if d['depth'] is None else f'{d['depth']:.0f}cm'}</td>"
+                           f"<td>{round(d['top_min'])}〜{round(d['top_max'])}℃</td>"
+                           f"<td>{round(d['base_max'])}℃{rain}</td><td>{d['gust']:.0f}m/s</td></tr>")
             total = sum(d["snow"] for d in s["days"])
-            cards += (f"<section class='card'><h3>{e(s['name'])} <small>山頂{s['top']:,}m / "
-                      f"ふもと{s['base']:,}m · 7日間の降雪 {total:.0f}cm</small></h3>"
-                      "<div class='scroll'><table class='sub'><tr><th>日付</th><th>山頂の天気</th>"
-                      "<th>新雪</th><th>積雪(朝)</th><th>山頂の気温</th><th>ふもとの最高気温</th>"
-                      f"<th>最大瞬間風速</th></tr>{rows}</table></div></section>")
+            rows += (
+                f"<tbody class='mt' data-region='{r}' data-name='{e(s['name'] + s.get('yomi', ''))}'>"
+                f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
+                f"<span>{e(s['name'])}</span><small>{e(s['pref'])} · 7日間 {total:.0f}cm</small>"
+                f"</button></th>{cells}</tr>"
+                f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>"
+                f"<p class='muted'>山頂{s['top']:,}m / ふもと{s['base']:,}m</p><div class='scroll'><table class='sub'>"
+                "<tr><th>日付</th><th>山頂の天気</th><th>新雪</th><th>積雪(朝)</th><th>山頂の気温</th>"
+                f"<th>ふもとの最高気温</th><th>最大瞬間風速</th></tr>{detail}</table></div></td></tr></tbody>")
+    chips = "<button class='chip on' data-r=''>すべて</button>" + "".join(
+        f"<button class='chip' data-r='{r}'>{r}</button>" for r in used)
+    cards = f"""
+<div class='filters'><input id='q' type='search' placeholder='スキー場名で絞り込み' aria-label='スキー場名で絞り込み'>
+<div class='chips'>{chips}</div></div>
+<div class='scroll'><table class='grid'><thead><tr><th class='nm'>スキー場</th>{head}</tr></thead>{rows}</table></div>"""
     return f"""
 <h1>スノーボード 雪と天気</h1>
-<p class='lead'>ゲレンデ山頂とふもとの標高での予報です。新雪は1日の降雪量の予報、積雪は朝9時の予報値(モデルの推定)です。</p>
+<p class='lead'>表の数字はゲレンデ山頂の標高での1日の降雪量(cm)の予報です。スキー場名を押すと、積雪・気温・ふもとの雨・風の詳細が開きます。</p>
 {cards}
 <div class='note'><ul><li><span class='tag'>パウダー期待</span> 新雪10cm以上で、山頂の最高気温が-2℃以下</li>
 <li><span class='tag warn'>ふもと雨</span> ふもとで雨の予報(雪質が重くなりやすい)</li>
@@ -373,7 +405,7 @@ def index_page(mts, ski, spots):
 <p class='lead'>{label} の予報から、よさそうな場所をまとめました。</p>
 <div class='cards3'>
 <section class='card'><h2><a href='mountains.html'>⛰️ 登山</a></h2><p class='muted'>週末の両日が○以上の山(風の弱い順)</p><ul>{mt_list}</ul>
-<p><a href='mountains.html'>百名山すべてを見る →</a></p></section>
+<p><a href='mountains.html'>百名山＋関西の名山をすべて見る →</a></p></section>
 <section class='card'><h2><a href='snow.html'>🏂 スノーボード</a></h2><p class='muted'>週末までの降雪が多い順</p><ul>{ski_list}</ul>
 <p><a href='snow.html'>スキー場の詳細 →</a></p></section>
 <section class='card'><h2><a href='surf.html'>🏄 サーフィン</a></h2><p class='muted'>週末で一番よさそうな時間帯</p><ul>{surf_list}</ul>
@@ -458,13 +490,13 @@ def layout(file, title, body, updated):
     return f"""<!doctype html><html lang="ja"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{title} | 山と雪と波の天気</title>
-<meta name="description" content="日本百名山の登山天気、スキー場の降雪、サーフポイントの波と風の予報をまとめたサイト">
+<meta name="description" content="日本百名山と関西の名山の登山天気、スキー場の降雪、サーフポイントの波と風の予報をまとめたサイト">
 <style>{CSS}</style></head><body>
 <header><nav>{nav}</nav></header>
 <main>{body}<p class='muted'>更新: {updated:%Y年%-m月%-d日 %H:%M}(3時間ごとに自動更新)</p></main>
 <footer>予報は目安です。登山・海に出る前に、気象庁の警報・注意報と現地の情報を必ず確認してください。<br>
 気象データ: <a href="https://open-meteo.com/">Open-Meteo.com</a>(CC BY 4.0) ·
-山の一覧: Wikipedia「日本百名山」</footer>
+山の一覧・座標: Wikipedia「日本百名山」、Wikidata</footer>
 <script>{JS}</script></body></html>"""
 
 
@@ -473,7 +505,7 @@ def main():
     mts, ski, spots = build_mountains(), build_ski(), build_surf()
     OUT.mkdir(exist_ok=True)
     bodies = {"index.html": ("今週末", index_page(mts, ski, spots)),
-              "mountains.html": ("日本百名山の登山天気", mountains_page(mts)),
+              "mountains.html": ("登山天気", mountains_page(mts)),
               "snow.html": ("スノーボード", ski_page(ski)),
               "surf.html": ("サーフィン", surf_page(spots))}
     for f, (title, body) in bodies.items():
