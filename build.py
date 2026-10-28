@@ -201,25 +201,41 @@ def mountains_page(mts):
 
 
 # ---------------------------------------------------------------- スノーボード
+def dem_elevation(points):
+    """地形の標高(Open-Meteo の90m標高データ)。100地点ずつ"""
+    out = []
+    for i in range(0, len(points), 100):
+        chunk = points[i:i + 100]
+        out += fetch("https://api.open-meteo.com/v1/elevation", {
+            "latitude": ",".join(str(p[0]) for p in chunk),
+            "longitude": ",".join(str(p[1]) for p in chunk)})[0]["elevation"]
+    return out
+
+
 def build_ski():
+    """予報はスキー場の座標の地形の標高(elev があればその標高=ゲレンデ中腹)で取得する"""
     ski = json.loads((ROOT / "data/ski.json").read_text(encoding="utf-8"))
-    daily = ",".join(["weather_code", "temperature_2m_max", "temperature_2m_min", "snowfall_sum",
-                      "rain_sum", "wind_gusts_10m_max"])
-    top = forecast([(s["lat"], s["lon"], s["top"]) for s in ski], daily=daily, hourly="snow_depth")
-    base = forecast([(s["lat"], s["lon"], s["base"]) for s in ski], daily=daily)
-    for s, t, b in zip(ski, top, base):
+    dem = dem_elevation([(s["lat"], s["lon"]) for s in ski])
+    for s, z in zip(ski, dem):
+        s["elev"] = s.get("elev") or round(z)
+    res = forecast([(s["lat"], s["lon"], s["elev"]) for s in ski],
+                   daily=",".join(["weather_code", "temperature_2m_max", "temperature_2m_min",
+                                   "snowfall_sum", "rain_sum", "wind_gusts_10m_max"]),
+                   hourly="snow_depth,freezing_level_height")
+    for s, r in zip(ski, res):
         s["days"] = []
-        for i, d in enumerate(t["daily"]["time"]):
-            depth = hours_of(t["hourly"], "snow_depth", d, [9])
+        dd, h = r["daily"], r["hourly"]
+        for i, d in enumerate(dd["time"]):
+            depth = hours_of(h, "snow_depth", d, [9])
+            fl = hours_of(h, "freezing_level_height", d, range(6, 18))
             s["days"].append({
-                "date": d, "code": t["daily"]["weather_code"][i],
-                "snow": t["daily"]["snowfall_sum"][i] or 0,
+                "date": d, "code": dd["weather_code"][i],
+                "snow": dd["snowfall_sum"][i] or 0,
                 "depth": depth[0] * 100 if depth else None,
-                "top_min": t["daily"]["temperature_2m_min"][i],
-                "top_max": t["daily"]["temperature_2m_max"][i],
-                "base_max": b["daily"]["temperature_2m_max"][i],
-                "base_rain": b["daily"]["rain_sum"][i] or 0,
-                "gust": t["daily"]["wind_gusts_10m_max"][i] or 0,
+                "tmin": dd["temperature_2m_min"][i], "tmax": dd["temperature_2m_max"][i],
+                "rain": dd["rain_sum"][i] or 0,
+                "fl": min(fl) if fl else None,
+                "gust": dd["wind_gusts_10m_max"][i] or 0,
             })
     return ski
 
@@ -251,16 +267,16 @@ def ski_page(ski):
             for d in s["days"]:
                 icon, label = wx(d["code"])
                 snow_cls = "big" if d["snow"] >= 20 else ("mid" if d["snow"] >= 5 else "muted")
-                cells += (f"<td title='{e(label)} 山頂{round(d['top_min'])}〜{round(d['top_max'])}℃'>"
+                cells += (f"<td title='{e(label)} {round(d['tmin'])}〜{round(d['tmax'])}℃'>"
                           f"<b class='{snow_cls}'>{d['snow']:.0f}</b><small>{icon}</small></td>")
-                powder = " <span class='tag'>パウダー期待</span>" if d["snow"] >= 10 and d["top_max"] <= -2 else ""
-                rain = (f" <span class='tag warn'>ふもと雨{d['base_rain']:.0f}mm</span>"
-                        if d["base_rain"] >= 1 else "")
-                detail += (f"<tr><td>{day_label(d['date'])}</td><td>{icon} {label}</td>"
+                powder = " <span class='tag'>パウダー期待</span>" if d["snow"] >= 10 and d["tmax"] <= -2 else ""
+                rain = f" <span class='tag warn'>雨{d['rain']:.0f}mm</span>" if d["rain"] >= 1 else ""
+                detail += (f"<tr><td>{day_label(d['date'])}</td><td>{icon} {label}{rain}</td>"
                            f"<td>{d['snow']:.0f}cm{powder}</td>"
                            f"<td>{'—' if d['depth'] is None else f'{d['depth']:.0f}cm'}</td>"
-                           f"<td>{round(d['top_min'])}〜{round(d['top_max'])}℃</td>"
-                           f"<td>{round(d['base_max'])}℃{rain}</td><td>{d['gust']:.0f}m/s</td></tr>")
+                           f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td>"
+                           f"<td>{'—' if d['fl'] is None else f'{d['fl']:,.0f}m'}</td>"
+                           f"<td>{d['gust']:.0f}m/s</td></tr>")
             total = sum(d["snow"] for d in s["days"])
             rows += (
                 f"<tbody class='mt' data-region='{r}' data-name='{e(s['name'] + s.get('yomi', ''))}'>"
@@ -268,9 +284,9 @@ def ski_page(ski):
                 f"<span>{e(s['name'])}</span><small>{e(s['pref'])} · 7日間 {total:.0f}cm</small>"
                 f"</button></th>{cells}</tr>"
                 f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>"
-                f"<p class='muted'>山頂{s['top']:,}m / ふもと{s['base']:,}m</p><div class='scroll'><table class='sub'>"
-                "<tr><th>日付</th><th>山頂の天気</th><th>新雪</th><th>積雪(朝)</th><th>山頂の気温</th>"
-                f"<th>ふもとの最高気温</th><th>最大瞬間風速</th></tr>{detail}</table></div></td></tr></tbody>")
+                f"<p class='muted'>予報の標高 {s['elev']:,}m · 標高差 {s['drop']:,}m</p><div class='scroll'><table class='sub'>"
+                "<tr><th>日付</th><th>天気</th><th>新雪</th><th>積雪(朝)</th><th>気温</th>"
+                f"<th>0℃の高さ(日中)</th><th>最大瞬間風速</th></tr>{detail}</table></div></td></tr></tbody>")
     chips = "<button class='chip on' data-r=''>すべて</button>" + "".join(
         f"<button class='chip' data-r='{r}'>{r}</button>" for r in used)
     cards = f"""
@@ -279,11 +295,14 @@ def ski_page(ski):
 <div class='scroll'><table class='grid'><thead><tr><th class='nm'>スキー場</th>{head}</tr></thead>{rows}</table></div>"""
     return f"""
 <h1>スノーボード 雪と天気</h1>
-<p class='lead'>表の数字はゲレンデ山頂の標高での1日の降雪量(cm)の予報です。スキー場名を押すと、積雪・気温・ふもとの雨・風の詳細が開きます。</p>
+<p class='lead'>標高差の大きいスキー場100か所です。表の数字は1日の降雪量(cm)の予報で、スキー場名を押すと積雪・気温・0℃の高さ・風の詳細が開きます。</p>
 {cards}
-<div class='note'><ul><li><span class='tag'>パウダー期待</span> 新雪10cm以上で、山頂の最高気温が-2℃以下</li>
-<li><span class='tag warn'>ふもと雨</span> ふもとで雨の予報(雪質が重くなりやすい)</li>
-<li>標高は概算です。積雪の予報は実際の積雪と大きく異なることがあるので、各スキー場の発表を確認してください。</li></ul></div>
+<div class='note'><ul><li><span class='tag'>パウダー期待</span> 新雪10cm以上で、最高気温が-2℃以下</li>
+<li><span class='tag warn'>雨</span> 予報の標高で雨の予報(雪質が重くなりやすい)</li>
+<li>予報の標高は、Wikipediaにあるスキー場の座標の地形の標高です(一部はゲレンデ中腹の標高)。
+ゲレンデ上部の天気は「0℃の高さ」を目安にしてください(それより高い所は雪、低い所は雨になりやすい)。</li>
+<li>積雪の予報はモデルの推定で、実際の積雪と大きく異なることがあります。各スキー場の発表を確認してください。</li>
+<li>スキー場の一覧・標高差: Wikipedia、Wikidata</li></ul></div>
 """
 
 
