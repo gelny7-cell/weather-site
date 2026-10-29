@@ -1073,5 +1073,17 @@
   "base": 575,
   "top": 686,
   "site": "https://www.hakodateyama.com/winter/"
+ },
+ {
+  "name": "スノーウェーブパーク白鳥高原",
+  "pref": "岐阜県",
+  "lat": 35.9538,
+  "lon": 136.8007,
+  "drop": 171,
+  "base": 1004,
+  "top": 1175,
+  "yomi": "白鳥高原 しろとりこうげん",
+  "site": "https://siratori-k.jp/swp/",
+  "map": "https://siratori-k.jp/swp/gelande"
  }
 ]
