@@ -174,6 +174,29 @@ def star(kind, x):
             f"aria-label='{e(x['name'])}をお気に入りに登録'>☆</button>")
 
 
+def hut_tags(m):
+    """山名の横の印: 山頂から4km以内に山小屋(避難小屋は除く)・テント場があるか(ヤマレコの情報)"""
+    return ((" <span class='fac' title='山小屋あり'>🛖</span>" if m.get("huts") else "")
+            + (" <span class='fac' title='テント場あり'>⛺</span>" if m.get("tents") else ""))
+
+
+def hut_line(m):
+    """詳細に出す、山小屋・テント場の数"""
+    parts = ([f"🛖 山小屋 {len(m['huts'])}軒"] if m.get("huts") else []) + ([f"⛺ テント場 {len(m['tents'])}か所"] if m.get("tents") else [])
+    return f"<p class='muted'>{' · '.join(parts)}(山頂から4km以内・ヤマレコ)</p>" if parts else ""
+
+
+def hutlink(m):
+    """Yamatan で予約できる山小屋の一覧ボタン(押すと小屋が並び、選ぶと Yamatan の予約ページが開く)"""
+    huts = [h for h in m.get("huts", []) if h.get("yamatan")]
+    if not huts:
+        return ""
+    items = "".join(f"<a href='https://www.yamatan.net/hut/{e(h['yamatan'])}' class='mapbtn' target='_blank' rel='noopener'>"
+                    f"{e(h['name'])}</a>" for h in sorted(huts, key=lambda h: h["km"]))
+    return (f"<details class='menu'><summary class='mapbtn'>🛖 山小屋予約</summary>"
+            f"<div class='menu-list'>{items}</div></details> ")
+
+
 def intro(x):
     """詳細の一番上に出す一言紹介(data の intro。書いてある場所だけ)"""
     return f"<p class='intro'>{e(x['intro'])}</p>" if x.get("intro") else ""
@@ -655,12 +678,12 @@ def mt_detail(m, with_map=True, compact=False):
                  a["name"] if a["name"] not in ("駐車場", "有料駐車場", "登山者駐車場") else f"{m['name']} {a['name']}")
         place = maplink(f"{a['lat']},{a['lon']}", label)
     near = m.get("access") or m            # 温泉は駐車場・登山口の位置(分からなければ山頂)の周りで探す
-    link = (routelinks(m) + place + " " + onsenlink(near["lat"], near["lon"])
+    link = (routelinks(m) + hutlink(m) + place + " " + onsenlink(near["lat"], near["lon"])
             + foodlink(near["lat"], near["lon"], m["prefs"][0], "mountain") + michilink(near["lat"], near["lon"])
             + conbilink(near["lat"], near["lon"])) if with_map else ""
     sun = (f"<p class='muted'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</p>"
            if m.get("sun") else "")
-    return (f"{intro(m)}{link}{alert_box(m)}{sun}<div class='scroll'><table class='sub'>"
+    return (f"{intro(m)}{link}{alert_box(m)}{hut_line(m) if with_map else ''}{sun}<div class='scroll'><table class='sub'>"
             "<tr><th class='dt'>日付</th><th>判定</th><th>天気(6〜15時)</th>"
             + ("<th>展望</th>" if has_v else "") + "<th>山頂付近の気温</th>"
             + ("" if compact else "<th>体感温度</th>") + "<th>平均風速</th>"
@@ -688,7 +711,7 @@ def mountains_page(mts):
             + (f" data-prefs='{e(','.join(m['prefs']))}'" if m["region"] == "近畿" else "") + ">"
             f"<tr class='main'><th class='nm'>{star('m', m)}<button type='button' aria-expanded='false'>"
             f"<span>{e(m['name'])}</span>"
-            + tags(m) + alert_tags(m)
+            + tags(m) + alert_tags(m) + hut_tags(m)
             + f"<small>{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>"
             f"</button></th>{cells}</tr>"
             f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{mt_detail(m)}</td></tr></tbody>")
@@ -707,6 +730,7 @@ def mountains_page(mts):
 <li><b class='r1'>△</b> 降水10mm未満、風速17m/s未満</li>
 <li><b class='r0'>×</b> それ以上、または雷の確率50%以上</li></ul>
 <p>雷の確率: 米国の予報モデル(GFS)を条件を少しずつ変えて31通り計算したうち、6〜15時に「大気が不安定で雨が降る」時間がある割合です。20%以上で判定は最高でも△、50%以上で×。山では早めの下山を。</p>
+<p>🛖 山小屋・⛺ テント場: 山頂から4km以内にあるもの(ヤマレコの登録。避難小屋は除く)。「山小屋予約」は、予約サイト Yamatan で予約できる小屋です。</p>
 <p>展望: 6〜12時の雲の量の平均で、◎20%未満・○50%未満・△80%未満・×それ以上(霧の時間があれば×)。眺めの目安です。</p>
 <p><span class='tag warn'>凍結注意</span> 山頂付近の最低気温(6〜15時)が0℃以下で前日昼〜当日に雨・雪が0.5mm以上の日、または最低気温が-3℃以下の日。登山道が凍りやすいので、チェーンスパイクやアイゼンの目安に。</p>
 <p>体感温度: 山頂付近の気温と風速から求めた、6〜15時で最も低い値です(風が強いほど低くなります)。</p>
@@ -1393,6 +1417,7 @@ tbody[id],section[id]{scroll-margin-top:56px}   /* 上に固定したメニュ�
 h3 .star{float:none;margin-right:4px}
 .favbox h3{font-size:14px;margin:4px 0}
 .intro{margin:0 0 8px;font-size:14px;color:var(--text)}
+.fac{font-size:12px}
 .obs{margin:6px 0}.obs b{display:inline!important}  /* 表の中の b{display:block} に負けないように */
 .comment{background:var(--hl);border-radius:8px;padding:8px 12px;margin:0 0 8px;font-size:14px}
 .sub.mini td,.sub.mini th{text-align:center;padding:4px 6px}.sub.mini td b{display:block}
