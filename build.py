@@ -129,8 +129,10 @@ RATE = {3: ("◎", "r3"), 2: ("○", "r2"), 1: ("△", "r1"), 0: ("×", "r0")}
 
 
 def tags(m):
-    """日本百名山以外の一覧に入っている山に印を付ける"""
-    return "".join(f" <span class='tag'>{t}</span>" for t in m.get("lists", []) if t != "百名山")
+    """入っている一覧の印。日本百名山にも入る山は日本百名山だけにする"""
+    lists = m.get("lists", [])
+    shown = ["日本百名山"] if "百名山" in lists else lists
+    return "".join(f" <span class='tag'>{t}</span>" for t in shown)
 
 
 def trailhead(m):
@@ -345,7 +347,9 @@ def mt_detail(m, with_map=True):
 
 def mountains_page(mts):
     days = [d["date"] for d in mts[0]["days"][:TOP_DAYS]]   # 一覧は7日、詳細は全日数
-    regions = ["北海道", "東北", "関東", "中部", "近畿", "中国・四国", "九州"]
+    regions = ["北海道", "東北", "関東", "上信越", "北アルプス", "南アルプス", "中部"]
+    kinki = ["滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県", "三重県", "福井県"]   # 近畿は県ごと
+    after = ["中国・四国", "九州"]
     head = "".join(f"<th>{day_label(d)}</th>" for d in days)
     rows = ""
     for m in mts:
@@ -357,15 +361,18 @@ def mountains_page(mts):
                       f"雨{d['rain']:.0f}mm" + (f" 雷{d['thunder']}%" if d["thunder"] is not None else "") + "'>"
                       f"<b>{mark}</b><small>{icon}</small></td>")
         rows += (
-            f"<tbody class='mt' data-region='{e(m['region'])}' data-name='{e(m['name'] + m['yomi'])}'>"
+            f"<tbody class='mt' data-region='{e(m['region'])}' data-name='{e(m['name'] + m['yomi'])}'"
+            + (f" data-prefs='{e(','.join(m['prefs']))}'" if m["region"] == "近畿" else "") + ">"
             f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
             f"<span>{e(m['name'])}</span>"
             + tags(m)
             + f"<small>{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>"
             f"</button></th>{cells}</tr>"
             f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{mt_detail(m)}</td></tr></tbody>")
-    chips = "<button class='chip on' data-r=''>すべて</button>" + "".join(
-        f"<button class='chip' data-r='{r}'>{r}</button>" for r in regions)
+    chips = ("<button class='chip on' data-r=''>すべて</button>"
+             + "".join(f"<button class='chip' data-r='{r}'>{r}</button>" for r in regions)
+             + "".join(f"<button class='chip' data-r='pref:{p}'>{p.rstrip('県府')}</button>" for p in kinki)
+             + "".join(f"<button class='chip' data-r='{r}'>{r}</button>" for r in after))
     return f"""
 <h1>日本百名山＋関西百名山 登山天気</h1>
 <div class='filters'><input id='q' type='search' placeholder='山名で絞り込み(例: 槍、ふじ)' aria-label='山名で絞り込み'>
@@ -551,12 +558,9 @@ def ski_page(ski):
     favs = set(json.loads((ROOT / "data/favorites.json").read_text(encoding="utf-8")).get("ski", []))
     days = [d["date"] for d in ski[0]["days"][:TOP_DAYS]]   # 一覧は7日、詳細は全日数
     head = "".join(f"<th>{day_label(d)}</th>" for d in days)
-    used = []
     rows = ""
     for r in SKI_REGIONS:                       # 地方の順に並べる
         for s in [x for x in ski if PREF_SKI_REGION[x["pref"]] == r]:
-            if r not in used:
-                used.append(r)
             cells = ""
             for d in s["days"][:TOP_DAYS]:
                 icon, label = wx(d["code"])
@@ -565,7 +569,7 @@ def ski_page(ski):
                           f"<b class='{snow_cls}'>{d['snow']:.0f}</b><small>{icon}</small></td>")
             total7 = sum(d["snow"] for d in s["days"][:TOP_DAYS])
             rows += (
-                f"<tbody class='mt' data-region='{r}' data-name='{e(s['name'] + s.get('yomi', ''))}'"
+                f"<tbody class='mt' data-region='{r}' data-prefs='{e(s['pref'])}' data-name='{e(s['name'] + s.get('yomi', ''))}'"
                 + (" data-fav='1'" if s["name"] in favs else "") + ">"
                 f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
                 f"<span>{e(s['name'])}</span><small>{e(s['pref'])} · 7日間 {total7:.0f}cm</small>"
@@ -573,7 +577,7 @@ def ski_page(ski):
                 f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{ski_detail(s)}</td></tr></tbody>")
     chips = ("<button class='chip on' data-r=''>すべて</button>"
              + ("<button class='chip' data-r='fav'>★お気に入り</button>" if favs else "")
-             + "".join(f"<button class='chip' data-r='{r}'>{r}</button>" for r in used))
+             + "".join(f"<button class='chip' data-r='pref:{p}'>{p.rstrip('県')}</button>" for p in ("長野県", "新潟県")))
     cards = f"""
 <div class='filters'><input id='q' type='search' placeholder='スキー場名で絞り込み' aria-label='スキー場名で絞り込み'>
 <div class='chips'>{chips}</div></div>
@@ -591,7 +595,7 @@ def ski_page(ski):
 <li>スキー場の一覧・標高差: Wikipedia、Wikidata。リフトの位置: © OpenStreetMap contributors</li>
 <li>公式ページ・ゲレンデマップのボタンは、リンク先が確認できたスキー場だけに出しています</li></ul>
 <h2>このページについて</h2>
-<p>標高差の大きいスキー場100か所に、志賀高原 焼額山・キューピットバレイ・だいせんホワイトリゾートを加えた一覧です。表の数字はゲレンデ上部の新雪(前日17時〜当日8時、閉場から開場までに積もる雪)の予報(cm)です。表は7日間で、スキー場名を押すと最大16日間の積雪・気温・0℃の高さ・風の詳細が開きます。</p></div>
+<p>標高差の大きいスキー場100か所(営業を終えた芸北国際スキー場を除く)に、志賀高原 焼額山・キューピットバレイ・だいせんホワイトリゾートを加えた一覧です。表の数字はゲレンデ上部の新雪(前日17時〜当日8時、閉場から開場までに積もる雪)の予報(cm)です。表は7日間で、スキー場名を押すと最大16日間の積雪・気温・0℃の高さ・風の詳細が開きます。</p></div>
 """
 
 
@@ -921,7 +925,8 @@ if(q){
   let region='';
   const apply=()=>{const t=q.value.trim();
     document.querySelectorAll('tbody.mt').forEach(b=>{
-      const inRegion=!region||b.dataset.region===region||(region==='fav'&&b.dataset.fav);
+      const inRegion=!region||b.dataset.region===region||(region==='fav'&&b.dataset.fav)
+        ||(region.startsWith('pref:')&&(b.dataset.prefs||'').split(',').includes(region.slice(5)));
       b.hidden=!(inRegion&&(!t||b.dataset.name.includes(t)));});};
   q.addEventListener('input',apply);
   document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{

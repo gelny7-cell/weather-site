@@ -134,7 +134,8 @@
   "lon": 140.0056,
   "drop": 900,
   "base": 1244,
-  "top": 1511
+  "top": 1511,
+  "site": "https://mt-gassan.com/"
  },
  {
   "name": "ニセコビレッジ",
@@ -440,7 +441,7 @@
   "drop": 610,
   "base": 422,
   "top": 1040,
-  "site": "https://sahoro.co.jp/winter"
+  "site": "https://sahoro-resort.com/"
  },
  {
   "name": "丸沼高原スキー場",
@@ -556,7 +557,7 @@
   "drop": 563,
   "base": 1567,
   "top": 2115,
-  "site": "https://miaski.jp/"
+  "site": "https://miaski-resort.com/"
  },
  {
   "name": "グランスノー奥伊吹",
@@ -639,7 +640,7 @@
   "drop": 525,
   "base": 391,
   "top": 888,
-  "site": "https://aomorispringski.com"
+  "site": "https://aomorispring.com/"
  },
  {
   "name": "タングラムスキーサーカス",
@@ -833,15 +834,6 @@
   "site": "https://www.getokogen.com/winter/index.html"
  },
  {
-  "name": "芸北国際スキー場",
-  "pref": "広島県",
-  "lat": 34.7078,
-  "lon": 132.2367,
-  "drop": 426,
-  "base": 700,
-  "top": 1127
- },
- {
   "name": "岩原スキー場",
   "pref": "新潟県",
   "lat": 36.9389,
@@ -996,7 +988,7 @@
   "drop": 300,
   "base": 1563,
   "top": 1818,
-  "site": "https://shirakaba-ski.jp/"
+  "site": "https://whitebirch.co.jp/kokusai/"
  },
  {
   "name": "白樺湖ロイヤルヒルスキー場",
