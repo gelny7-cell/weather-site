@@ -94,7 +94,8 @@
   "drop": 951,
   "base": 334,
   "top": 1288,
-  "site": "https://www.lottehotel.com/arai-resort/ja.html"
+  "site": "https://www.lottehotel.com/arai-resort/ja.html",
+  "map": "https://img.lottehotel.com/cms/asset/2026/01/29/36539/%E3%82%B3%E3%83%BC%E3%82%B9%E3%83%9E%E3%83%83%E3%83%972.jpg"
  },
  {
   "name": "白馬五竜スキー場",
@@ -589,7 +590,8 @@
   "drop": 550,
   "base": 430,
   "top": 960,
-  "site": "https://www.yukidaruma-kogen.com/"
+  "site": "https://www.yukidaruma-kogen.com/",
+  "map": "https://www.yukidaruma-kogen.com/cms/wp-content/themes/cupidValley2022/images/winter/gelande_map-2025_pc.jpg"
  },
  {
   "name": "朝里川温泉スキー場",
