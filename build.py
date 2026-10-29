@@ -254,7 +254,7 @@ def foodlink(lat, lon, pref, page):
         local = f" <a class='mapbtn' href='{e(url)}' target='_blank' rel='noopener'>🍜 ご当地：{e(food)}</a>"
     items = "".join(
         f"<a href='{e(f'https://www.google.com/maps/search/{urllib.parse.quote(q)}/@{lat},{lon},13z')}' "
-        f"target='_blank' rel='noopener'>{e(label)}</a>" for label, q in genres)
+        f"class='mapbtn' target='_blank' rel='noopener'>{e(label)}</a>" for label, q in genres)
     return (f"{local} <details class='menu'><summary class='mapbtn'>🍴 飲食店</summary>"
             f"<div class='menu-list'>{items}</div></details>")
 
@@ -1068,15 +1068,14 @@ a{color:var(--accent)}
 .card ul{padding-left:18px;margin:6px 0}.card.big{margin:0 0 12px}
 .sub td.l{white-space:normal;min-width:120px}
 .mapbtn{display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;border:1px solid var(--line);
-background:var(--card);color:var(--accent);text-decoration:none;white-space:nowrap}
+background:var(--card);color:var(--text);text-decoration:none;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.12)}
 .mapbtn:hover{border-color:var(--accent)}
-.menu{display:inline-block;position:relative;vertical-align:top}
+/* 「飲食店」: 押すとジャンルのボタンがその場に並ぶ(浮かせると表の固定列に隠れるため) */
+.menu{display:inline-block;vertical-align:top}
 .menu>summary{list-style:none;cursor:pointer}.menu>summary::-webkit-details-marker{display:none}
 .menu>summary::after{content:' ▼';font-size:10px}.menu[open]>summary::after{content:' ▲'}
-.menu-list{position:absolute;z-index:20;top:calc(100% + 4px);left:0;min-width:170px;padding:4px 0;background:var(--card);
-border:1px solid var(--line);border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
-.menu-list a{display:block;padding:7px 14px;font-size:13px;font-weight:400;color:var(--accent);text-decoration:none;white-space:nowrap}
-.menu-list a:hover{background:var(--hl)}.mapbtn img{vertical-align:-2px;margin-right:4px;border-radius:3px}
+.menu[open]>summary{background:var(--accent);border-color:var(--accent);color:#fff}
+.menu-list{display:inline;margin-left:4px}.menu-list .mapbtn{margin:0 4px 4px 0}.mapbtn img{vertical-align:-2px;margin-right:4px;border-radius:3px}
 tr.detail .mapbtn{margin:0 0 8px}
 .xbtn{all:unset;cursor:pointer;display:block}.xbtn b{color:var(--accent);text-decoration:underline;
 text-decoration-thickness:1px;text-underline-offset:3px}.xbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
