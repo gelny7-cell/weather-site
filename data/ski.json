@@ -9,7 +9,17 @@
   "top": 1845,
   "site": "https://www.princehotels.co.jp/ski/kagura/winter/",
   "map": "https://www.princehotels.co.jp/ski/kagura/winter/coursemap/",
-  "muni": "15461"
+  "muni": "15461",
+  "hours": {
+   "day": "8:00〜16:30",
+   "holiday": "8:00〜16:30",
+   "night": null,
+   "season": [
+    "2025-11-22",
+    "2026-05-17"
+   ],
+   "src": "かぐらスキー場"
+  }
  },
  {
   "name": "妙高杉ノ原スキー場",
@@ -21,7 +31,17 @@
   "top": 1861,
   "site": "https://www.princehotels.co.jp/ski/myoko/winter/",
   "map": "https://www.princehotels.co.jp/ski/myoko/winter/coursemap/",
-  "muni": "15217"
+  "muni": "15217",
+  "hours": {
+   "day": "8:30〜16:00",
+   "holiday": "8:30〜16:00",
+   "night": null,
+   "season": [
+    "2025-12-13",
+    "2026-03-29"
+   ],
+   "src": "妙高杉ノ原スキー場"
+  }
  },
  {
   "name": "野沢温泉スキー場",
@@ -33,7 +53,17 @@
   "top": 1637,
   "site": "https://nozawaski.com/",
   "map": "https://nozawaski.com/winter/course/map/",
-  "muni": "20563"
+  "muni": "20563",
+  "hours": {
+   "day": "8:30〜16:30 (時期により変動)",
+   "holiday": "8:30〜16:30 (時期により変動)",
+   "night": null,
+   "season": [
+    "2025-11-29",
+    "2026-05-06"
+   ],
+   "src": "野沢温泉スキー場"
+  }
  },
  {
   "name": "竜王スキーパーク",
@@ -45,7 +75,17 @@
   "top": 1922,
   "site": "https://www.ryuoo.com/",
   "map": "https://ryuoo.com/winter/gelande/",
-  "muni": "20561"
+  "muni": "20561",
+  "hours": {
+   "day": "8:15〜17:00",
+   "holiday": "8:15〜17:00",
+   "night": "17:00〜20:00",
+   "season": [
+    "2025-12-06",
+    "2026-04-05"
+   ],
+   "src": "竜王スキーパーク"
+  }
  },
  {
   "name": "白馬八方尾根スキー場",
@@ -57,7 +97,17 @@
   "top": 1836,
   "site": "https://www.happo-one.jp/",
   "map": "https://www.happo-one.jp/gelande/",
-  "muni": "20485"
+  "muni": "20485",
+  "hours": {
+   "day": "8:00〜16:00",
+   "holiday": "8:00〜16:00",
+   "night": null,
+   "season": [
+    "2025-12-05",
+    "2026-04-19"
+   ],
+   "src": "白馬八方尾根"
+  }
  },
  {
   "name": "ニセコHANAZONOリゾート",
@@ -69,7 +119,17 @@
   "top": 1216,
   "site": "https://hanazononiseko.com/",
   "map": "https://hanazononiseko.com/en/winter/resort/maps",
-  "muni": "01400"
+  "muni": "01400",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:30〜16:30",
+   "night": null,
+   "season": [
+    "2025-12-05",
+    "2026-04-12"
+   ],
+   "src": "ニセコHANAZONOリゾート"
+  }
  },
  {
   "name": "志賀高原スキー場",
@@ -92,7 +152,17 @@
   "top": 1216,
   "site": "https://www.grand-hirafu.jp/",
   "map": "https://www.niseko.ne.jp/en/map/",
-  "muni": "01400"
+  "muni": "01400",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:30〜16:30",
+   "night": null,
+   "season": [
+    "2025-12-04",
+    "2026-05-06"
+   ],
+   "src": "ニセコ東急 グラン・ヒラフ"
+  }
  },
  {
   "name": "ロッテアライリゾート",
@@ -104,7 +174,17 @@
   "top": 1288,
   "site": "https://www.lottehotel.com/arai-resort/ja.html",
   "map": "https://img.lottehotel.com/cms/asset/2026/01/29/36539/%E3%82%B3%E3%83%BC%E3%82%B9%E3%83%9E%E3%83%83%E3%83%972.jpg",
-  "muni": "15217"
+  "muni": "15217",
+  "hours": {
+   "day": "8:30〜16:00",
+   "holiday": "8:30〜16:00",
+   "night": "17:30〜22:00",
+   "season": [
+    "2025-12-13",
+    "2026-05-10"
+   ],
+   "src": "アライマウンテンリゾート"
+  }
  },
  {
   "name": "白馬五竜スキー場",
@@ -115,7 +195,17 @@
   "base": 767,
   "top": 1662,
   "site": "https://www.hakubagoryu.com/",
-  "muni": "20485"
+  "muni": "20485",
+  "hours": {
+   "day": "8:00〜16:50",
+   "holiday": "8:00〜16:50",
+   "night": null,
+   "season": [
+    "2025-12-04",
+    "2026-05-03"
+   ],
+   "src": "エイブル白馬五竜"
+  }
  },
  {
   "name": "栂池高原スキー場",
@@ -127,7 +217,17 @@
   "top": 1825,
   "site": "https://www.tsugaike.gr.jp/",
   "map": "https://www.tsugaike.gr.jp/gelande",
-  "muni": "20486"
+  "muni": "20486",
+  "hours": {
+   "day": "8:00〜17:00",
+   "holiday": "8:00〜17:00",
+   "night": null,
+   "season": [
+    "2025-12-01",
+    "2026-05-06"
+   ],
+   "src": "つがいけマウンテンリゾート"
+  }
  },
  {
   "name": "天元台高原",
@@ -138,7 +238,17 @@
   "base": 935,
   "top": 1789,
   "site": "https://www.tengendai.jp/",
-  "muni": "06202"
+  "muni": "06202",
+  "hours": {
+   "day": "8:20〜17:00",
+   "holiday": "8:00〜17:00",
+   "night": null,
+   "season": [
+    "2025-11-24",
+    "2026-05-06"
+   ],
+   "src": "天元台高原"
+  }
  },
  {
   "name": "月山スキー場",
@@ -161,7 +271,17 @@
   "top": 1216,
   "site": "https://www.niseko-village.com/",
   "map": "https://www.niseko.ne.jp/en/map/",
-  "muni": "01395"
+  "muni": "01395",
+  "hours": {
+   "day": "8:30〜16:00",
+   "holiday": "8:30〜16:00",
+   "night": null,
+   "season": [
+    "2025-12-05",
+    "2026-04-12"
+   ],
+   "src": "ニセコビレッジスキーリゾート"
+  }
  },
  {
   "name": "苗場スキー場",
@@ -173,7 +293,17 @@
   "top": 1759,
   "site": "https://www.princehotels.co.jp/ski/naeba/winter/",
   "map": "https://www.princehotels.co.jp/ski/naeba/winter/coursemap/",
-  "muni": "15461"
+  "muni": "15461",
+  "hours": {
+   "day": "8:00〜17:00",
+   "holiday": "8:00〜20:30",
+   "night": "16:30〜20:30",
+   "season": [
+    "2025-12-13",
+    "2026-04-05"
+   ],
+   "src": "苗場スキー場"
+  }
  },
  {
   "name": "山形蔵王温泉スキー場",
@@ -185,7 +315,17 @@
   "top": 1660,
   "site": "https://www.zao-ski.or.jp/",
   "map": "https://zaomountainresort.com/gerende/",
-  "muni": "06201"
+  "muni": "06201",
+  "hours": {
+   "day": "8:30〜17:00",
+   "holiday": "8:30〜17:00",
+   "night": null,
+   "season": [
+    "2025-12-06",
+    "2026-04-24"
+   ],
+   "src": "蔵王温泉スキー場"
+  }
  },
  {
   "name": "富良野スキー場",
@@ -197,7 +337,17 @@
   "top": 1054,
   "site": "https://www.princehotels.co.jp/ski/furano/winter/",
   "map": "https://www.princehotels.co.jp/ski/furano/winter/coursemap/",
-  "muni": "01229"
+  "muni": "01229",
+  "hours": {
+   "day": "8:30〜16:00",
+   "holiday": "8:30〜16:00",
+   "night": null,
+   "season": [
+    "2025-11-29",
+    "2026-05-06"
+   ],
+   "src": "富良野スキー場"
+  }
  },
  {
   "name": "ガーラ湯沢スキー場",
@@ -208,7 +358,17 @@
   "base": 349,
   "top": 1171,
   "site": "https://gala.co.jp/winter/",
-  "muni": "15461"
+  "muni": "15461",
+  "hours": {
+   "day": "8:00〜17:00 (時期により変動)",
+   "holiday": "8:00〜17:00 (時期により変動)",
+   "night": null,
+   "season": [
+    "2025-12-20",
+    "2026-05-06"
+   ],
+   "src": "GALA湯沢スキー場"
+  }
  },
  {
   "name": "上越国際スキー場",
@@ -219,7 +379,17 @@
   "base": 224,
   "top": 914,
   "site": "https://www.jkokusai.co.jp/",
-  "muni": "15226"
+  "muni": "15226",
+  "hours": {
+   "day": "8:00〜21:00",
+   "holiday": "8:00〜21:00",
+   "night": null,
+   "season": [
+    "2025-12-13",
+    "2026-03-31"
+   ],
+   "src": "上越国際スキー場"
+  }
  },
  {
   "name": "雫石スキー場",
@@ -231,7 +401,17 @@
   "top": 1243,
   "site": "https://www.princehotels.co.jp/ski/shizukuishi/winter/",
   "map": "https://www.princehotels.co.jp/ski/shizukuishi/winter/coursemap/",
-  "muni": "03301"
+  "muni": "03301",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:30〜16:30",
+   "night": null,
+   "season": [
+    "2025-12-20",
+    "2026-03-22"
+   ],
+   "src": "雫石スキー場"
+  }
  },
  {
   "name": "赤倉温泉スキー場",
@@ -242,7 +422,17 @@
   "base": 696,
   "top": 1141,
   "site": "https://akakura-ski.com/",
-  "muni": "15217"
+  "muni": "15217",
+  "hours": {
+   "day": "8:30〜17:00",
+   "holiday": "8:30〜17:00",
+   "night": null,
+   "season": [
+    "2025-12-13",
+    "2026-03-31"
+   ],
+   "src": "赤倉温泉スキー場"
+  }
  },
  {
   "name": "ニセコアンヌプリ国際スキー場",
@@ -254,7 +444,17 @@
   "top": 1216,
   "site": "https://annupuri.info/",
   "map": "https://annupuri.info/gelande/",
-  "muni": "01395"
+  "muni": "01395",
+  "hours": {
+   "day": "8:30〜16:30 (時期により変動)",
+   "holiday": "8:30〜16:30 (時期により変動)",
+   "night": null,
+   "season": [
+    "2025-12-05",
+    "2026-05-06"
+   ],
+   "src": "ニセコアンヌプリ国際スキー場"
+  }
  },
  {
   "name": "富士見パノラマリゾート",
@@ -266,7 +466,17 @@
   "top": 1783,
   "site": "https://www.fujimipanorama.com/",
   "map": "https://map.yukiyama-web.com/?id=256",
-  "muni": "20362"
+  "muni": "20362",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:00〜16:30",
+   "night": null,
+   "season": [
+    "2025-12-20",
+    "2026-04-05"
+   ],
+   "src": "富士見パノラマリゾート"
+  }
  },
  {
   "name": "野麦峠スキー場",
@@ -277,7 +487,17 @@
   "base": 1415,
   "top": 2110,
   "site": "http://gakutoresort.jp/",
-  "muni": "20202"
+  "muni": "20202",
+  "hours": {
+   "day": "9:00〜16:00",
+   "holiday": "8:30〜16:00",
+   "night": null,
+   "season": [
+    "2025-12-20",
+    "2026-03-29"
+   ],
+   "src": "信州松本野麦峠スキー場"
+  }
  },
  {
   "name": "池の平温泉スキー場",
@@ -288,7 +508,17 @@
   "base": 766,
   "top": 1428,
   "site": "https://alpenblick-resort.com/ski",
-  "muni": "15217"
+  "muni": "15217",
+  "hours": {
+   "day": "8:30〜16:00",
+   "holiday": "8:30〜16:00",
+   "night": null,
+   "season": [
+    "2025-12-20",
+    "2026-03-29"
+   ],
+   "src": "池の平温泉アルペンブリックスキー場"
+  }
  },
  {
   "name": "鹿島槍スキー場",
@@ -299,7 +529,17 @@
   "base": 864,
   "top": 1339,
   "site": "https://www.kashimayari.net/",
-  "muni": "20212"
+  "muni": "20212",
+  "hours": {
+   "day": "8:00〜17:00",
+   "holiday": "8:00〜17:00",
+   "night": null,
+   "season": [
+    "2025-12-13",
+    "2026-03-22"
+   ],
+   "src": "鹿島槍スキー場ファミリーパーク"
+  }
  },
  {
   "name": "スキージャム勝山",
@@ -310,7 +550,17 @@
   "base": 611,
   "top": 1313,
   "site": "https://www.skijam.jp/",
-  "muni": "18206"
+  "muni": "18206",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:00〜16:30",
+   "night": null,
+   "season": [
+    "2025-12-20",
+    "2026-03-29"
+   ],
+   "src": "スキージャム勝山"
+  }
  },
  {
   "name": "立山山麓スキー場",
@@ -321,7 +571,17 @@
   "base": 485,
   "top": 1165,
   "site": "https://www.tateyama36.co.jp/",
-  "muni": "16201"
+  "muni": "16201",
+  "hours": {
+   "day": "8:00〜16:10",
+   "holiday": "8:00〜16:10",
+   "night": null,
+   "season": [
+    "2025-12-28",
+    "2026-03-15"
+   ],
+   "src": "立山山麓スキー場（極楽坂・らいちょうバレー）"
+  }
  },
  {
   "name": "会津高原たかつえスキー場",
@@ -333,7 +593,17 @@
   "top": 1618,
   "site": "https://www.takatsue.jp/",
   "map": "https://www.takatsue.jp/gelande/",
-  "muni": "07368"
+  "muni": "07368",
+  "hours": {
+   "day": "8:30〜16:00",
+   "holiday": "8:30〜16:00",
+   "night": null,
+   "season": [
+    "2025-12-19",
+    "2026-03-22"
+   ],
+   "src": "会津高原たかつえスキー場"
+  }
  },
  {
   "name": "めいほうスキー場",
@@ -345,7 +615,17 @@
   "top": 1572,
   "site": "https://www.meihoski.co.jp/",
   "map": "https://www.meihoski.co.jp/gelande/",
-  "muni": "21219"
+  "muni": "21219",
+  "hours": {
+   "day": "8:00〜16:30",
+   "holiday": "7:30〜16:30",
+   "night": null,
+   "season": [
+    "2025-12-13",
+    "2026-04-08"
+   ],
+   "src": "めいほうスキー場"
+  }
  },
  {
   "name": "えぼしリゾート",
@@ -357,7 +637,17 @@
   "top": 1369,
   "site": "https://www.eboshi.co.jp/",
   "map": "https://eboshi.co.jp/winter/condition/",
-  "muni": "00000"
+  "muni": "00000",
+  "hours": {
+   "day": "9:00〜 (終了は時期により変動)",
+   "holiday": "8:30〜 (終了は時期により変動)",
+   "night": null,
+   "season": [
+    "2025-12-12",
+    "2026-03-29"
+   ],
+   "src": "みやぎ蔵王えぼしリゾート"
+  }
  },
  {
   "name": "星野リゾート トマム",
@@ -368,7 +658,17 @@
   "base": 540,
   "top": 1239,
   "site": "https://www.snowtomamu.jp/winter/",
-  "muni": "01463"
+  "muni": "01463",
+  "hours": {
+   "day": "8:45〜15:30 (時期により変動)",
+   "holiday": "8:45〜15:30 (時期により変動)",
+   "night": "15:30〜18:00",
+   "season": [
+    "2025-12-01",
+    "2026-04-05"
+   ],
+   "src": "星野リゾート トマム スキー場"
+  }
  },
  {
   "name": "四季の森ホワイトワールド尾瀬岩鞍",
@@ -380,7 +680,17 @@
   "top": 1715,
   "site": "https://www.oze-iwakura.co.jp/ski/",
   "map": "https://www.oze-iwakura.co.jp/ski/slopeguide/",
-  "muni": "10443"
+  "muni": "10443",
+  "hours": {
+   "day": "8:30〜16:45",
+   "holiday": "8:30〜16:45",
+   "night": null,
+   "season": [
+    "2025-12-13",
+    "2026-04-05"
+   ],
+   "src": "ホワイトワールド尾瀬岩鞍"
+  }
  },
  {
   "name": "安比高原スキー場",
@@ -392,7 +702,17 @@
   "top": 1271,
   "site": "https://www.appi.co.jp/snow-mountain-resort/",
   "map": "https://www.appi.co.jp/snow-mountain-resort/course/",
-  "muni": "03214"
+  "muni": "03214",
+  "hours": {
+   "day": "8:30〜17:00",
+   "holiday": "8:30〜17:00",
+   "night": null,
+   "season": [
+    "2025-12-05",
+    "2026-05-02"
+   ],
+   "src": "安比高原"
+  }
  },
  {
   "name": "サッポロテイネ",
@@ -403,7 +723,14 @@
   "base": 354,
   "top": 990,
   "site": "https://sapporo-teine.com/snow/lang/en/",
-  "muni": "01109"
+  "muni": "01109",
+  "hours": {
+   "day": "9:00〜16:00",
+   "holiday": "9:00〜16:00",
+   "night": null,
+   "season": null,
+   "src": "サッポロテイネ"
+  }
  },
  {
   "name": "石打丸山スキー場",
@@ -414,7 +741,17 @@
   "base": 259,
   "top": 876,
   "site": "https://ishiuchi.or.jp/",
-  "muni": "15226"
+  "muni": "15226",
+  "hours": {
+   "day": "8:30〜17:00",
+   "holiday": "8:30〜17:00",
+   "night": null,
+   "season": [
+    "2025-12-19",
+    "2026-04-05"
+   ],
+   "src": "石打丸山"
+  }
  },
  {
   "name": "阿仁スキー場",
@@ -425,7 +762,17 @@
   "base": 535,
   "top": 1198,
   "site": "http://www.aniski.jp/",
-  "muni": "05213"
+  "muni": "05213",
+  "hours": {
+   "day": "8:45〜16:00",
+   "holiday": "8:45〜16:00",
+   "night": null,
+   "season": [
+    "2025-12-13",
+    "2026-04-26"
+   ],
+   "src": "阿仁"
+  }
  },
  {
   "name": "ハチ北スキー場",
@@ -438,7 +785,17 @@
   "yomi": "ハチ北高原 はちきた",
   "site": "https://www.hachi-hachikita.co.jp/",
   "map": "https://www.hachi-hachikita.co.jp/hachi/slope.html",
-  "muni": "28585"
+  "muni": "28585",
+  "hours": {
+   "day": "8:30〜17:00 (時期により変動)",
+   "holiday": "8:00〜17:00 (時期により変動)",
+   "night": null,
+   "season": [
+    "2025-12-28",
+    "2026-04-05"
+   ],
+   "src": "ハチ北高原"
+  }
  },
  {
   "name": "舞子スノーリゾート",
@@ -450,7 +807,17 @@
   "top": 888,
   "site": "https://www.maiko-resort.com/winter/",
   "map": "https://www.maiko-resort.com/liftmap.html",
-  "muni": "15226"
+  "muni": "15226",
+  "hours": {
+   "day": "8:30〜16:45",
+   "holiday": "8:00〜16:45",
+   "night": null,
+   "season": [
+    "2025-12-27",
+    "2026-03-29"
+   ],
+   "src": "舞子スノーリゾート"
+  }
  },
  {
   "name": "奥利根スノーパーク",
@@ -461,7 +828,17 @@
   "base": 541,
   "top": 1168,
   "site": "https://okutone.jp/",
-  "muni": "10449"
+  "muni": "10449",
+  "hours": {
+   "day": "8:00〜17:00",
+   "holiday": "8:00〜17:00",
+   "night": null,
+   "season": [
+    "2025-12-13",
+    "2026-03-29"
+   ],
+   "src": "奥利根スノーパーク"
+  }
  },
  {
   "name": "キロロリゾート",
@@ -473,7 +850,17 @@
   "top": 1173,
   "site": "https://www.kiroro.co.jp/ja/",
   "map": "https://www.kiroro.co.jp/ja/guide_map/",
-  "muni": "01409"
+  "muni": "01409",
+  "hours": {
+   "day": "9:00〜 (終了は時期により変動)",
+   "holiday": "9:00〜 (終了は時期により変動)",
+   "night": "16:00〜19:00",
+   "season": [
+    "2025-12-06",
+    "2026-05-03"
+   ],
+   "src": "キロロスノーワールド"
+  }
  },
  {
   "name": "サホロリゾート",
@@ -484,7 +871,17 @@
   "base": 422,
   "top": 1040,
   "site": "https://sahoro-resort.com/",
-  "muni": "01635"
+  "muni": "01635",
+  "hours": {
+   "day": "9:00〜16:00",
+   "holiday": "9:00〜16:00",
+   "night": "16:00〜18:00",
+   "season": [
+    "2025-12-04",
+    "2026-04-05"
+   ],
+   "src": "サホロリゾートスキー場"
+  }
  },
  {
   "name": "丸沼高原スキー場",
@@ -496,7 +893,17 @@
   "top": 1998,
   "site": "https://www.marunuma.jp/winter/",
   "map": "https://www.marunuma.jp/winter/course-map",
-  "muni": "10443"
+  "muni": "10443",
+  "hours": {
+   "day": "8:30〜16:00 (時期により変動)",
+   "holiday": "8:30〜16:00 (時期により変動)",
+   "night": null,
+   "season": [
+    "2025-12-05",
+    "2026-05-06"
+   ],
+   "src": "丸沼高原スキー場"
+  }
  },
  {
   "name": "たざわ湖スキー場",
@@ -508,7 +915,17 @@
   "top": 1157,
   "site": "https://www.tazawako-ski.com/",
   "map": "https://www.tazawako-ski.com/cou/",
-  "muni": "05215"
+  "muni": "05215",
+  "hours": {
+   "day": "9:00〜16:00",
+   "holiday": "8:30〜16:00",
+   "night": null,
+   "season": [
+    "2025-12-20",
+    "2026-03-29"
+   ],
+   "src": "たざわ湖"
+  }
  },
  {
   "name": "カムイスキーリンクス",
@@ -519,7 +936,17 @@
   "base": 143,
   "top": 734,
   "site": "https://www.kamui-skilinks.com/",
-  "muni": "01204"
+  "muni": "01204",
+  "hours": {
+   "day": "9:00〜16:00",
+   "holiday": "9:00〜16:00",
+   "night": null,
+   "season": [
+    "2025-12-13",
+    "2026-03-31"
+   ],
+   "src": "カムイスキーリンクス"
+  }
  },
  {
   "name": "高鷲スノーパーク",
@@ -531,7 +958,17 @@
   "top": 1531,
   "site": "https://www.takasu.gr.jp",
   "map": "https://www.takasu.gr.jp/gelande/",
-  "muni": "21219"
+  "muni": "21219",
+  "hours": {
+   "day": "8:00〜16:30",
+   "holiday": "8:00〜16:30",
+   "night": null,
+   "season": [
+    "2025-12-07",
+    "2026-04-19"
+   ],
+   "src": "高鷲スノーパーク"
+  }
  },
  {
   "name": "ルスツリゾート",
@@ -543,7 +980,17 @@
   "top": 987,
   "site": "https://rusutsu.com/",
   "map": "https://rusutsu.com/trail-map/",
-  "muni": "01397"
+  "muni": "01397",
+  "hours": {
+   "day": "9:00〜20:00",
+   "holiday": "9:00〜20:00",
+   "night": "16:00〜20:00",
+   "season": [
+    "2025-12-05",
+    "2026-03-31"
+   ],
+   "src": "ルスツリゾート"
+  }
  },
  {
   "name": "星野リゾート アルツ磐梯",
@@ -555,7 +1002,17 @@
   "top": 1340,
   "site": "https://www.nekoma.co.jp/",
   "map": "https://www.nekoma.co.jp/liftguide/",
-  "muni": "07407"
+  "muni": "07407",
+  "hours": {
+   "day": "8:30〜15:30",
+   "holiday": "8:30〜15:30",
+   "night": null,
+   "season": [
+    "2025-12-06",
+    "2026-04-19"
+   ],
+   "src": "星野リゾート ネコマ マウンテン"
+  }
  },
  {
   "name": "猪苗代スキー場",
@@ -566,7 +1023,17 @@
   "base": 707,
   "top": 1274,
   "site": "https://www.inawashiro-ski.com/",
-  "muni": "07408"
+  "muni": "07408",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:30〜16:30",
+   "night": null,
+   "season": [
+    "2025-12-19",
+    "2026-03-22"
+   ],
+   "src": "絶景・猪苗代スキー場"
+  }
  },
  {
   "name": "グランデコスノーリゾート",
@@ -577,7 +1044,17 @@
   "base": 1015,
   "top": 1593,
   "site": "http://www.grandeco.com/hotel_resort/",
-  "muni": "07402"
+  "muni": "07402",
+  "hours": {
+   "day": "8:30〜16:00 (時期により変動)",
+   "holiday": "8:30〜16:00 (時期により変動)",
+   "night": null,
+   "season": [
+    "2025-11-22",
+    "2026-04-12"
+   ],
+   "src": "グランデコスノーリゾート"
+  }
  },
  {
   "name": "川場スキー場",
@@ -588,7 +1065,17 @@
   "base": 1289,
   "top": 1865,
   "site": "https://www.kawaba.co.jp/snow/",
-  "muni": "10444"
+  "muni": "10444",
+  "hours": {
+   "day": "8:30〜16:00",
+   "holiday": "8:00〜16:00",
+   "night": null,
+   "season": [
+    "2025-12-06",
+    "2026-04-19"
+   ],
+   "src": "川場スキー場"
+  }
  },
  {
   "name": "水上宝台樹スキー場",
@@ -600,7 +1087,17 @@
   "top": 1349,
   "site": "https://hodaigi.jp/",
   "map": "https://hodaigi.jp/gelande-guide/",
-  "muni": "10449"
+  "muni": "10449",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:30〜16:30",
+   "night": null,
+   "season": [
+    "2025-12-13",
+    "2026-03-29"
+   ],
+   "src": "群馬みなかみほうだいぎスキー場"
+  }
  },
  {
   "name": "開田高原マイアスキー場",
@@ -611,7 +1108,17 @@
   "base": 1567,
   "top": 2115,
   "site": "https://miaski-resort.com/",
-  "muni": "20432"
+  "muni": "20432",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:30〜16:30",
+   "night": null,
+   "season": [
+    "2025-12-20",
+    "2026-03-29"
+   ],
+   "src": "信州開田高原マイアスキー場"
+  }
  },
  {
   "name": "グランスノー奥伊吹",
@@ -623,7 +1130,17 @@
   "top": 1182,
   "site": "https://www.okuibuki.co.jp/",
   "map": "https://www.okuibuki.co.jp/gelande/",
-  "muni": "25214"
+  "muni": "25214",
+  "hours": {
+   "day": "8:00〜17:00",
+   "holiday": "8:00〜17:00",
+   "night": null,
+   "season": [
+    "2025-11-14",
+    "2026-04-12"
+   ],
+   "src": "グランスノー奥伊吹"
+  }
  },
  {
   "name": "戸隠スキー場",
@@ -635,7 +1152,17 @@
   "top": 1728,
   "site": "https://www.togakusi.com/",
   "map": "https://www.togakusi.com/ski/course/",
-  "muni": "20201"
+  "muni": "20201",
+  "hours": {
+   "day": "8:30〜16:15",
+   "holiday": "8:30〜16:15",
+   "night": null,
+   "season": [
+    "2025-12-13",
+    "2026-03-31"
+   ],
+   "src": "戸隠"
+  }
  },
  {
   "name": "キューピットバレイ",
@@ -647,7 +1174,17 @@
   "top": 960,
   "site": "https://www.yukidaruma-kogen.com/",
   "map": "https://www.yukidaruma-kogen.com/cms/wp-content/themes/cupidValley2022/images/winter/gelande_map-2025_pc.jpg",
-  "muni": "15222"
+  "muni": "15222",
+  "hours": {
+   "day": "8:30〜16:00",
+   "holiday": "8:30〜16:00",
+   "night": null,
+   "season": [
+    "2025-12-27",
+    "2026-03-22"
+   ],
+   "src": "キューピットバレイ"
+  }
  },
  {
   "name": "朝里川温泉スキー場",
@@ -658,7 +1195,17 @@
   "base": 161,
   "top": 616,
   "site": "https://asari-ski.com/",
-  "muni": "01203"
+  "muni": "01203",
+  "hours": {
+   "day": "9:00〜16:00 (時期により変動)",
+   "holiday": "9:00〜16:00 (時期により変動)",
+   "night": null,
+   "season": [
+    "2025-12-13",
+    "2026-04-05"
+   ],
+   "src": "朝里川温泉スキー場"
+  }
  },
  {
   "name": "神立スノーリゾート",
@@ -670,7 +1217,17 @@
   "top": 944,
   "site": "https://www.kandatsu.com/",
   "map": "https://www.kandatsu.com/course-guide/",
-  "muni": "15461"
+  "muni": "15461",
+  "hours": {
+   "day": "8:00〜16:30",
+   "holiday": "7:00〜16:30",
+   "night": null,
+   "season": [
+    "2025-12-13",
+    "2026-04-07"
+   ],
+   "src": "神立スノーリゾート"
+  }
  },
  {
   "name": "白馬岩岳スノーフィールド",
@@ -681,7 +1238,17 @@
   "base": 758,
   "top": 1297,
   "site": "https://iwatake.jp/",
-  "muni": "20485"
+  "muni": "20485",
+  "hours": {
+   "day": "8:00〜17:00",
+   "holiday": "8:00〜17:00",
+   "night": null,
+   "season": [
+    "2025-12-19",
+    "2026-03-29"
+   ],
+   "src": "白馬岩岳スノーフィールド"
+  }
  },
  {
   "name": "白馬コルチナ国際スキー場",
@@ -692,7 +1259,17 @@
   "base": 823,
   "top": 1416,
   "site": "https://www.hgp.co.jp/cortina/ski/",
-  "muni": "20486"
+  "muni": "20486",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:30〜16:30",
+   "night": null,
+   "season": [
+    "2025-12-13",
+    "2026-03-30"
+   ],
+   "src": "HAKUBA VALLEY 白馬コルチナ"
+  }
  },
  {
   "name": "青森スプリング・スキーリゾート",
@@ -703,7 +1280,17 @@
   "base": 391,
   "top": 888,
   "site": "https://aomorispring.com/",
-  "muni": "02321"
+  "muni": "02321",
+  "hours": {
+   "day": "8:30〜15:30",
+   "holiday": "8:30〜15:30",
+   "night": null,
+   "season": [
+    "2025-12-13",
+    "2026-04-05"
+   ],
+   "src": "青森スプリング・スキーリゾート"
+  }
  },
  {
   "name": "タングラムスキーサーカス",
@@ -727,7 +1314,17 @@
   "top": 1006,
   "site": "https://charmant-hiuchi.jp/",
   "map": "https://charmant-hiuchi.jp/gelande/",
-  "muni": "15216"
+  "muni": "15216",
+  "hours": {
+   "day": "8:30〜16:15",
+   "holiday": "8:30〜16:15",
+   "night": null,
+   "season": [
+    "2025-12-19",
+    "2026-04-30"
+   ],
+   "src": "シャルマン火打"
+  }
  },
  {
   "name": "恐羅漢スノーパーク",
@@ -739,7 +1336,17 @@
   "top": 1308,
   "site": "https://www.osorakan.co.jp/winter/",
   "map": "https://osorakan.co.jp/winter/course",
-  "muni": "34368"
+  "muni": "34368",
+  "hours": {
+   "day": "8:00〜17:00",
+   "holiday": "8:00〜17:00",
+   "night": null,
+   "season": [
+    "2025-12-27",
+    "2026-03-29"
+   ],
+   "src": "恐羅漢スノーパーク"
+  }
  },
  {
   "name": "白馬乗鞍温泉スキー場",
@@ -750,7 +1357,17 @@
   "base": 819,
   "top": 1319,
   "site": "https://www.hakubanorikura.jp/",
-  "muni": "20486"
+  "muni": "20486",
+  "hours": {
+   "day": "8:30〜16:00",
+   "holiday": "8:30〜16:00",
+   "night": null,
+   "season": [
+    "2025-12-13",
+    "2026-03-29"
+   ],
+   "src": "白馬乗鞍温泉スキー場"
+  }
  },
  {
   "name": "白山一里野温泉スキー場",
@@ -761,7 +1378,17 @@
   "base": 545,
   "top": 1018,
   "site": "http://www.sam-hakusan.com/",
-  "muni": "17210"
+  "muni": "17210",
+  "hours": {
+   "day": "8:30〜16:45",
+   "holiday": "8:00〜16:45",
+   "night": null,
+   "season": [
+    "2026-01-03",
+    "2026-03-22"
+   ],
+   "src": "白山一里野温泉スキー場"
+  }
  },
  {
   "name": "めがひらスキー場",
@@ -773,7 +1400,17 @@
   "top": 1058,
   "site": "http://www.megahira.co.jp/pc/ski.html",
   "map": "https://www.megahira.co.jp/ski/map/",
-  "muni": "34213"
+  "muni": "34213",
+  "hours": {
+   "day": "8:00〜17:00",
+   "holiday": "8:00〜17:00",
+   "night": "17:00〜21:00",
+   "season": [
+    "2025-12-12",
+    "2026-03-08"
+   ],
+   "src": "女鹿平温泉めがひら"
+  }
  },
  {
   "name": "ハチ高原スキー場",
@@ -785,7 +1422,17 @@
   "top": 1209,
   "site": "https://www.hachi-hachikita.co.jp/",
   "map": "https://www.hachi-hachikita.co.jp/hachi/slope.html",
-  "muni": "28222"
+  "muni": "28222",
+  "hours": {
+   "day": "8:30〜17:00 (時期により変動)",
+   "holiday": "8:00〜17:00 (時期により変動)",
+   "night": null,
+   "season": [
+    "2025-12-28",
+    "2026-03-22"
+   ],
+   "src": "ハチ高原"
+  }
  },
  {
   "name": "名寄ピヤシリスキー場",
@@ -796,7 +1443,17 @@
   "base": 248,
   "top": 658,
   "site": "https://www.nayoro.co.jp/piyashiri/top/",
-  "muni": "01221"
+  "muni": "01221",
+  "hours": {
+   "day": "9:00〜16:30",
+   "holiday": "9:00〜16:30",
+   "night": null,
+   "season": [
+    "2025-12-13",
+    "2026-03-22"
+   ],
+   "src": "名寄ピヤシリスキー場"
+  }
  },
  {
   "name": "ウイングヒルズ白鳥リゾート",
@@ -808,7 +1465,17 @@
   "top": 1327,
   "site": "https://winghills.net/",
   "map": "https://winghills.net/green/files/images/home/map2026.pdf",
-  "muni": "21219"
+  "muni": "21219",
+  "hours": {
+   "day": "8:00〜16:00",
+   "holiday": "8:00〜16:00",
+   "night": null,
+   "season": [
+    "2025-12-05",
+    "2026-03-22"
+   ],
+   "src": "ウイングヒルズ白鳥リゾート"
+  }
  },
  {
   "name": "札幌国際スキー場",
@@ -820,7 +1487,17 @@
   "top": 1090,
   "site": "https://www.sapporo-kokusai.jp/",
   "map": "https://www.sapporo-kokusai.jp/slopes/",
-  "muni": "01106"
+  "muni": "01106",
+  "hours": {
+   "day": "9:00〜17:00 (時期により変動)",
+   "holiday": "9:00〜17:00 (時期により変動)",
+   "night": null,
+   "season": [
+    "2025-11-21",
+    "2026-05-06"
+   ],
+   "src": "札幌国際スキー場"
+  }
  },
  {
   "name": "ハンターマウンテン塩原",
@@ -831,7 +1508,17 @@
   "base": 1138,
   "top": 1589,
   "site": "https://www.hunter.co.jp/",
-  "muni": "09213"
+  "muni": "09213",
+  "hours": {
+   "day": "8:30〜16:00",
+   "holiday": "8:00〜16:00",
+   "night": null,
+   "season": [
+    "2025-11-22",
+    "2026-04-23"
+   ],
+   "src": "ハンターマウンテン塩原"
+  }
  },
  {
   "name": "ブランシュたかやまスキーリゾート",
@@ -843,7 +1530,17 @@
   "top": 1788,
   "site": "https://www.blanche-ski.com/",
   "map": "https://blanche-ski.com/winter/course/",
-  "muni": "20350"
+  "muni": "20350",
+  "hours": {
+   "day": "8:30〜16:00",
+   "holiday": "8:00〜16:30",
+   "night": null,
+   "season": [
+    "2025-12-13",
+    "2026-03-29"
+   ],
+   "src": "ブランシュたかやまスキーリゾート"
+  }
  },
  {
   "name": "箕輪スキー場",
@@ -854,7 +1551,17 @@
   "base": 1049,
   "top": 1460,
   "site": "https://www.ski-minowa.jp/",
-  "muni": "07408"
+  "muni": "07408",
+  "hours": {
+   "day": "8:30〜16:00",
+   "holiday": "8:30〜16:00",
+   "night": null,
+   "season": [
+    "2023-12-02",
+    "2024-03-24"
+   ],
+   "src": "Blue Resort 箕輪スキー場"
+  }
  },
  {
   "name": "志賀高原 焼額山スキー場",
@@ -866,7 +1573,17 @@
   "top": 2005,
   "site": "https://www.princehotels.co.jp/ski/shiga/winter/",
   "map": "https://www.princehotels.co.jp/ski/shiga/winter/coursemap/",
-  "muni": "20561"
+  "muni": "20561",
+  "hours": {
+   "day": "8:30〜16:00",
+   "holiday": "8:30〜16:00",
+   "night": "18:00〜20:00",
+   "season": [
+    "2025-12-06",
+    "2026-05-01"
+   ],
+   "src": "志賀高原焼額山"
+  }
  },
  {
   "name": "ダイナランド",
@@ -878,7 +1595,17 @@
   "top": 1423,
   "site": "https://www.dynaland.co.jp/",
   "map": "https://www.dynaland.co.jp/gelande/",
-  "muni": "21219"
+  "muni": "21219",
+  "hours": {
+   "day": "8:00〜16:30",
+   "holiday": "6:00〜16:30",
+   "night": null,
+   "season": [
+    "2025-12-06",
+    "2026-03-29"
+   ],
+   "src": "ダイナランド"
+  }
  },
  {
   "name": "鷲ヶ岳スキー場",
@@ -890,7 +1617,17 @@
   "top": 1335,
   "site": "https://ski.washigatake.jp/",
   "map": "https://ski.washigatake.jp/gelande/",
-  "muni": "21219"
+  "muni": "21219",
+  "hours": {
+   "day": "8:00〜16:30",
+   "holiday": "6:00〜16:30",
+   "night": null,
+   "season": [
+    "2025-11-21",
+    "2026-03-29"
+   ],
+   "src": "鷲ヶ岳スキー場"
+  }
  },
  {
   "name": "斑尾高原スキー場",
@@ -901,7 +1638,17 @@
   "base": 914,
   "top": 1323,
   "site": "https://www.madarao.jp/",
-  "muni": "20213"
+  "muni": "20213",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:30〜16:30",
+   "night": "16:30〜21:00",
+   "season": [
+    "2025-12-13",
+    "2026-03-29"
+   ],
+   "src": "斑尾高原スキー場"
+  }
  },
  {
   "name": "夏油高原スキー場",
@@ -912,7 +1659,17 @@
   "base": 641,
   "top": 1068,
   "site": "https://www.getokogen.com/winter/index.html",
-  "muni": "03206"
+  "muni": "03206",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:30〜16:30",
+   "night": null,
+   "season": [
+    "2025-12-05",
+    "2026-05-02"
+   ],
+   "src": "夏油高原スキー場"
+  }
  },
  {
   "name": "岩原スキー場",
@@ -924,7 +1681,17 @@
   "top": 797,
   "site": "https://www.iwa-ppara.com/",
   "map": "https://iwa-ppara.com/gelande/",
-  "muni": "15461"
+  "muni": "15461",
+  "hours": {
+   "day": "8:00〜17:00",
+   "holiday": "8:00〜17:00",
+   "night": null,
+   "season": [
+    "2025-12-27",
+    "2026-03-29"
+   ],
+   "src": "岩原スキー場"
+  }
  },
  {
   "name": "ユートピアサイオト",
@@ -946,7 +1713,17 @@
   "base": 644,
   "top": 972,
   "site": "https://www.whitevalley.jp/",
-  "muni": "10449"
+  "muni": "10449",
+  "hours": {
+   "day": "9:00〜16:00",
+   "holiday": "8:30〜16:15",
+   "night": null,
+   "season": [
+    "2025-12-27",
+    "2026-03-15"
+   ],
+   "src": "ホワイトバレースキー場"
+  }
  },
  {
   "name": "車山高原スキー場",
@@ -957,7 +1734,17 @@
   "base": 1584,
   "top": 1910,
   "site": "https://kurumayama.com/",
-  "muni": "20214"
+  "muni": "20214",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:30〜16:30",
+   "night": null,
+   "season": [
+    "2025-12-13",
+    "2026-03-31"
+   ],
+   "src": "車山高原SKYPARKスキー場"
+  }
  },
  {
   "name": "札幌藻岩山スキー場",
@@ -968,7 +1755,17 @@
   "base": 185,
   "top": 444,
   "site": "https://www.rinyu.co.jp/moiwa/",
-  "muni": "01106"
+  "muni": "01106",
+  "hours": {
+   "day": "9:00〜16:00",
+   "holiday": "9:00〜16:00",
+   "night": null,
+   "season": [
+    "2025-12-20",
+    "2026-03-15"
+   ],
+   "src": "札幌藻岩山スキー場"
+  }
  },
  {
   "name": "飛騨ほおのき平スキー場",
@@ -980,7 +1777,17 @@
   "top": 1526,
   "site": "https://hounoki-daira.com/",
   "map": "https://hounoki-daira.com/coursemap/",
-  "muni": "21203"
+  "muni": "21203",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:00〜16:30",
+   "night": null,
+   "season": [
+    "2025-12-13",
+    "2026-03-22"
+   ],
+   "src": "飛騨ほおのき平"
+  }
  },
  {
   "name": "万座温泉スキー場",
@@ -992,7 +1799,17 @@
   "top": 1986,
   "site": "https://www.princehotels.co.jp/ski/manza/winter/",
   "map": "https://www.princehotels.co.jp/ski/manza/winter/coursemap/",
-  "muni": "10425"
+  "muni": "10425",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:30〜17:00",
+   "night": null,
+   "season": [
+    "2025-12-20",
+    "2026-03-22"
+   ],
+   "src": "万座温泉スキー場"
+  }
  },
  {
   "name": "草津温泉スキー場",
@@ -1003,7 +1820,17 @@
   "base": 1245,
   "top": 1663,
   "site": "https://www.932-onsen.com/winter/index",
-  "muni": "10426"
+  "muni": "10426",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:00〜16:30",
+   "night": null,
+   "season": [
+    "2025-12-18",
+    "2026-03-28"
+   ],
+   "src": "草津温泉スキー場"
+  }
  },
  {
   "name": "ぴっぷスキー場",
@@ -1015,7 +1842,17 @@
   "top": 569,
   "site": "https://www.town.pippu.hokkaido.jp/ski/top.html",
   "map": "https://www.town.pippu.hokkaido.jp/ski/map.html",
-  "muni": "01455"
+  "muni": "01455",
+  "hours": {
+   "day": "9:00〜16:00",
+   "holiday": "9:00〜16:00",
+   "night": null,
+   "season": [
+    "2025-12-13",
+    "2026-03-22"
+   ],
+   "src": "ぴっぷ"
+  }
  },
  {
   "name": "かたしな高原スキー場",
@@ -1026,7 +1863,17 @@
   "base": 952,
   "top": 1256,
   "site": "https://www.katashinakogen.co.jp/",
-  "muni": "10443"
+  "muni": "10443",
+  "hours": {
+   "day": "8:30〜16:15",
+   "holiday": "8:00〜16:15",
+   "night": null,
+   "season": [
+    "2025-12-25",
+    "2026-03-22"
+   ],
+   "src": "かたしな高原"
+  }
  },
  {
   "name": "牛岳温泉スキー場",
@@ -1038,7 +1885,17 @@
   "top": 641,
   "site": "https://ushidake.com/ski/index.php",
   "map": "https://ushidake.com/ski/gelande/",
-  "muni": "16201"
+  "muni": "16201",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:30〜16:30",
+   "night": null,
+   "season": [
+    "2026-01-04",
+    "2026-03-01"
+   ],
+   "src": "牛岳温泉スキー場"
+  }
  },
  {
   "name": "星野リゾート 猫魔スキー場",
@@ -1050,7 +1907,17 @@
   "top": 1340,
   "site": "https://www.nekoma.co.jp/",
   "map": "https://www.nekoma.co.jp/liftguide/",
-  "muni": "07402"
+  "muni": "07402",
+  "hours": {
+   "day": "8:30〜15:30",
+   "holiday": "8:30〜15:30",
+   "night": null,
+   "season": [
+    "2025-12-06",
+    "2026-04-19"
+   ],
+   "src": "星野リゾート ネコマ マウンテン"
+  }
  },
  {
   "name": "菅平高原スキー場",
@@ -1061,7 +1928,17 @@
   "base": 1300,
   "top": 1650,
   "site": "https://sugadaira-snowresort.com/",
-  "muni": "20203"
+  "muni": "20203",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:30〜16:30",
+   "night": "18:00〜21:00",
+   "season": [
+    "2025-11-22",
+    "2026-04-12"
+   ],
+   "src": "菅平高原スノーリゾート"
+  }
  },
  {
   "name": "たんばらスキーパーク",
@@ -1073,7 +1950,17 @@
   "top": 1557,
   "site": "https://www.tambara.co.jp/winter/",
   "map": "https://www.tambara.co.jp/winter/course/",
-  "muni": "10206"
+  "muni": "10206",
+  "hours": {
+   "day": "8:30〜16:00",
+   "holiday": "8:00〜16:00",
+   "night": null,
+   "season": [
+    "2025-11-22",
+    "2026-05-06"
+   ],
+   "src": "たんばらスキーパーク"
+  }
  },
  {
   "name": "白樺高原国際スキー場",
@@ -1084,7 +1971,17 @@
   "base": 1563,
   "top": 1818,
   "site": "https://whitebirch.co.jp/kokusai/",
-  "muni": "20324"
+  "muni": "20324",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:30〜16:30",
+   "night": null,
+   "season": [
+    "2025-12-13",
+    "2026-03-29"
+   ],
+   "src": "白樺高原国際"
+  }
  },
  {
   "name": "白樺湖ロイヤルヒルスキー場",
@@ -1095,7 +1992,17 @@
   "base": 1444,
   "top": 1692,
   "site": "https://royalhill.co.jp/",
-  "muni": "20214"
+  "muni": "20214",
+  "hours": {
+   "day": "8:30〜16:45",
+   "holiday": "8:30〜16:45",
+   "night": null,
+   "season": [
+    "2025-12-13",
+    "2026-03-31"
+   ],
+   "src": "白樺湖ロイヤルヒル"
+  }
  },
  {
   "name": "だいせんホワイトリゾート",
@@ -1106,7 +2013,17 @@
   "base": 699,
   "top": 1068,
   "site": "https://www.daisen-resort.jp/",
-  "muni": "31386"
+  "muni": "31386",
+  "hours": {
+   "day": "8:30〜17:00",
+   "holiday": "8:30〜17:00",
+   "night": null,
+   "season": [
+    "2025-12-28",
+    "2026-03-22"
+   ],
+   "src": "だいせんホワイトリゾート"
+  }
  },
  {
   "name": "さっぽろばんけいスキー場",
@@ -1117,7 +2034,17 @@
   "base": 190,
   "top": 408,
   "site": "https://www.bankei.co.jp/",
-  "muni": "01101"
+  "muni": "01101",
+  "hours": {
+   "day": "9:00〜21:00",
+   "holiday": "9:00〜22:00",
+   "night": null,
+   "season": [
+    "2025-12-12",
+    "2026-03-29"
+   ],
+   "src": "さっぽろばんけいスキー場"
+  }
  },
  {
   "name": "湯沢中里スノーリゾート",
@@ -1129,7 +2056,17 @@
   "top": 684,
   "site": "https://www.yuzawa-nakazato.com/winter/",
   "map": "https://www.yuzawa-nakazato.com/winter/gerende/course/",
-  "muni": "15461"
+  "muni": "15461",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:30〜16:30",
+   "night": null,
+   "season": [
+    "2025-12-28",
+    "2026-03-29"
+   ],
+   "src": "湯沢中里スノーリゾート"
+  }
  },
  {
   "name": "びわ湖バレイ",
@@ -1141,7 +2078,17 @@
   "top": 1174,
   "site": "https://www.biwako-valley.com/winter/",
   "map": "https://www.biwako-valley.com/w_season/openclose/",
-  "muni": "25201"
+  "muni": "25201",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:30〜16:30",
+   "night": null,
+   "season": [
+    "2025-12-28",
+    "2026-03-22"
+   ],
+   "src": "びわ湖バレイ"
+  }
  },
  {
   "name": "軽井沢プリンスホテルスキー場",
@@ -1153,7 +2100,17 @@
   "top": 1143,
   "site": "https://www.princehotels.co.jp/ski/karuizawa/winter/",
   "map": "https://www.princehotels.co.jp/ski/karuizawa/winter/coursemap/",
-  "muni": "20321"
+  "muni": "20321",
+  "hours": {
+   "day": "8:00〜17:00 (時期により変動)",
+   "holiday": "8:00〜17:00 (時期により変動)",
+   "night": null,
+   "season": [
+    "2025-11-01",
+    "2026-03-31"
+   ],
+   "src": "軽井沢プリンスホテルスキー場"
+  }
  },
  {
   "name": "カムイみさかスキー場",
@@ -1165,7 +2122,17 @@
   "top": 1059,
   "site": "http://misaka.kamuisp.com/",
   "map": "https://misaka.kamuisp.com/map/",
-  "muni": "19211"
+  "muni": "19211",
+  "hours": {
+   "day": "9:00〜16:30",
+   "holiday": "9:00〜16:30",
+   "night": null,
+   "season": [
+    "2025-12-13",
+    "2026-03-29"
+   ],
+   "src": "カムイみさか"
+  }
  },
  {
   "name": "箱館山スキー場",
@@ -1176,7 +2143,17 @@
   "base": 575,
   "top": 686,
   "site": "https://www.hakodateyama.com/winter/",
-  "muni": "25212"
+  "muni": "25212",
+  "hours": {
+   "day": "8:30〜17:00",
+   "holiday": "8:00〜17:00 (時期により変動)",
+   "night": null,
+   "season": [
+    "2025-12-20",
+    "2026-03-15"
+   ],
+   "src": "箱館山"
+  }
  },
  {
   "name": "スノーウェーブパーク白鳥高原",
@@ -1189,6 +2166,16 @@
   "yomi": "白鳥高原 しろとりこうげん",
   "site": "https://siratori-k.jp/swp/",
   "map": "https://siratori-k.jp/swp/gelande",
-  "muni": "21219"
+  "muni": "21219",
+  "hours": {
+   "day": "8:00〜16:30",
+   "holiday": "8:00〜16:30",
+   "night": null,
+   "season": [
+    "2025-12-06",
+    "2026-03-30"
+   ],
+   "src": "スノーウェーブパーク白鳥高原"
+  }
  }
 ]
