@@ -1371,7 +1371,7 @@ tr.hr td{font-size:12px;color:var(--sub);padding-top:3px;padding-bottom:3px}
 tbody[id],section[id]{scroll-margin-top:56px}   /* 上に固定したメニューに隠れないように */
 .alert{margin:6px 0;color:var(--r0);font-size:13px;font-weight:600}.alert small{font-weight:400;margin-left:4px}
 .tag.danger{background:var(--hyaku-bg);color:var(--r0);font-weight:600}
-.star{all:unset;cursor:pointer;float:right;font-size:18px;line-height:1;padding:2px 4px;color:var(--muted)}
+.star{all:unset;cursor:pointer;float:left;font-size:18px;line-height:1;padding:2px 6px 2px 0;color:var(--muted)}
 .star[aria-pressed='true']{color:var(--fav)}
 .star:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 h3 .star{float:none;margin-right:4px}
