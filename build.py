@@ -126,7 +126,6 @@ def mean_dir(degs, weights=None):
 
 
 RATE = {3: ("◎", "r3"), 2: ("○", "r2"), 1: ("△", "r1"), 0: ("×", "r0")}
-THUNDER = {2: "⚡雷雨", 1: "⚠️注意", 0: "なし"}
 
 
 def tags(m):
@@ -158,18 +157,65 @@ def weekend(days):
 
 
 # ---------------------------------------------------------------- 登山
+# 風を見る気圧面とそのおよその高度(m)。山頂に最も近い面を使う
+LEVELS = [(925, 760), (900, 1000), (850, 1500), (800, 1950), (700, 3000)]
+
+
+def grid(m):
+    """アンサンブル予報(GFS 0.5°)の格子。同じ格子の山は1回の取得にまとめる"""
+    return round(m["lat"] * 2) / 2, round(m["lon"] * 2) / 2
+
+
+def thunder_prob(mts):
+    """雷の確率(%) = GFSアンサンブル31通りのうち、6〜15時に「大気が不安定(CAPE 1,000J/kg以上)で
+    1時間0.5mm以上の雨」の時間がある割合。アンサンブルの天気コードは雷雨(95)を出さないため、この組み合わせで見る。
+    {格子: {日付: %}}。取得できなかった格子は含めない"""
+    cells = sorted({grid(m) for m in mts})
+    out = {}
+    for i in range(0, len(cells), 50):
+        chunk = cells[i:i + 50]
+        try:
+            res = fetch("https://ensemble-api.open-meteo.com/v1/ensemble", {
+                "latitude": ",".join(str(c[0]) for c in chunk),
+                "longitude": ",".join(str(c[1]) for c in chunk),
+                "models": "gfs05", "hourly": "cape,precipitation",   # 0.25°は10日分しかないため16日分ある0.5°
+                "timezone": "Asia/Tokyo", "forecast_days": DAYS})
+        except Exception as ex:
+            print(f"雷の確率の取得に失敗({len(chunk)}地点): {type(ex).__name__}")
+            continue
+        for c, r in zip(chunk, res):
+            h = r["hourly"]
+            members = [k[4:] for k in h if k.startswith("cape")]   # "", "_member01", ...
+            out[c] = {}
+            for d in sorted({t[:10] for t in h["time"]}):
+                idx = [i for i, t in enumerate(h["time"]) if t[:10] == d and 6 <= int(t[11:13]) <= 15]
+                hits = n = 0
+                for s in members:
+                    pairs = [(h["cape" + s][i], h["precipitation" + s][i]) for i in idx]
+                    if len(pairs) < 10 or any(a is None or b is None for a, b in pairs):
+                        continue            # 値の欠けたメンバーは数えない
+                    n += 1
+                    hits += any(a >= 1000 and b >= 0.5 for a, b in pairs)
+                if n:
+                    out[c][d] = round(100 * hits / n)
+    return out
+
+
 def build_mountains():
     mts = json.loads((ROOT / "data/mountains.json").read_text(encoding="utf-8"))
     res = forecast([(m["lat"], m["lon"], m["elev"]) for m in mts], hourly=",".join([
-        "temperature_2m", "precipitation", "weather_code",
-        "wind_speed_850hPa", "wind_speed_700hPa", "freezing_level_height", "cape"]))
+        "temperature_2m", "precipitation", "weather_code", "freezing_level_height"]
+        + [f"wind_speed_{p}hPa" for p, _ in LEVELS]))
+    probs = thunder_prob(mts)
     day_hours = range(6, 16)          # 行動する時間帯(6〜15時)
     for m, r in zip(mts, res):
         m["days"] = []
         if r is None:
             continue
         h = r["hourly"]
-        level = "wind_speed_700hPa" if m["elev"] >= 2200 else "wind_speed_850hPa"
+        hpa = min(LEVELS, key=lambda lv: abs(lv[1] - m["elev"]))[0]
+        level = f"wind_speed_{hpa}hPa"
+        prob = probs.get(grid(m), {})
         for d in sorted({t[:10] for t in h["time"]}):
             rains = hours_of(h, "precipitation", d, day_hours)
             winds = hours_of(h, level, d, day_hours)
@@ -182,20 +228,16 @@ def build_mountains():
             if not fls:
                 continue
             fl = min(fls)
-            capes = hours_of(h, "cape", d, day_hours)
-            if not capes:
-                continue
-            # 雷: 2=雷雨の予報、1=大気が不安定で雷に注意(CAPE 1,000J/kg以上)、0=なし
-            thunder = 2 if any(c >= 95 for c in codes) else (1 if max(capes) >= 1000 else 0)
-            if thunder == 2 or rain >= 10 or wind >= 20:
+            thunder = prob.get(d)       # 雷の確率(%)。取得できなかった日は None
+            if rain >= 10 or wind >= 17 or (thunder or 0) >= 50:
                 score = 0
-            elif rain >= 3 or wind >= 15:
+            elif rain >= 3 or wind >= 12:
                 score = 1
             elif rain >= 0.5 or wind >= 10:
                 score = 2
             else:
                 score = 3
-            if thunder == 1:
+            if (thunder or 0) >= 20:
                 score = min(score, 1)
             m["days"].append({"date": d, "score": score, "rain": rain, "wind": wind, "wind_avg": wind_avg,
                               "tmin": min(temps) if temps else None,
@@ -207,16 +249,17 @@ def build_mountains():
 
 def mt_detail(m, with_map=True):
     """山の日ごとの詳細(登山口の地図ボタン付き)"""
+    has_t = all(d["thunder"] is not None for d in m["days"])   # 雷の確率がない日があれば列ごと出さない
     rows = "".join(
         f"<tr><td class='dt'>{day_label(d['date'])}</td><td>{wx(d['code'])[0]} {wx(d['code'])[1]}</td>"
         f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td><td>{d['wind_avg']:.0f}m/s</td><td>{d['wind']:.0f}m/s</td>"
-        f"<td>{d['rain']:.1f}mm</td><td>{THUNDER[d['thunder']]}</td>"
-        f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b></td></tr>"
+        f"<td>{d['rain']:.1f}mm</td>" + (f"<td>{d['thunder']}%</td>" if has_t else "")
+        + f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b></td></tr>"
         for d in m["days"])
     link = maplink(trailhead(m), '登山口の地図: ' + trailhead(m)) if with_map else ""
     return (f"{link}<div class='scroll'><table class='sub'>"
             "<tr><th class='dt'>日付</th><th>天気(6〜15時)</th><th>山頂付近の気温</th><th>平均風速</th><th>最大風速</th>"
-            f"<th>降水量</th><th>雷</th><th>判定</th></tr>{rows}</table></div>")
+            f"<th>降水量</th>{'<th>雷の確率</th>' if has_t else ''}<th>判定</th></tr>{rows}</table></div>")
 
 
 def mountains_page(mts):
@@ -230,7 +273,8 @@ def mountains_page(mts):
             mark, cls = RATE[d["score"]]
             icon, _ = wx(d["code"])
             cells += (f"<td class='{cls}' title='{e(wx(d['code'])[1])} 風{d['wind']:.0f}m/s "
-                      f"雨{d['rain']:.0f}mm 雷{THUNDER[d['thunder']]}'><b>{mark}</b><small>{icon}</small></td>")
+                      f"雨{d['rain']:.0f}mm" + (f" 雷{d['thunder']}%" if d["thunder"] is not None else "") + "'>"
+                      f"<b>{mark}</b><small>{icon}</small></td>")
         rows += (
             f"<tbody class='mt' data-region='{e(m['region'])}' data-name='{e(m['name'] + m['yomi'])}'>"
             f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
@@ -250,11 +294,11 @@ def mountains_page(mts):
 <div class='scroll'><table class='grid' id='mt'><thead><tr><th class='nm'>山名</th>{head}</tr></thead>{rows}</table></div>
 <div class='note'><h2>判定の基準</h2><ul>
 <li><b class='r3'>◎</b> 降水0.5mm未満、風速10m/s未満</li>
-<li><b class='r2'>○</b> 降水3mm未満、風速15m/s未満</li>
-<li><b class='r1'>△</b> 降水10mm未満、風速20m/s未満</li>
-<li><b class='r0'>×</b> それ以上、または雷雨の予報(⚡雷雨)</li></ul>
-<p>雷: ⚡雷雨=6〜15時に雷雨の予報があり、判定は×。⚠️注意=大気が不安定で雷が発生しやすい状態(CAPE 1,000J/kg以上)で、判定は最高でも△。山では早めの下山を。</p>
-<p>風速は山頂付近の上空(標高2,200m以上は約3,000m、それ未満は約1,500m)の予報です。稜線の実際の風とは異なることがあり、突風はさらに強くなります。</p></div>
+<li><b class='r2'>○</b> 降水3mm未満、風速12m/s未満</li>
+<li><b class='r1'>△</b> 降水10mm未満、風速17m/s未満</li>
+<li><b class='r0'>×</b> それ以上、または雷の確率50%以上</li></ul>
+<p>雷の確率: 米国の予報モデル(GFS)を条件を少しずつ変えて31通り計算したうち、6〜15時に「大気が不安定で雨が降る」時間がある割合です。20%以上で判定は最高でも△、50%以上で×。山では早めの下山を。</p>
+<p>風速は山頂の高さに最も近い上空(約760m・1,000m・1,500m・1,950m・3,000mのいずれか)の予報です。稜線の実際の風とは異なることがあり、突風はさらに強くなります。</p></div>
 """
 
 
