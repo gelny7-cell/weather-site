@@ -592,6 +592,12 @@ def build_mountains():
                 score = 3
             if (thunder or 0) >= 20:
                 score = min(score, 1)
+            # 登山道の凍結注意: 最低気温0℃以下で、前日昼〜当日15時に雨・雪が0.5mm以上(濡れた道や雪が凍る)、
+            # または最低気温-3℃以下(雨がなくても霜や前の雪が凍りやすい)
+            prev = (date.fromisoformat(d) - timedelta(days=1)).isoformat()
+            wet = (sum(hours_of(r["hourly"], "precipitation", prev, range(12, 24)))
+                   + sum(hours_of(r["hourly"], "precipitation", d, range(0, 16))))
+            day["ice"] = day["tmin"] <= 0 and (wet >= 0.5 or day["tmin"] <= -3)
             m["days"].append({"date": d, "score": score, "thunder": thunder, **day})
     return align(mts, "登山")
 
@@ -610,7 +616,8 @@ def mt_detail(m, with_map=True, compact=False):
                  f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b></td>"
                  f"<td>{wx(d['code'])[0]} {wx(d['code'])[1]}</td>"
                  + (f"<td class='{RATE[d['view']][1]}'>{VIEW[d['view']]}</td>" if has_v else "")
-                 + f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td>"
+                 + f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃"
+                 + (" <span class='tag warn'>凍結注意</span>" if d.get("ice") and not compact else "") + "</td>"
                  + ("" if compact else f"<td>{round(d['feel'])}℃</td>")
                  + f"<td>{d['wind_avg']:.0f}m/s</td>"
                  + ("" if compact else f"<td>{d['wind']:.0f}m/s</td>")
@@ -686,6 +693,7 @@ def mountains_page(mts):
 <li><b class='r0'>×</b> それ以上、または雷の確率50%以上</li></ul>
 <p>雷の確率: 米国の予報モデル(GFS)を条件を少しずつ変えて31通り計算したうち、6〜15時に「大気が不安定で雨が降る」時間がある割合です。20%以上で判定は最高でも△、50%以上で×。山では早めの下山を。</p>
 <p>展望: 6〜12時の雲の量の平均で、◎20%未満・○50%未満・△80%未満・×それ以上(霧の時間があれば×)。眺めの目安です。</p>
+<p><span class='tag warn'>凍結注意</span> 山頂付近の最低気温(6〜15時)が0℃以下で前日昼〜当日に雨・雪が0.5mm以上の日、または最低気温が-3℃以下の日。登山道が凍りやすいので、チェーンスパイクやアイゼンの目安に。</p>
 <p>体感温度: 山頂付近の気温と風速から求めた、6〜15時で最も低い値です(風が強いほど低くなります)。</p>
 <p>⚠️ 警報・注意報は、駐車場・登山口(分からない山は山頂)のある市町村に気象庁がいま出しているものです。🌋 は、山頂から10km以内の火山に噴火警戒レベル2以上などの噴火警報・予報が出ているときに付けています。</p>
 <p>風速は山頂の高さに最も近い上空(約760m・1,000m・1,500m・1,950m・3,000mのいずれか)の予報です。稜線の実際の風とは異なることがあり、突風はさらに強くなります。</p>
@@ -794,6 +802,12 @@ def build_ski():
             if d < today:
                 continue
             night = overnight_snow(h, d)                # 上部の新雪(前日17時〜当日8時)
+            # アイスバーン注意: 前日に上部で雨が降ったか0℃を超え(雪が湿る・解ける)、夜〜朝の上部の最低気温が-2℃以下
+            # (湿った雪が凍る)で、新雪が3cm未満(新しい雪で覆われない)の日
+            prev = (date.fromisoformat(d) - timedelta(days=1)).isoformat()
+            thawed = (sum(hours_of(h, "rain", prev, range(0, 24))) > 0
+                      or any(t > 0 for t in hours_of(h, "temperature_2m", prev, range(6, 19))))
+            frozen = hours_of(h, "temperature_2m", prev, range(18, 24)) + hours_of(h, "temperature_2m", d, range(0, 9))
             night_base = overnight_snow(bh, d)
             depth = hours_of(h, "snow_depth", d, [9])
             v = {k: hours_of(h, k, d, open_hrs) for k in
@@ -819,6 +833,7 @@ def build_ski():
                 "wind_dir": mean_dir([wd[k] for k in wd if k in wh], [wh[k] for k in wd if k in wh]) if wd else None,
                 "hours": ski_hours(h, bh, d, today),
                 "road": min(morning) if len(morning) == 6 else None,
+                "ice": bool(thawed and frozen and min(frozen) <= -2 and night < 3),
             })
     ski = align(ski, "スノーボード")
     attach_amedas(ski)
@@ -883,7 +898,8 @@ def ski_detail(s, with_map=True, simple=False):
                  if d.get("hours") else day_label(d["date"]))
         rows += (f"<tr><td class='dt'>{label}</td>"
                  f"<td>{weather(d['code'], d['rain'])}</td><td>{weather(d['code_base'], d['rain_base'])}</td>"
-                 f"<td>{d['snow']:.0f}cm{powder}</td><td>{d['snow_base']:.0f}cm</td>"
+                 f"<td>{d['snow']:.0f}cm{powder}" + (" <span class='tag warn'>アイスバーン注意</span>" if d.get("ice") else "")
+                 + f"</td><td>{d['snow_base']:.0f}cm</td>"
                  f"<td>{d['depth']:.0f}cm</td>"
                  f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td><td>{round(d['feel'])}℃</td>"
                  f"<td>{d['fl']:,.0f}m</td><td>{wind(d.get('wind_dir'), d['wind_avg'])}</td><td>{gust(d['gust'])}</td>"
@@ -954,6 +970,7 @@ def ski_page(ski):
 <li>積雪: 朝9時に積もっている雪の深さの予報(気象モデルの推定。実際の積雪と大きく違うことがあります)</li>
 <li>ベースの積雪(観測): 15km以内に気象庁アメダスの観測点があり、ゲレンデ下部との標高差が300m以内のスキー場だけ表示しています(圧雪・人工降雪は含みません)</li>
 <li><span class='tag'>パウダー期待</span> 上部の新雪が10cm以上で、上部の最高気温が-2℃以下</li>
+<li><span class='tag warn'>アイスバーン注意</span> 前日に上部で雨が降ったか0℃を超え、夜〜朝の上部の最低気温が-2℃以下で、新雪が3cm未満の日(湿った雪が凍って硬くなりやすい)</li>
 <li>体感温度: 上部の気温と風速から求めた、8〜16時で最も低い値。平均風速には風向(風が吹いてくる方角)も表示しています</li>
 <li>朝の路面: ふもと(ゲレンデ下部)の3〜8時の最低気温。<span class='tag danger'>凍結注意</span> -2℃以下、<span class='tag warn'>凍結のおそれ</span> 1℃以下。冬用タイヤ・チェーンの準備の目安です(実際の路面は除雪や日当たりで変わります)</li>
 <li><span class='tag warn'>運休注意</span> 上部の最大瞬間風速が20m/s以上(ゴンドラ・リフトが止まりやすい強さ)</li>
