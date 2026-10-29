@@ -1253,7 +1253,7 @@ def index_page(mts, ski, spots):
         return expand_row(f"<b>{e(m['name'])}</b>{tags(m)}{alert_tags(m)}<br><small class='muted'>"
                           f"{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>",
                           cells, mt_detail(m, with_map=False, compact=True), 4, f"mountains.html#{m['key']}", attrs)
-    mt_rows = "".join(mt_row(m) for m in good[:15])
+    mt_rows = "".join(mt_row(m) for m in good[:10])
     we_head = "".join(f"<th>{day_label(d)}</th>" for d in we)
     mt_list = (f"<div class='scroll'><table class='sub'><tr><th>山</th>{we_head}<th></th></tr>"
                f"{mt_rows}</table></div>" if mt_rows else "<p>週末に条件の良い山は見当たりません</p>")
@@ -1300,7 +1300,7 @@ def index_page(mts, ski, spots):
 <h1>今週末の山と雪と波</h1>
 <section class='card big'><h2><a href='mountains.html'>⛰️ 登山</a></h2>
 {fav_mt_box}
-<p class='muted'>週末の両日が○以上の山(上位15座、判定が良く風の弱い順)。気温・風は山頂付近の6〜15時。山名を押すと7日間の予報が開きます</p>{mt_list}
+<p class='muted'>週末の両日が○以上の山(上位10座、判定が良く風の弱い順)。気温・風は山頂付近の6〜15時。山名を押すと7日間の予報が開きます</p>{mt_list}
 </section>
 <section class='card'><h2><a href='snow.html'>🏂 スノーボード</a></h2>{fav}
 </section>
@@ -1313,10 +1313,10 @@ def index_page(mts, ski, spots):
 # ---------------------------------------------------------------- 共通レイアウト
 CSS = """
 :root{color-scheme:light;--bg:#f6f7f5;--card:#fff;--line:#e2e4df;--text:#14171a;--sub:#55595e;--muted:#868a8f;
---accent:#1f6fb2;--r3:#0b7a3b;--r2:#2a78d6;--r1:#b27300;--r0:#c4312f;--sat:#2a6fd6;--sun:#d03b3b;--hl:#e8f1fb;--hyaku:#c4312f;--hyaku-bg:#fdecea}
+--accent:#1f6fb2;--r3:#0b7a3b;--r2:#2a78d6;--r1:#b27300;--r0:#c4312f;--sat:#2a6fd6;--sun:#d03b3b;--hl:#e8f1fb;--hyaku:#c4312f;--hyaku-bg:#fdecea;--fav:#f2b600}
 @media (prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#151617;--card:#1e2022;--line:#34373a;--text:#eef0f2;
 --sub:#b9bdc2;--muted:#8c9196;--accent:#6aaee8;--r3:#47c47c;--r2:#5fa3ef;--r1:#e0a43a;--r0:#ef6b69;--sat:#6aa6f0;
---sun:#f07a7a;--hl:#1f2a36;--hyaku:#ff8a87;--hyaku-bg:#3a2222}}
+--sun:#f07a7a;--hl:#1f2a36;--hyaku:#ff8a87;--hyaku-bg:#3a2222;--fav:#ffd23f}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);
 font:15px/1.65 system-ui,-apple-system,"Hiragino Sans","Noto Sans JP","Yu Gothic UI",sans-serif}
 header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
@@ -1355,7 +1355,8 @@ tr.hr td{font-size:12px;color:var(--sub);padding-top:3px;padding-bottom:3px}
 tbody[id],section[id]{scroll-margin-top:56px}   /* 上に固定したメニューに隠れないように */
 .alert{margin:6px 0;color:var(--r0);font-size:13px;font-weight:600}.alert small{font-weight:400;margin-left:4px}
 .tag.danger{background:var(--hyaku-bg);color:var(--r0);font-weight:600}
-.star{all:unset;cursor:pointer;float:right;font-size:18px;line-height:1;padding:2px 4px;color:var(--r1)}
+.star{all:unset;cursor:pointer;float:right;font-size:18px;line-height:1;padding:2px 4px;color:var(--muted)}
+.star[aria-pressed='true']{color:var(--fav)}
 .star:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 h3 .star{float:none;margin-right:4px}
 .favbox h3{font-size:14px;margin:4px 0}
