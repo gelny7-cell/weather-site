@@ -167,6 +167,12 @@ def routelinks(m):
     return out
 
 
+def onsenlink(lat, lon):
+    """その地点の周りの日帰り温泉を Google マップで検索するボタン"""
+    url = f"https://www.google.com/maps/search/{urllib.parse.quote('日帰り温泉')}/@{lat},{lon},12z"
+    return f"<a class='mapbtn' href='{e(url)}' target='_blank' rel='noopener'>♨️ 近くの温泉</a>"
+
+
 def maplink(query, label):
     """Google マップの検索リンク(場所名で検索する。新しいタブで開く)"""
     url = "https://www.google.com/maps/search/?api=1&query=" + urllib.parse.quote(query)
@@ -348,7 +354,8 @@ def mt_detail(m, with_map=True, compact=False):
         label = (trailhead_label(m) if m.get("trailhead") else
                  a["name"] if a["name"] not in ("駐車場", "有料駐車場", "登山者駐車場") else f"{m['name']} {a['name']}")
         place = maplink(f"{a['lat']},{a['lon']}", label)
-    link = routelinks(m) + place if with_map else ""
+    near = m.get("access") or m            # 温泉は駐車場・登山口の位置(分からなければ山頂)の周りで探す
+    link = routelinks(m) + place + " " + onsenlink(near["lat"], near["lon"]) if with_map else ""
     sun = (f"<p class='muted'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</p>"
            if m.get("sun") else "")
     return (f"{link}{sun}<div class='scroll'><table class='sub'>"
@@ -581,7 +588,7 @@ def ski_detail(s, with_map=True, simple=False):
     if with_map:                # 公式ページ・ゲレンデマップ(分かるスキー場だけ)・駐車場の地図
         link = ((sitelink(s["site"], "🏠 公式ページ") + " " if s.get("site") else "")
                 + (sitelink(s["map"], "🗺️ ゲレンデマップ") + " " if s.get("map") else "")
-                + maplink(s['name'] + ' 第1駐車場', '駐車場の地図') + " ")
+                + maplink(s['name'] + ' 第1駐車場', '駐車場の地図') + " " + onsenlink(s["lat"], s["lon"]) + " ")
     am = s.get("amedas")
     obs = ""
     if am:
@@ -769,7 +776,7 @@ def surf_page(spots):
     cards = ""
     for s in spots:
         cards += (f"<section class='card' id='{s['key']}'><h3>{e(s['name'])} <small>{e(s['pref'])} · "
-                  f"浜の向き {dir_name(s['facing'])}</small> {maplink(s['parking'], '駐車場の地図')}</h3>"
+                  f"浜の向き {dir_name(s['facing'])}</small> {maplink(s['parking'], '駐車場の地図')} {onsenlink(s['lat'], s['lon'])}</h3>"
                   f"{surf_table(s)}"
                   f"<p class='muted'>波は沖合({s['grid'][0]:.2f}, {s['grid'][1]:.2f})の予報</p></section>")
     return f"""
