@@ -67,6 +67,14 @@
     "name": "泊場",
     "km": 2.1
    }
+  ],
+  "booking": [
+   {
+    "name": "木下小屋",
+    "url": "https://kinoshitagoya.wordpress.com/",
+    "site": "公式HP",
+    "km": 4.5
+   }
   ]
  },
  {
@@ -294,6 +302,20 @@
    {
     "name": "エサオマン入ノ沢出合",
     "km": 3.8
+   }
+  ],
+  "booking": [
+   {
+    "name": "幌尻山荘",
+    "url": "https://biratori-sangakukai.com/",
+    "site": "公式HP",
+    "km": 2.6
+   },
+   {
+    "name": "新冠ポロシリ山荘",
+    "url": "https://poroshiri.info/",
+    "site": "公式HP",
+    "km": 3.3
    }
   ]
  },
@@ -1048,6 +1070,44 @@
     "name": "見晴",
     "km": 3.4
    }
+  ],
+  "booking": [
+   {
+    "name": "尾瀬小屋",
+    "url": "https://www.ozegoya.co.jp/",
+    "site": "公式HP",
+    "km": 3.3
+   },
+   {
+    "name": "第二長蔵小屋",
+    "url": "https://chozogoya.com/",
+    "site": "公式HP",
+    "km": 3.3
+   },
+   {
+    "name": "桧枝岐小屋",
+    "url": "https://www.oze-hinoematagoya.jp/",
+    "site": "公式HP",
+    "km": 3.3
+   },
+   {
+    "name": "原の小屋",
+    "url": "http://www.oze-haranokoya.com/",
+    "site": "公式HP",
+    "km": 3.3
+   },
+   {
+    "name": "燧小屋",
+    "url": "https://ozehiuchigoya.com/",
+    "site": "公式HP",
+    "km": 3.3
+   },
+   {
+    "name": "弥四郎小屋",
+    "url": "https://www.84658.jp/",
+    "site": "公式HP",
+    "km": 3.4
+   }
   ]
  },
  {
@@ -1103,6 +1163,14 @@
    {
     "name": "山ノ鼻",
     "km": 2.5
+   }
+  ],
+  "booking": [
+   {
+    "name": "竜宮小屋",
+    "url": "https://ryugugoya.jp/",
+    "site": "公式HP",
+    "km": 6.7
    }
   ]
  },
@@ -1695,6 +1763,14 @@
     "name": "白馬鑓温泉小屋",
     "km": 3.9
    }
+  ],
+  "booking": [
+   {
+    "name": "あぜくら山荘",
+    "url": "http://www.azekura.com",
+    "site": "公式HP",
+    "km": 7.7
+   }
   ]
  },
  {
@@ -1890,6 +1966,24 @@
     "url": "https://www.yamatan.net/hut/senninikehyutte",
     "site": "Yamatan",
     "km": 3.4
+   },
+   {
+    "name": "雷鳥沢ヒュッテ",
+    "url": "https://www.raichozawa.net/hyutte.html",
+    "site": "公式HP",
+    "km": 4.4
+   },
+   {
+    "name": "天狗平山荘",
+    "url": "https://www.tengu.ne.jp/",
+    "site": "公式HP",
+    "km": 5.9
+   },
+   {
+    "name": "ロッジくろよん",
+    "url": "http://www.kuroyon.com/",
+    "site": "公式HP",
+    "km": 8.0
    }
   ]
  },
@@ -2023,6 +2117,12 @@
     "url": "https://www.yamatan.net/hut/kenzanso",
     "site": "Yamatan",
     "km": 3.8
+   },
+   {
+    "name": "ロッジくろよん",
+    "url": "http://www.kuroyon.com/",
+    "site": "公式HP",
+    "km": 3.8
    }
   ]
  },
@@ -2068,6 +2168,20 @@
     "name": "太郎平小屋",
     "km": 3.4
    }
+  ],
+  "booking": [
+   {
+    "name": "薬師岳山荘",
+    "url": "https://www.yakushidake-sansou.com/",
+    "site": "公式HP",
+    "km": 1.1
+   },
+   {
+    "name": "太郎平小屋",
+    "url": "https://ltaro.com/",
+    "site": "公式HP",
+    "km": 3.4
+   }
   ]
  },
  {
@@ -2104,6 +2218,14 @@
    {
     "name": "黒部五郎小舎",
     "km": 2.3
+   }
+  ],
+  "booking": [
+   {
+    "name": "太郎平小屋",
+    "url": "https://ltaro.com/",
+    "site": "公式HP",
+    "km": 6.6
    }
   ]
  },
@@ -2347,6 +2469,12 @@
     "url": "https://www.yamatan.net/hut/yaridairagoya",
     "site": "Yamatan",
     "km": 2.6
+   },
+   {
+    "name": "涸沢ヒュッテ",
+    "url": "https://karasawa-hyutte.com",
+    "site": "公式HP",
+    "km": 5.5
    }
   ]
  },
@@ -2491,14 +2619,6 @@
    {
     "name": "常念小屋",
     "km": 0.9
-   }
-  ],
-  "booking": [
-   {
-    "name": "蝶ヶ岳ヒュッテ",
-    "url": "https://booking.montbell.jp/lodging/facility.php?facility_id=6",
-    "site": "モンベル",
-    "km": 4.1
    }
   ]
  },
@@ -2882,6 +3002,12 @@
     "url": "https://www.yamatan.net/hut/hutagoikehyutte",
     "site": "Yamatan",
     "km": 3.3
+   },
+   {
+    "name": "北横岳ヒュッテ",
+    "url": "http://kitayoko.fine.to/",
+    "site": "公式HP",
+    "km": 3.2
    }
   ]
  },
@@ -3006,6 +3132,12 @@
     "url": "https://booking.montbell.jp/lodging/facility.php?facility_id=54",
     "site": "モンベル",
     "km": 6.5
+   },
+   {
+    "name": "硫黄岳山荘",
+    "url": "https://iodake.jp/sanso/",
+    "site": "公式HP",
+    "km": 2.6
    }
   ]
  },
@@ -3223,6 +3355,14 @@
     "name": "富士見平小屋",
     "km": 3.6
    }
+  ],
+  "booking": [
+   {
+    "name": "金峰山小屋",
+    "url": "https://www.kimpou.com/",
+    "site": "公式HP",
+    "km": 0.3
+   }
   ]
  },
  {
@@ -3278,6 +3418,14 @@
    {
     "name": "みずがき山自然公園",
     "km": 1.7
+   }
+  ],
+  "booking": [
+   {
+    "name": "金峰山小屋",
+    "url": "https://www.kimpou.com/",
+    "site": "公式HP",
+    "km": 3.5
    }
   ]
  },
@@ -3426,6 +3574,18 @@
     "url": "https://www.yamatan.net/hut/sombutsusanso",
     "site": "Yamatan",
     "km": 2.2
+   },
+   {
+    "name": "花立山荘",
+    "url": "http://hanatatesansou.michikusa.jp/",
+    "site": "公式HP",
+    "km": 3.2
+   },
+   {
+    "name": "鍋割山荘",
+    "url": "http://nabewari.net/",
+    "site": "公式HP",
+    "km": 3.9
    }
   ]
  },
@@ -3592,6 +3752,96 @@
     "url": "https://www.yamatan.net/hut/fujisanhachigomehakunso",
     "site": "Yamatan",
     "km": 1.6
+   },
+   {
+    "name": "本八合目富士山ホテル別館",
+    "url": "https://www.fujisanhotel.com/",
+    "site": "公式HP",
+    "km": 1.4
+   },
+   {
+    "name": "本八合目 富士山ホテル 第1",
+    "url": "https://www.fujisanhotel.com/",
+    "site": "公式HP",
+    "km": 1.4
+   },
+   {
+    "name": "本八合目 富士山ホテル 第2",
+    "url": "https://www.fujisanhotel.com/",
+    "site": "公式HP",
+    "km": 1.4
+   },
+   {
+    "name": "蓬莱館",
+    "url": "https://www.horaikan.jp/",
+    "site": "公式HP",
+    "km": 1.9
+   },
+   {
+    "name": "太子館",
+    "url": "https://www.mfi.or.jp/taisikan/",
+    "site": "公式HP",
+    "km": 2.0
+   },
+   {
+    "name": "東洋館",
+    "url": "https://www.fuji-toyokan.jp/",
+    "site": "公式HP",
+    "km": 2.2
+   },
+   {
+    "name": "鳥居荘",
+    "url": "https://toriiso.com/",
+    "site": "公式HP",
+    "km": 2.3
+   },
+   {
+    "name": "鎌岩館",
+    "url": "https://kamaiwakan.jpn.org/",
+    "site": "公式HP",
+    "km": 2.4
+   },
+   {
+    "name": "富士一館",
+    "url": "https://www.fuji-ichikan.jp/",
+    "site": "公式HP",
+    "km": 2.4
+   },
+   {
+    "name": "七合目トモエ館",
+    "url": "https://tomoekan.com/",
+    "site": "公式HP",
+    "km": 2.5
+   },
+   {
+    "name": "日の出館",
+    "url": "https://www.hinodekan-fujiyoshida.com/",
+    "site": "公式HP",
+    "km": 2.5
+   },
+   {
+    "name": "花小屋",
+    "url": "http://www2.tbb.t-com.ne.jp/hanagoya/",
+    "site": "公式HP",
+    "km": 2.6
+   },
+   {
+    "name": "半蔵坊",
+    "url": "http://hanzobo.main.jp/",
+    "site": "公式HP",
+    "km": 2.7
+   },
+   {
+    "name": "瀬戸館",
+    "url": "https://fujisan-setokan.com/",
+    "site": "公式HP",
+    "km": 2.8
+   },
+   {
+    "name": "吉野屋",
+    "url": "http://fujisan-sunaharaigogou.com/",
+    "site": "公式HP",
+    "km": 3.8
    }
   ]
  },
@@ -3727,6 +3977,20 @@
     "name": "檜尾小屋",
     "km": 3.6
    }
+  ],
+  "booking": [
+   {
+    "name": "駒峰ヒュッテ",
+    "url": "http://www.komaho.net/",
+    "site": "公式HP",
+    "km": 0.2
+   },
+   {
+    "name": "檜尾小屋",
+    "url": "https://www.hinokio-chuoalps.com",
+    "site": "公式HP",
+    "km": 3.6
+   }
   ]
  },
  {
@@ -3754,7 +4018,15 @@
   },
   "muni": "20407",
   "huts": [],
-  "tents": []
+  "tents": [],
+  "booking": [
+   {
+    "name": "萬岳荘",
+    "url": "https://bangakusou.wixsite.com/home",
+    "site": "公式HP",
+    "km": 4.9
+   }
+  ]
  },
  {
   "no": 77,
@@ -3838,6 +4110,12 @@
     "url": "https://www.yamatan.net/hut/komorebisanso",
     "site": "Yamatan",
     "km": 2.7
+   },
+   {
+    "name": "長衛小屋",
+    "url": "https://choei.ashiyasu.com/",
+    "site": "公式HP",
+    "km": 2.8
    }
   ]
  },
@@ -3926,6 +4204,12 @@
     "url": "https://www.yamatan.net/hut/komorebisanso",
     "site": "Yamatan",
     "km": 3.7
+   },
+   {
+    "name": "長衛小屋",
+    "url": "https://choei.ashiyasu.com/",
+    "site": "公式HP",
+    "km": 3.6
    }
   ]
  },
@@ -3990,6 +4274,14 @@
    {
     "name": "旧広河原山荘",
     "km": 3.3
+   }
+  ],
+  "booking": [
+   {
+    "name": "広河原山荘",
+    "url": "https://www.minamialps-yoyaku.jp/",
+    "site": "南アルプス市の予約",
+    "km": 3.0
    }
   ]
  },
@@ -4067,6 +4359,38 @@
     "name": "広河原山荘",
     "km": 3.9
    }
+  ],
+  "booking": [
+   {
+    "name": "北岳山荘",
+    "url": "https://www.minamialps-yoyaku.jp/",
+    "site": "南アルプス市の予約",
+    "km": 1.2
+   },
+   {
+    "name": "白根御池小屋",
+    "url": "https://www.minamialps-yoyaku.jp/",
+    "site": "南アルプス市の予約",
+    "km": 1.8
+   },
+   {
+    "name": "広河原山荘",
+    "url": "https://www.minamialps-yoyaku.jp/",
+    "site": "南アルプス市の予約",
+    "km": 3.9
+   },
+   {
+    "name": "北岳肩の小屋",
+    "url": "https://katanokoya.com/",
+    "site": "公式HP",
+    "km": 0.6
+   },
+   {
+    "name": "両俣小屋",
+    "url": "https://ryoumatagoya.com/",
+    "site": "公式HP",
+    "km": 3.2
+   }
   ]
  },
  {
@@ -4140,6 +4464,38 @@
     "name": "両俣小屋",
     "km": 3.9
    }
+  ],
+  "booking": [
+   {
+    "name": "北岳山荘",
+    "url": "https://www.minamialps-yoyaku.jp/",
+    "site": "南アルプス市の予約",
+    "km": 2.1
+   },
+   {
+    "name": "白根御池小屋",
+    "url": "https://www.minamialps-yoyaku.jp/",
+    "site": "南アルプス市の予約",
+    "km": 4.9
+   },
+   {
+    "name": "広河原山荘",
+    "url": "https://www.minamialps-yoyaku.jp/",
+    "site": "南アルプス市の予約",
+    "km": 6.9
+   },
+   {
+    "name": "北岳肩の小屋",
+    "url": "https://katanokoya.com/",
+    "site": "公式HP",
+    "km": 3.8
+   },
+   {
+    "name": "両俣小屋",
+    "url": "https://ryoumatagoya.com/",
+    "site": "公式HP",
+    "km": 3.9
+   }
   ]
  },
  {
@@ -4197,6 +4553,12 @@
     "url": "https://www.yamatan.net/hut/shiomigoya",
     "site": "Yamatan",
     "km": 0.9
+   },
+   {
+    "name": "三伏峠小屋",
+    "url": "http://sanpukutouge.com/",
+    "site": "公式HP",
+    "km": 4.2
    }
   ]
  },
@@ -4353,12 +4715,6 @@
     "url": "https://reserva.be/ikawakanko",
     "site": "RESERVA",
     "km": 1.7
-   },
-   {
-    "name": "茶臼小屋",
-    "url": "https://reserva.be/ikawakanko",
-    "site": "RESERVA",
-    "km": 5.6
    }
   ]
  },
@@ -4725,6 +5081,14 @@
    {
     "name": "一の森ヒュッテ",
     "km": 1.6
+   }
+  ],
+  "booking": [
+   {
+    "name": "剣山頂上ヒュッテ",
+    "url": "https://tsurugisan-hutte.com/",
+    "site": "公式HP",
+    "km": 0.3
    }
   ]
  },
