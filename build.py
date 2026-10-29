@@ -456,17 +456,19 @@ def overnight_snow(h, day):
     return sum(vals) if len(vals) == 15 else None
 
 
-def ski_hours(th, bh, d):
-    """日付を押すと開く時間ごとの予報(9・12・15時)。気温・風・積雪・0℃の高さはその時刻の値、
-    雪と雨はその前の3時間の合計(1時間ごとの値はその前の1時間の量)。値の欠けた時刻は出さない"""
+def ski_hours(th, bh, d, today):
+    """日付を押すと開く時間ごとの予報。今日は9〜16時の1時間ごと、ほかの日は9・12・15時。
+    気温・風・積雪・0℃の高さはその時刻の値、雪と雨はその前の1時間(3時間ごとの日は3時間)の合計
+    (1時間ごとの値はその前の1時間の量)。値の欠けた時刻は出さない"""
+    step = 1 if d == today else 3
     rows = []
-    for hr in (9, 12, 15):
-        win = range(hr - 2, hr + 1)
+    for hr in (range(9, 17) if step == 1 else (9, 12, 15)):
+        win = range(hr - step + 1, hr + 1)
         at = {k: hours_of(th, k, d, [hr]) for k in
               ("weather_code", "temperature_2m", "wind_speed_10m", "wind_gusts_10m", "snow_depth", "freezing_level_height")}
         code_b = hours_of(bh, "weather_code", d, [hr])
         sums = {(src, k): hours_of(h, k, d, win) for src, h in (("t", th), ("b", bh)) for k in ("snowfall", "rain")}
-        if not all(at.values()) or not code_b or any(len(v) != 3 for v in sums.values()):
+        if not all(at.values()) or not code_b or any(len(v) != step for v in sums.values()):
             continue
         rows.append({"hour": hr, "code": at["weather_code"][0], "code_base": code_b[0],
                      "temp": at["temperature_2m"][0], "wind": at["wind_speed_10m"][0], "gust": at["wind_gusts_10m"][0],
@@ -515,7 +517,7 @@ def build_ski():
                 "tmin": min(v["temperature_2m"]), "tmax": max(v["temperature_2m"]),
                 "rain": sum(rain), "rain_base": sum(rain_b),
                 "fl": min(v["freezing_level_height"]), "gust": max(v["wind_gusts_10m"]), "wind_avg": sum(ws) / len(ws),
-                "hours": ski_hours(h, bh, d),
+                "hours": ski_hours(h, bh, d, today),
             })
     ski = align(ski, "スノーボード")
     attach_amedas(ski)
@@ -635,7 +637,7 @@ def ski_page(ski):
 <li>ゲレンデベースの積雪(観測): 15km以内に気象庁アメダスの観測点があり、ゲレンデ下部との標高差が300m以内のスキー場だけ表示しています(圧雪・人工降雪は含みません)</li>
 <li><span class='tag'>パウダー期待</span> 上部の新雪が10cm以上で、上部の最高気温が-2℃以下</li>
 <li>天気・雨・気温・0℃の高さ・平均風速・最大瞬間風速は、営業時間(8〜16時)の予報からまとめています(天気は最も悪いもの、0℃の高さは最も低いもの)</li>
-<li>日付を押すと9時・12時・15時の予報が開きます。雪・雨はその時刻までの3時間の合計、気温・積雪・0℃の高さ・風はその時刻の値です(風速の列は平均ではなくその時刻の風速、最大瞬間風速の列はその時刻の突風)</li>
+<li>日付を押すと時間ごとの予報が開きます(今日は9〜16時の1時間ごと、ほかの日は9時・12時・15時)。雪・雨はその時刻までの1時間(3時間ごとの日は3時間)の合計、気温・積雪・0℃の高さ・風はその時刻の値です(風速の列は平均ではなくその時刻の風速、最大瞬間風速の列はその時刻の突風)</li>
 <li><span class='tag warn'>雨</span> 雨の予報(雪質が重くなりやすい)</li>
 <li>上部・下部の標高: OpenStreetMap のリフトの位置と地形の標高から求めた値(一部は手作業で補正)。概算です</li>
 <li>スキー場の一覧・標高差: Wikipedia、Wikidata。リフトの位置: © OpenStreetMap contributors</li>
