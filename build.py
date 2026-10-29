@@ -235,7 +235,7 @@ def local_food(lat, lon, pref):
     return PREF_FOOD.get(pref)
 
 
-# 「近くのお店」のジャンル(表示名, 検索する言葉)。ページごとに、よく使いそうなものを上に置く
+# 「飲食店」のジャンル(表示名, 検索する言葉)。ページごとに、よく使いそうなものを上に置く
 SHOP_GENRES = {
     "mountain": [("定食・食堂", "定食"), ("ラーメン", "ラーメン"), ("カフェ", "カフェ"), ("焼肉", "焼肉"), ("ファミレス", "ファミレス")],
     "ski": [("ラーメン", "ラーメン"), ("焼肉", "焼肉"), ("ファミレス", "ファミレス"), ("定食・食堂", "定食"), ("カフェ", "カフェ")],
@@ -244,34 +244,37 @@ SHOP_GENRES = {
 
 
 def foodlink(lat, lon, pref, page):
-    """「近くのお店」ボタン。押すとジャンル(先頭はご当地の名物)の一覧が開き、選ぶと Google マップでその地点の周りを探す"""
+    """「ご当地」ボタン(その場所の名物の店)と「飲食店」ボタン(押すとジャンルの一覧が開き、選ぶと
+    Google マップでその地点の周りを探す)"""
     genres = SHOP_GENRES[page]
     food = local_food(lat, lon, pref)
+    local = ""
     if food:
-        genres = [(f"ご当地：{food}", food)] + genres
+        url = f"https://www.google.com/maps/search/{urllib.parse.quote(food)}/@{lat},{lon},13z"
+        local = f" <a class='mapbtn' href='{e(url)}' target='_blank' rel='noopener'>🍜 ご当地：{e(food)}</a>"
     items = "".join(
         f"<a href='{e(f'https://www.google.com/maps/search/{urllib.parse.quote(q)}/@{lat},{lon},13z')}' "
         f"target='_blank' rel='noopener'>{e(label)}</a>" for label, q in genres)
-    return (f" <details class='menu'><summary class='mapbtn'>🍴 近くのお店</summary>"
+    return (f"{local} <details class='menu'><summary class='mapbtn'>🍴 飲食店</summary>"
             f"<div class='menu-list'>{items}</div></details>")
 
 
 def michilink(lat, lon):
     """その地点の周りの道の駅を Google マップで検索するボタン(道の駅は数が少ないので広めに探す)"""
     url = f"https://www.google.com/maps/search/{urllib.parse.quote('道の駅')}/@{lat},{lon},11z"
-    return f" <a class='mapbtn' href='{e(url)}' target='_blank' rel='noopener'>🚗 近くの道の駅</a>"
+    return f" <a class='mapbtn' href='{e(url)}' target='_blank' rel='noopener'>🚗 道の駅</a>"
 
 
 def conbilink(lat, lon):
     """その地点の周りのコンビニを Google マップで検索するボタン"""
     url = f"https://www.google.com/maps/search/{urllib.parse.quote('コンビニ')}/@{lat},{lon},13z"
-    return f" <a class='mapbtn' href='{e(url)}' target='_blank' rel='noopener'>🏪 近くのコンビニ</a>"
+    return f" <a class='mapbtn' href='{e(url)}' target='_blank' rel='noopener'>🏪 コンビニ</a>"
 
 
 def onsenlink(lat, lon):
     """その地点の周りの日帰り温泉を Google マップで検索するボタン"""
     url = f"https://www.google.com/maps/search/{urllib.parse.quote('日帰り温泉')}/@{lat},{lon},12z"
-    return f"<a class='mapbtn' href='{e(url)}' target='_blank' rel='noopener'>♨️ 近くの温泉</a>"
+    return f"<a class='mapbtn' href='{e(url)}' target='_blank' rel='noopener'>♨️ 温泉</a>"
 
 
 def maplink(query, label):
@@ -1122,7 +1125,7 @@ document.querySelectorAll('.hbtn').forEach(btn=>btn.addEventListener('click',()=
 document.querySelectorAll('.nm button, .xbtn').forEach(btn=>btn.addEventListener('click',()=>{
   const d=btn.closest('tbody').querySelector('tr.detail');d.hidden=!d.hidden;
   btn.setAttribute('aria-expanded',String(!d.hidden));}));
-document.addEventListener('click',ev=>{        // 「近くのお店」の一覧は、外を押したら閉じる
+document.addEventListener('click',ev=>{        // 「飲食店」の一覧は、外を押したら閉じる
   document.querySelectorAll('details.menu[open]').forEach(m=>{if(!m.contains(ev.target))m.open=false;});});
 const target=location.hash&&document.getElementById(location.hash.slice(1));
 if(target){
