@@ -1261,6 +1261,20 @@
     "name": "高谷池ヒュッテ",
     "km": 3.3
    }
+  ],
+  "booking": [
+   {
+    "name": "高谷池ヒュッテ",
+    "url": "https://booking.montbell.jp/lodging/facility.php?facility_id=16",
+    "site": "モンベル",
+    "km": 3.2
+   },
+   {
+    "name": "山小屋 明星荘",
+    "url": "https://booking.montbell.jp/lodging/facility.php?facility_id=49",
+    "site": "モンベル",
+    "km": 3.9
+   }
   ]
  },
  {
@@ -1312,6 +1326,20 @@
    {
     "name": "富士見峠",
     "km": 3.6
+   }
+  ],
+  "booking": [
+   {
+    "name": "高谷池ヒュッテ",
+    "url": "https://booking.montbell.jp/lodging/facility.php?facility_id=16",
+    "site": "モンベル",
+    "km": 2.1
+   },
+   {
+    "name": "山小屋 明星荘",
+    "url": "https://booking.montbell.jp/lodging/facility.php?facility_id=49",
+    "site": "モンベル",
+    "km": 6.1
    }
   ]
  },
@@ -1843,6 +1871,26 @@
     "name": "池の平小屋",
     "km": 2.7
    }
+  ],
+  "booking": [
+   {
+    "name": "剣山荘",
+    "url": "https://www.yamatan.net/hut/kenzanso",
+    "site": "Yamatan",
+    "km": 1.6
+   },
+   {
+    "name": "剱澤小屋",
+    "url": "https://www.yamatan.net/hut/tsurugisawagoya",
+    "site": "Yamatan",
+    "km": 2.1
+   },
+   {
+    "name": "仙人池ヒュッテ",
+    "url": "https://www.yamatan.net/hut/senninikehyutte",
+    "site": "Yamatan",
+    "km": 3.4
+   }
   ]
  },
  {
@@ -1943,6 +1991,38 @@
    {
     "name": "ロッジくろよん",
     "km": 3.7
+   }
+  ],
+  "booking": [
+   {
+    "name": "立山室堂山荘",
+    "url": "https://www.yamatan.net/hut/tateyamamurodosanso",
+    "site": "Yamatan",
+    "km": 1.7
+   },
+   {
+    "name": "雷鳥沢ヒュッテ",
+    "url": "https://www.yamatan.net/hut/raichosawahutte",
+    "site": "Yamatan",
+    "km": 2.3
+   },
+   {
+    "name": "剱澤小屋",
+    "url": "https://www.yamatan.net/hut/tsurugisawagoya",
+    "site": "Yamatan",
+    "km": 3.2
+   },
+   {
+    "name": "天狗平山荘",
+    "url": "https://www.yamatan.net/hut/tengudairasanso",
+    "site": "Yamatan",
+    "km": 3.7
+   },
+   {
+    "name": "剣山荘",
+    "url": "https://www.yamatan.net/hut/kenzanso",
+    "site": "Yamatan",
+    "km": 3.8
    }
   ]
  },
@@ -2260,6 +2340,14 @@
     "name": "硫黄岳取り付き点",
     "km": 3.6
    }
+  ],
+  "booking": [
+   {
+    "name": "槍平小屋",
+    "url": "https://www.yamatan.net/hut/yaridairagoya",
+    "site": "Yamatan",
+    "km": 2.6
+   }
   ]
  },
  {
@@ -2355,6 +2443,20 @@
     "name": "西穂山荘",
     "km": 3.8
    }
+  ],
+  "booking": [
+   {
+    "name": "涸沢ヒュッテ",
+    "url": "https://www.yamatan.net/hut/karasawahutte-tent",
+    "site": "Yamatan",
+    "km": 1.5
+   },
+   {
+    "name": "北穂高小屋",
+    "url": "https://www.yamatan.net/hut/kitahotakagoya",
+    "site": "Yamatan",
+    "km": 1.7
+   }
   ]
  },
  {
@@ -2389,6 +2491,14 @@
    {
     "name": "常念小屋",
     "km": 0.9
+   }
+  ],
+  "booking": [
+   {
+    "name": "蝶ヶ岳ヒュッテ",
+    "url": "https://booking.montbell.jp/lodging/facility.php?facility_id=6",
+    "site": "モンベル",
+    "km": 4.1
    }
   ]
  },
@@ -2759,6 +2869,20 @@
     "name": "双子池",
     "km": 3.3
    }
+  ],
+  "booking": [
+   {
+    "name": "蓼科山荘",
+    "url": "https://www.yamatan.net/hut/tateshinasanso",
+    "site": "Yamatan",
+    "km": 0.5
+   },
+   {
+    "name": "双子池ヒュッテ",
+    "url": "https://www.yamatan.net/hut/hutagoikehyutte",
+    "site": "Yamatan",
+    "km": 3.3
+   }
   ]
  },
  {
@@ -2868,6 +2992,20 @@
    {
     "name": "オーレン小屋",
     "km": 3.7
+   }
+  ],
+  "booking": [
+   {
+    "name": "オーレン小屋",
+    "url": "https://www.yamatan.net/hut/orengoya",
+    "site": "Yamatan",
+    "km": 3.7
+   },
+   {
+    "name": "美濃戸高原ロッヂ",
+    "url": "https://booking.montbell.jp/lodging/facility.php?facility_id=54",
+    "site": "モンベル",
+    "km": 6.5
    }
   ]
  },
@@ -3281,7 +3419,15 @@
     "km": 3.9
    }
   ],
-  "tents": []
+  "tents": [],
+  "booking": [
+   {
+    "name": "尊仏山荘",
+    "url": "https://www.yamatan.net/hut/sombutsusanso",
+    "site": "Yamatan",
+    "km": 2.2
+   }
+  ]
  },
  {
   "no": 72,
@@ -3397,6 +3543,56 @@
     "name": "佐藤小屋",
     "km": 3.7
    }
+  ],
+  "booking": [
+   {
+    "name": "頂上富士館",
+    "url": "https://www.yamatan.net/hut/chojofujikan",
+    "site": "Yamatan",
+    "km": 0.3
+   },
+   {
+    "name": "頂上富士館",
+    "url": "https://booking.montbell.jp/lodging/facility.php?facility_id=28",
+    "site": "モンベル",
+    "km": 0.4
+   },
+   {
+    "name": "九合五勺胸突山荘",
+    "url": "https://www.yamatan.net/hut/munatsukisanso",
+    "site": "Yamatan",
+    "km": 0.6
+   },
+   {
+    "name": "九合目万年雪山荘",
+    "url": "https://www.yamatan.net/hut/mannenyukisanso",
+    "site": "Yamatan",
+    "km": 0.8
+   },
+   {
+    "name": "八合目池田館",
+    "url": "https://www.yamatan.net/hut/ikedakan",
+    "site": "Yamatan",
+    "km": 1.2
+   },
+   {
+    "name": "胸突江戸屋",
+    "url": "https://www.yamatan.net/hut/munatsukiedoya",
+    "site": "Yamatan",
+    "km": 1.4
+   },
+   {
+    "name": "江戸屋",
+    "url": "https://www.yamatan.net/hut/edoya",
+    "site": "Yamatan",
+    "km": 1.6
+   },
+   {
+    "name": "白雲荘",
+    "url": "https://www.yamatan.net/hut/fujisanhachigomehakunso",
+    "site": "Yamatan",
+    "km": 1.6
+   }
   ]
  },
  {
@@ -3478,6 +3674,14 @@
    {
     "name": "木曽駒ヶ岳 頂上山荘",
     "km": 0.3
+   }
+  ],
+  "booking": [
+   {
+    "name": "西駒山荘",
+    "url": "https://www.yamatan.net/hut/nishikomasanso",
+    "site": "Yamatan",
+    "km": 2.9
    }
   ]
  },
@@ -3621,6 +3825,20 @@
     "name": "長衛小屋",
     "km": 2.8
    }
+  ],
+  "booking": [
+   {
+    "name": "七丈小屋",
+    "url": "https://www.yamatan.net/hut/shichijogoya",
+    "site": "Yamatan",
+    "km": 1.2
+   },
+   {
+    "name": "北沢峠 こもれび山荘",
+    "url": "https://www.yamatan.net/hut/komorebisanso",
+    "site": "Yamatan",
+    "km": 2.7
+   }
   ]
  },
  {
@@ -3688,6 +3906,26 @@
    {
     "name": "長衛小屋",
     "km": 3.6
+   }
+  ],
+  "booking": [
+   {
+    "name": "仙丈小屋",
+    "url": "https://www.yamatan.net/hut/senjougoya",
+    "site": "Yamatan",
+    "km": 0.3
+   },
+   {
+    "name": "馬の背ヒュッテ",
+    "url": "https://www.yamatan.net/hut/umanosehutte",
+    "site": "Yamatan",
+    "km": 1.1
+   },
+   {
+    "name": "北沢峠 こもれび山荘",
+    "url": "https://www.yamatan.net/hut/komorebisanso",
+    "site": "Yamatan",
+    "km": 3.7
    }
   ]
  },
@@ -3952,6 +4190,14 @@
     "name": "西俣慣合集落跡",
     "km": 3.9
    }
+  ],
+  "booking": [
+   {
+    "name": "塩見小屋",
+    "url": "https://www.yamatan.net/hut/shiomigoya",
+    "site": "Yamatan",
+    "km": 0.9
+   }
   ]
  },
  {
@@ -4100,6 +4346,20 @@
     "name": "百間洞山の家",
     "km": 3.4
    }
+  ],
+  "booking": [
+   {
+    "name": "聖平小屋",
+    "url": "https://reserva.be/ikawakanko",
+    "site": "RESERVA",
+    "km": 1.7
+   },
+   {
+    "name": "茶臼小屋",
+    "url": "https://reserva.be/ikawakanko",
+    "site": "RESERVA",
+    "km": 5.6
+   }
   ]
  },
  {
@@ -4185,6 +4445,14 @@
    {
     "name": "南竜ヶ馬場野営場",
     "km": 2.4
+   }
+  ],
+  "booking": [
+   {
+    "name": "白山雷鳥荘",
+    "url": "https://www.yamatan.net/hut/hakusanraichoso",
+    "site": "Yamatan",
+    "km": 0.7
    }
   ]
  },

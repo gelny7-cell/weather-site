@@ -187,12 +187,12 @@ def hut_line(m):
 
 
 def hutlink(m):
-    """Yamatan で予約できる山小屋の一覧ボタン(押すと小屋が並び、選ぶと Yamatan の予約ページが開く)"""
-    huts = [h for h in m.get("huts", []) if h.get("yamatan")]
-    if not huts:
+    """予約サイト(Yamatan・モンベル・RESERVA)で予約できる山小屋の一覧ボタン。押すと小屋が山頂に近い順に並び、
+    選ぶとその予約ページが開く(data の booking)"""
+    if not m.get("booking"):
         return ""
-    items = "".join(f"<a href='https://www.yamatan.net/hut/{e(h['yamatan'])}' class='mapbtn' target='_blank' rel='noopener'>"
-                    f"{e(h['name'])}</a>" for h in sorted(huts, key=lambda h: h["km"]))
+    items = "".join(f"<a href='{e(b['url'])}' class='mapbtn' target='_blank' rel='noopener'>"
+                    f"{e(b['name'])}<small class='muted'>({e(b['site'])})</small></a>" for b in m["booking"])
     return (f"<details class='menu'><summary class='mapbtn'>🏠 山小屋予約</summary>"
             f"<div class='menu-list'>{items}</div></details> ")
 
@@ -730,7 +730,7 @@ def mountains_page(mts):
 <li><b class='r1'>△</b> 降水10mm未満、風速17m/s未満</li>
 <li><b class='r0'>×</b> それ以上、または雷の確率50%以上</li></ul>
 <p>雷の確率: 米国の予報モデル(GFS)を条件を少しずつ変えて31通り計算したうち、6〜15時に「大気が不安定で雨が降る」時間がある割合です。20%以上で判定は最高でも△、50%以上で×。山では早めの下山を。</p>
-<p>🏠 山小屋・⛺ テント場: 山頂から4km以内にあるもの(ヤマレコの登録。避難小屋は除く)。「山小屋予約」は、予約サイト Yamatan で予約できる小屋です。</p>
+<p>🏠 山小屋・⛺ テント場: 山頂から4km以内にあるもの(ヤマレコの登録。避難小屋は除く)。「山小屋予約」は、予約サイト(Yamatan・モンベル・RESERVA)で予約できる、山頂か登山口の近くの小屋・宿です。</p>
 <p>展望: 6〜12時の雲の量の平均で、◎20%未満・○50%未満・△80%未満・×それ以上(霧の時間があれば×)。眺めの目安です。</p>
 <p><span class='tag warn'>凍結注意</span> 山頂付近の最低気温(6〜15時)が0℃以下で前日昼〜当日に雨・雪が0.5mm以上の日、または最低気温が-3℃以下の日。登山道が凍りやすいので、チェーンスパイクやアイゼンの目安に。</p>
 <p>体感温度: 山頂付近の気温と風速から求めた、6〜15時で最も低い値です(風が強いほど低くなります)。</p>
