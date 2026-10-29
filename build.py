@@ -1468,9 +1468,11 @@ PAGES = [("index.html", "週末"), ("mountains.html", "登山"), ("snow.html", "
 
 
 def default_favs():
-    """☆をまだ押していない人に最初から入れておくお気に入り(data/favorites.json のスキー場)"""
+    """☆をまだ押していない人に最初から入れておくお気に入り(data/favorites.json の山・スキー場)"""
     favs = json.loads((ROOT / "data/favorites.json").read_text(encoding="utf-8"))
-    return [f"s:{n}" for n in favs.get("ski", [])]
+    mts = json.loads((ROOT / "data/mountains.json").read_text(encoding="utf-8"))
+    return ([fid("m", m) for n in favs.get("mountain", []) for m in mts if m["name"] == n]
+            + [f"s:{n}" for n in favs.get("ski", [])])
 
 
 def layout(file, title, body, updated):
