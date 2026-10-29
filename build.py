@@ -201,33 +201,56 @@ def thunder_prob(mts):
     return out
 
 
+# 日ごとに使う予報モデル: (モデル, 取得日数, 使う日(今日=0), 表示名)。上から順に、6〜15時の値がそろったものを使う。
+# てんきとくらすとの比較(2026-10-29)で近かった組み合わせ。どれも使えない日は Open-Meteo のおまかせ(best_match)
+MT_MODELS = [("jma_msm", 3, range(0, 3), "気象庁MSM"),
+             ("ukmo_global_deterministic_10km", 6, range(3, 6), "英国UKMO"),
+             ("jma_gsm", 11, range(6, 11), "気象庁GSM")]
+
+
+def mt_day(h, d, elev, strict):
+    """1日分(6〜15時)の山頂の天気。値が足りなければ None。strict なら10時間すべてそろった日だけ"""
+    hours = range(6, 16)
+    need = 10 if strict else 1
+    rains = hours_of(h, "precipitation", d, hours)
+    temps = hours_of(h, "temperature_2m", d, hours)
+    codes = hours_of(h, "weather_code", d, hours)
+    # 風は山頂に近い気圧面から順に、値のある面を使う(モデルによっては一部の面がない)
+    winds = next((w for lv, _ in sorted(LEVELS, key=lambda x: abs(x[1] - elev))
+                  if len(w := hours_of(h, f"wind_speed_{lv}hPa", d, hours)) >= need), None)
+    if not winds or min(len(rains), len(temps), len(codes)) < need:
+        return None
+    return {"rain": sum(rains), "wind": max(winds), "wind_avg": sum(winds) / len(winds),
+            "tmin": min(temps), "tmax": max(temps), "code": max(codes)}
+
+
 def build_mountains():
     mts = json.loads((ROOT / "data/mountains.json").read_text(encoding="utf-8"))
-    res = forecast([(m["lat"], m["lon"], m["elev"]) for m in mts], hourly=",".join([
-        "temperature_2m", "precipitation", "weather_code", "freezing_level_height"]
-        + [f"wind_speed_{p}hPa" for p, _ in LEVELS]))
+    points = [(m["lat"], m["lon"], m["elev"]) for m in mts]
+    hourly = ",".join(["temperature_2m", "precipitation", "weather_code"]
+                      + [f"wind_speed_{p}hPa" for p, _ in LEVELS])
+    res = forecast(points, hourly=hourly)
+    extra = [forecast(points, hourly=hourly, models=model, forecast_days=n) for model, n, _, _ in MT_MODELS]
     probs = thunder_prob(mts)
-    day_hours = range(6, 16)          # 行動する時間帯(6〜15時)
-    for m, r in zip(mts, res):
+    today = datetime.now(JST).date()
+    for i, (m, r) in enumerate(zip(mts, res)):
         m["days"] = []
         if r is None:
             continue
-        h = r["hourly"]
-        hpa = min(LEVELS, key=lambda lv: abs(lv[1] - m["elev"]))[0]
-        level = f"wind_speed_{hpa}hPa"
         prob = probs.get(grid(m), {})
-        for d in sorted({t[:10] for t in h["time"]}):
-            rains = hours_of(h, "precipitation", d, day_hours)
-            winds = hours_of(h, level, d, day_hours)
-            temps = hours_of(h, "temperature_2m", d, day_hours)
-            codes = hours_of(h, "weather_code", d, day_hours)
-            if not (rains and winds and temps and codes):
-                continue                # 値のない日は表示しない
-            rain, wind, wind_avg = sum(rains), max(winds), sum(winds) / len(winds)
-            fls = hours_of(h, "freezing_level_height", d, day_hours)
-            if not fls:
-                continue
-            fl = min(fls)
+        for d in sorted({t[:10] for t in r["hourly"]["time"]}):
+            lead = (date.fromisoformat(d) - today).days
+            day = None
+            for (_, _, use, label), ex in zip(MT_MODELS, extra):
+                if lead in use and ex[i] is not None and (day := mt_day(ex[i]["hourly"], d, m["elev"], True)):
+                    day["model"] = label
+                    break
+            if not day:
+                day = mt_day(r["hourly"], d, m["elev"], False)
+                if not day:
+                    continue            # 値のない日は表示しない
+                day["model"] = "おまかせ"
+            rain, wind = day["rain"], day["wind"]
             thunder = prob.get(d)       # 雷の確率(%)。取得できなかった日は None
             if rain >= 10 or wind >= 17 or (thunder or 0) >= 50:
                 score = 0
@@ -239,11 +262,7 @@ def build_mountains():
                 score = 3
             if (thunder or 0) >= 20:
                 score = min(score, 1)
-            m["days"].append({"date": d, "score": score, "rain": rain, "wind": wind, "wind_avg": wind_avg,
-                              "tmin": min(temps) if temps else None,
-                              "tmax": max(temps) if temps else None,
-                              "code": max(codes) if codes else None, "fl": fl,
-                              "thunder": thunder})
+            m["days"].append({"date": d, "score": score, "thunder": thunder, **day})
     return align(mts, "登山")
 
 
@@ -254,12 +273,12 @@ def mt_detail(m, with_map=True):
         f"<tr><td class='dt'>{day_label(d['date'])}</td><td>{wx(d['code'])[0]} {wx(d['code'])[1]}</td>"
         f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td><td>{d['wind_avg']:.0f}m/s</td><td>{d['wind']:.0f}m/s</td>"
         f"<td>{d['rain']:.1f}mm</td>" + (f"<td>{d['thunder']}%</td>" if has_t else "")
-        + f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b></td></tr>"
+        + f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b></td><td><small>{d['model']}</small></td></tr>"
         for d in m["days"])
     link = maplink(trailhead(m), '登山口の地図: ' + trailhead(m)) if with_map else ""
     return (f"{link}<div class='scroll'><table class='sub'>"
             "<tr><th class='dt'>日付</th><th>天気(6〜15時)</th><th>山頂付近の気温</th><th>平均風速</th><th>最大風速</th>"
-            f"<th>降水量</th>{'<th>雷の確率</th>' if has_t else ''}<th>判定</th></tr>{rows}</table></div>")
+            f"<th>降水量</th>{'<th>雷の確率</th>' if has_t else ''}<th>判定</th><th>予報</th></tr>{rows}</table></div>")
 
 
 def mountains_page(mts):
@@ -298,7 +317,8 @@ def mountains_page(mts):
 <li><b class='r1'>△</b> 降水10mm未満、風速17m/s未満</li>
 <li><b class='r0'>×</b> それ以上、または雷の確率50%以上</li></ul>
 <p>雷の確率: 米国の予報モデル(GFS)を条件を少しずつ変えて31通り計算したうち、6〜15時に「大気が不安定で雨が降る」時間がある割合です。20%以上で判定は最高でも△、50%以上で×。山では早めの下山を。</p>
-<p>風速は山頂の高さに最も近い上空(約760m・1,000m・1,500m・1,950m・3,000mのいずれか)の予報です。稜線の実際の風とは異なることがあり、突風はさらに強くなります。</p></div>
+<p>風速は山頂の高さに最も近い上空(約760m・1,000m・1,500m・1,950m・3,000mのいずれか)の予報です。稜線の実際の風とは異なることがあり、突風はさらに強くなります。</p>
+<p>予報モデル: 今日〜2日後は気象庁MSM、3〜5日後は英国気象局UKMO、6〜10日後は気象庁GSM、それ以降は Open-Meteo のおまかせ(各国のモデルの組み合わせ)を使っています。詳細の「予報」の列に、その日に使ったモデルを表示しています。</p></div>
 """
 
 
