@@ -8,7 +8,8 @@
   "base": 620,
   "top": 1845,
   "site": "https://www.princehotels.co.jp/ski/kagura/winter/",
-  "map": "https://www.princehotels.co.jp/ski/kagura/winter/coursemap/"
+  "map": "https://www.princehotels.co.jp/ski/kagura/winter/coursemap/",
+  "muni": "15461"
  },
  {
   "name": "妙高杉ノ原スキー場",
@@ -19,7 +20,8 @@
   "base": 742,
   "top": 1861,
   "site": "https://www.princehotels.co.jp/ski/myoko/winter/",
-  "map": "https://www.princehotels.co.jp/ski/myoko/winter/coursemap/"
+  "map": "https://www.princehotels.co.jp/ski/myoko/winter/coursemap/",
+  "muni": "15217"
  },
  {
   "name": "野沢温泉スキー場",
@@ -30,7 +32,8 @@
   "base": 557,
   "top": 1637,
   "site": "https://nozawaski.com/",
-  "map": "https://nozawaski.com/winter/course/map/"
+  "map": "https://nozawaski.com/winter/course/map/",
+  "muni": "20563"
  },
  {
   "name": "竜王スキーパーク",
@@ -41,7 +44,8 @@
   "base": 861,
   "top": 1922,
   "site": "https://www.ryuoo.com/",
-  "map": "https://ryuoo.com/winter/gelande/"
+  "map": "https://ryuoo.com/winter/gelande/",
+  "muni": "20561"
  },
  {
   "name": "白馬八方尾根スキー場",
@@ -52,7 +56,8 @@
   "base": 764,
   "top": 1836,
   "site": "https://www.happo-one.jp/",
-  "map": "https://www.happo-one.jp/gelande/"
+  "map": "https://www.happo-one.jp/gelande/",
+  "muni": "20485"
  },
  {
   "name": "ニセコHANAZONOリゾート",
@@ -63,7 +68,8 @@
   "base": 274,
   "top": 1216,
   "site": "https://hanazononiseko.com/",
-  "map": "https://hanazononiseko.com/en/winter/resort/maps"
+  "map": "https://hanazononiseko.com/en/winter/resort/maps",
+  "muni": "01400"
  },
  {
   "name": "志賀高原スキー場",
@@ -73,7 +79,8 @@
   "drop": 975,
   "base": 1340,
   "top": 2307,
-  "site": "https://www.shigakogen.gr.jp/"
+  "site": "https://www.shigakogen.gr.jp/",
+  "muni": "20561"
  },
  {
   "name": "ニセコ東急 グラン・ヒラフ",
@@ -84,7 +91,8 @@
   "base": 274,
   "top": 1216,
   "site": "https://www.grand-hirafu.jp/",
-  "map": "https://www.niseko.ne.jp/en/map/"
+  "map": "https://www.niseko.ne.jp/en/map/",
+  "muni": "01400"
  },
  {
   "name": "ロッテアライリゾート",
@@ -95,7 +103,8 @@
   "base": 334,
   "top": 1288,
   "site": "https://www.lottehotel.com/arai-resort/ja.html",
-  "map": "https://img.lottehotel.com/cms/asset/2026/01/29/36539/%E3%82%B3%E3%83%BC%E3%82%B9%E3%83%9E%E3%83%83%E3%83%972.jpg"
+  "map": "https://img.lottehotel.com/cms/asset/2026/01/29/36539/%E3%82%B3%E3%83%BC%E3%82%B9%E3%83%9E%E3%83%83%E3%83%972.jpg",
+  "muni": "15217"
  },
  {
   "name": "白馬五竜スキー場",
@@ -105,7 +114,8 @@
   "drop": 926,
   "base": 767,
   "top": 1662,
-  "site": "https://www.hakubagoryu.com/"
+  "site": "https://www.hakubagoryu.com/",
+  "muni": "20485"
  },
  {
   "name": "栂池高原スキー場",
@@ -116,7 +126,8 @@
   "base": 819,
   "top": 1825,
   "site": "https://www.tsugaike.gr.jp/",
-  "map": "https://www.tsugaike.gr.jp/gelande"
+  "map": "https://www.tsugaike.gr.jp/gelande",
+  "muni": "20486"
  },
  {
   "name": "天元台高原",
@@ -126,7 +137,8 @@
   "drop": 900,
   "base": 935,
   "top": 1789,
-  "site": "https://www.tengendai.jp/"
+  "site": "https://www.tengendai.jp/",
+  "muni": "06202"
  },
  {
   "name": "月山スキー場",
@@ -136,7 +148,8 @@
   "drop": 900,
   "base": 1244,
   "top": 1511,
-  "site": "https://mt-gassan.com/"
+  "site": "https://mt-gassan.com/",
+  "muni": "06322"
  },
  {
   "name": "ニセコビレッジ",
@@ -147,7 +160,8 @@
   "base": 274,
   "top": 1216,
   "site": "https://www.niseko-village.com/",
-  "map": "https://www.niseko.ne.jp/en/map/"
+  "map": "https://www.niseko.ne.jp/en/map/",
+  "muni": "01395"
  },
  {
   "name": "苗場スキー場",
@@ -158,7 +172,8 @@
   "base": 882,
   "top": 1759,
   "site": "https://www.princehotels.co.jp/ski/naeba/winter/",
-  "map": "https://www.princehotels.co.jp/ski/naeba/winter/coursemap/"
+  "map": "https://www.princehotels.co.jp/ski/naeba/winter/coursemap/",
+  "muni": "15461"
  },
  {
   "name": "山形蔵王温泉スキー場",
@@ -169,7 +184,8 @@
   "base": 790,
   "top": 1660,
   "site": "https://www.zao-ski.or.jp/",
-  "map": "https://zaomountainresort.com/gerende/"
+  "map": "https://zaomountainresort.com/gerende/",
+  "muni": "06201"
  },
  {
   "name": "富良野スキー場",
@@ -180,7 +196,8 @@
   "base": 237,
   "top": 1054,
   "site": "https://www.princehotels.co.jp/ski/furano/winter/",
-  "map": "https://www.princehotels.co.jp/ski/furano/winter/coursemap/"
+  "map": "https://www.princehotels.co.jp/ski/furano/winter/coursemap/",
+  "muni": "01229"
  },
  {
   "name": "ガーラ湯沢スキー場",
@@ -190,7 +207,8 @@
   "drop": 823,
   "base": 349,
   "top": 1171,
-  "site": "https://gala.co.jp/winter/"
+  "site": "https://gala.co.jp/winter/",
+  "muni": "15461"
  },
  {
   "name": "上越国際スキー場",
@@ -200,7 +218,8 @@
   "drop": 817,
   "base": 224,
   "top": 914,
-  "site": "https://www.jkokusai.co.jp/"
+  "site": "https://www.jkokusai.co.jp/",
+  "muni": "15226"
  },
  {
   "name": "雫石スキー場",
@@ -211,7 +230,8 @@
   "base": 430,
   "top": 1243,
   "site": "https://www.princehotels.co.jp/ski/shizukuishi/winter/",
-  "map": "https://www.princehotels.co.jp/ski/shizukuishi/winter/coursemap/"
+  "map": "https://www.princehotels.co.jp/ski/shizukuishi/winter/coursemap/",
+  "muni": "03301"
  },
  {
   "name": "赤倉温泉スキー場",
@@ -221,7 +241,8 @@
   "drop": 760,
   "base": 696,
   "top": 1141,
-  "site": "https://akakura-ski.com/"
+  "site": "https://akakura-ski.com/",
+  "muni": "15217"
  },
  {
   "name": "ニセコアンヌプリ国際スキー場",
@@ -232,7 +253,8 @@
   "base": 274,
   "top": 1216,
   "site": "https://annupuri.info/",
-  "map": "https://annupuri.info/gelande/"
+  "map": "https://annupuri.info/gelande/",
+  "muni": "01395"
  },
  {
   "name": "富士見パノラマリゾート",
@@ -243,7 +265,8 @@
   "base": 1047,
   "top": 1783,
   "site": "https://www.fujimipanorama.com/",
-  "map": "https://map.yukiyama-web.com/?id=256"
+  "map": "https://map.yukiyama-web.com/?id=256",
+  "muni": "20362"
  },
  {
   "name": "野麦峠スキー場",
@@ -253,7 +276,8 @@
   "drop": 730,
   "base": 1415,
   "top": 2110,
-  "site": "http://gakutoresort.jp/"
+  "site": "http://gakutoresort.jp/",
+  "muni": "20202"
  },
  {
   "name": "池の平温泉スキー場",
@@ -263,7 +287,8 @@
   "drop": 728,
   "base": 766,
   "top": 1428,
-  "site": "https://alpenblick-resort.com/ski"
+  "site": "https://alpenblick-resort.com/ski",
+  "muni": "15217"
  },
  {
   "name": "鹿島槍スキー場",
@@ -273,7 +298,8 @@
   "drop": 720,
   "base": 864,
   "top": 1339,
-  "site": "https://www.kashimayari.net/"
+  "site": "https://www.kashimayari.net/",
+  "muni": "20212"
  },
  {
   "name": "スキージャム勝山",
@@ -283,7 +309,8 @@
   "drop": 710,
   "base": 611,
   "top": 1313,
-  "site": "https://www.skijam.jp/"
+  "site": "https://www.skijam.jp/",
+  "muni": "18206"
  },
  {
   "name": "立山山麓スキー場",
@@ -293,7 +320,8 @@
   "drop": 708,
   "base": 485,
   "top": 1165,
-  "site": "https://www.tateyama36.co.jp/"
+  "site": "https://www.tateyama36.co.jp/",
+  "muni": "16201"
  },
  {
   "name": "会津高原たかつえスキー場",
@@ -304,7 +332,8 @@
   "base": 949,
   "top": 1618,
   "site": "https://www.takatsue.jp/",
-  "map": "https://www.takatsue.jp/gelande/"
+  "map": "https://www.takatsue.jp/gelande/",
+  "muni": "07368"
  },
  {
   "name": "めいほうスキー場",
@@ -315,7 +344,8 @@
   "base": 899,
   "top": 1572,
   "site": "https://www.meihoski.co.jp/",
-  "map": "https://www.meihoski.co.jp/gelande/"
+  "map": "https://www.meihoski.co.jp/gelande/",
+  "muni": "21219"
  },
  {
   "name": "えぼしリゾート",
@@ -326,7 +356,8 @@
   "base": 693,
   "top": 1369,
   "site": "https://www.eboshi.co.jp/",
-  "map": "https://eboshi.co.jp/winter/condition/"
+  "map": "https://eboshi.co.jp/winter/condition/",
+  "muni": "00000"
  },
  {
   "name": "星野リゾート トマム",
@@ -336,7 +367,8 @@
   "drop": 699,
   "base": 540,
   "top": 1239,
-  "site": "https://www.snowtomamu.jp/winter/"
+  "site": "https://www.snowtomamu.jp/winter/",
+  "muni": "01463"
  },
  {
   "name": "四季の森ホワイトワールド尾瀬岩鞍",
@@ -347,7 +379,8 @@
   "base": 1050,
   "top": 1715,
   "site": "https://www.oze-iwakura.co.jp/ski/",
-  "map": "https://www.oze-iwakura.co.jp/ski/slopeguide/"
+  "map": "https://www.oze-iwakura.co.jp/ski/slopeguide/",
+  "muni": "10443"
  },
  {
   "name": "安比高原スキー場",
@@ -358,7 +391,8 @@
   "base": 627,
   "top": 1271,
   "site": "https://www.appi.co.jp/snow-mountain-resort/",
-  "map": "https://www.appi.co.jp/snow-mountain-resort/course/"
+  "map": "https://www.appi.co.jp/snow-mountain-resort/course/",
+  "muni": "03214"
  },
  {
   "name": "サッポロテイネ",
@@ -368,7 +402,8 @@
   "drop": 683,
   "base": 354,
   "top": 990,
-  "site": "https://sapporo-teine.com/snow/lang/en/"
+  "site": "https://sapporo-teine.com/snow/lang/en/",
+  "muni": "01109"
  },
  {
   "name": "石打丸山スキー場",
@@ -378,7 +413,8 @@
   "drop": 664,
   "base": 259,
   "top": 876,
-  "site": "https://ishiuchi.or.jp/"
+  "site": "https://ishiuchi.or.jp/",
+  "muni": "15226"
  },
  {
   "name": "阿仁スキー場",
@@ -388,7 +424,8 @@
   "drop": 663,
   "base": 535,
   "top": 1198,
-  "site": "http://www.aniski.jp/"
+  "site": "http://www.aniski.jp/",
+  "muni": "05213"
  },
  {
   "name": "ハチ北スキー場",
@@ -400,7 +437,8 @@
   "top": 1209,
   "yomi": "ハチ北高原 はちきた",
   "site": "https://www.hachi-hachikita.co.jp/",
-  "map": "https://www.hachi-hachikita.co.jp/hachi/slope.html"
+  "map": "https://www.hachi-hachikita.co.jp/hachi/slope.html",
+  "muni": "28585"
  },
  {
   "name": "舞子スノーリゾート",
@@ -411,7 +449,8 @@
   "base": 261,
   "top": 888,
   "site": "https://www.maiko-resort.com/winter/",
-  "map": "https://www.maiko-resort.com/liftmap.html"
+  "map": "https://www.maiko-resort.com/liftmap.html",
+  "muni": "15226"
  },
  {
   "name": "奥利根スノーパーク",
@@ -421,7 +460,8 @@
   "drop": 647,
   "base": 541,
   "top": 1168,
-  "site": "https://okutone.jp/"
+  "site": "https://okutone.jp/",
+  "muni": "10449"
  },
  {
   "name": "キロロリゾート",
@@ -432,7 +472,8 @@
   "base": 520,
   "top": 1173,
   "site": "https://www.kiroro.co.jp/ja/",
-  "map": "https://www.kiroro.co.jp/ja/guide_map/"
+  "map": "https://www.kiroro.co.jp/ja/guide_map/",
+  "muni": "01409"
  },
  {
   "name": "サホロリゾート",
@@ -442,7 +483,8 @@
   "drop": 610,
   "base": 422,
   "top": 1040,
-  "site": "https://sahoro-resort.com/"
+  "site": "https://sahoro-resort.com/",
+  "muni": "01635"
  },
  {
   "name": "丸沼高原スキー場",
@@ -453,7 +495,8 @@
   "base": 1383,
   "top": 1998,
   "site": "https://www.marunuma.jp/winter/",
-  "map": "https://www.marunuma.jp/winter/course-map"
+  "map": "https://www.marunuma.jp/winter/course-map",
+  "muni": "10443"
  },
  {
   "name": "たざわ湖スキー場",
@@ -464,7 +507,8 @@
   "base": 569,
   "top": 1157,
   "site": "https://www.tazawako-ski.com/",
-  "map": "https://www.tazawako-ski.com/cou/"
+  "map": "https://www.tazawako-ski.com/cou/",
+  "muni": "05215"
  },
  {
   "name": "カムイスキーリンクス",
@@ -474,7 +518,8 @@
   "drop": 601,
   "base": 143,
   "top": 734,
-  "site": "https://www.kamui-skilinks.com/"
+  "site": "https://www.kamui-skilinks.com/",
+  "muni": "01204"
  },
  {
   "name": "高鷲スノーパーク",
@@ -485,7 +530,8 @@
   "base": 971,
   "top": 1531,
   "site": "https://www.takasu.gr.jp",
-  "map": "https://www.takasu.gr.jp/gelande/"
+  "map": "https://www.takasu.gr.jp/gelande/",
+  "muni": "21219"
  },
  {
   "name": "ルスツリゾート",
@@ -496,7 +542,8 @@
   "base": 418,
   "top": 987,
   "site": "https://rusutsu.com/",
-  "map": "https://rusutsu.com/trail-map/"
+  "map": "https://rusutsu.com/trail-map/",
+  "muni": "01397"
  },
  {
   "name": "星野リゾート アルツ磐梯",
@@ -507,7 +554,8 @@
   "base": 729,
   "top": 1340,
   "site": "https://www.nekoma.co.jp/",
-  "map": "https://www.nekoma.co.jp/liftguide/"
+  "map": "https://www.nekoma.co.jp/liftguide/",
+  "muni": "07407"
  },
  {
   "name": "猪苗代スキー場",
@@ -517,7 +565,8 @@
   "drop": 580,
   "base": 707,
   "top": 1274,
-  "site": "https://www.inawashiro-ski.com/"
+  "site": "https://www.inawashiro-ski.com/",
+  "muni": "07408"
  },
  {
   "name": "グランデコスノーリゾート",
@@ -527,7 +576,8 @@
   "drop": 580,
   "base": 1015,
   "top": 1593,
-  "site": "http://www.grandeco.com/hotel_resort/"
+  "site": "http://www.grandeco.com/hotel_resort/",
+  "muni": "07402"
  },
  {
   "name": "川場スキー場",
@@ -537,7 +587,8 @@
   "drop": 580,
   "base": 1289,
   "top": 1865,
-  "site": "https://www.kawaba.co.jp/snow/"
+  "site": "https://www.kawaba.co.jp/snow/",
+  "muni": "10444"
  },
  {
   "name": "水上宝台樹スキー場",
@@ -548,7 +599,8 @@
   "base": 823,
   "top": 1349,
   "site": "https://hodaigi.jp/",
-  "map": "https://hodaigi.jp/gelande-guide/"
+  "map": "https://hodaigi.jp/gelande-guide/",
+  "muni": "10449"
  },
  {
   "name": "開田高原マイアスキー場",
@@ -558,7 +610,8 @@
   "drop": 563,
   "base": 1567,
   "top": 2115,
-  "site": "https://miaski-resort.com/"
+  "site": "https://miaski-resort.com/",
+  "muni": "20432"
  },
  {
   "name": "グランスノー奥伊吹",
@@ -569,7 +622,8 @@
   "base": 723,
   "top": 1182,
   "site": "https://www.okuibuki.co.jp/",
-  "map": "https://www.okuibuki.co.jp/gelande/"
+  "map": "https://www.okuibuki.co.jp/gelande/",
+  "muni": "25214"
  },
  {
   "name": "戸隠スキー場",
@@ -580,7 +634,8 @@
   "base": 1229,
   "top": 1728,
   "site": "https://www.togakusi.com/",
-  "map": "https://www.togakusi.com/ski/course/"
+  "map": "https://www.togakusi.com/ski/course/",
+  "muni": "20201"
  },
  {
   "name": "キューピットバレイ",
@@ -591,7 +646,8 @@
   "base": 430,
   "top": 960,
   "site": "https://www.yukidaruma-kogen.com/",
-  "map": "https://www.yukidaruma-kogen.com/cms/wp-content/themes/cupidValley2022/images/winter/gelande_map-2025_pc.jpg"
+  "map": "https://www.yukidaruma-kogen.com/cms/wp-content/themes/cupidValley2022/images/winter/gelande_map-2025_pc.jpg",
+  "muni": "15222"
  },
  {
   "name": "朝里川温泉スキー場",
@@ -601,7 +657,8 @@
   "drop": 540,
   "base": 161,
   "top": 616,
-  "site": "https://asari-ski.com/"
+  "site": "https://asari-ski.com/",
+  "muni": "01203"
  },
  {
   "name": "神立スノーリゾート",
@@ -612,7 +669,8 @@
   "base": 470,
   "top": 944,
   "site": "https://www.kandatsu.com/",
-  "map": "https://www.kandatsu.com/course-guide/"
+  "map": "https://www.kandatsu.com/course-guide/",
+  "muni": "15461"
  },
  {
   "name": "白馬岩岳スノーフィールド",
@@ -622,7 +680,8 @@
   "drop": 539,
   "base": 758,
   "top": 1297,
-  "site": "https://iwatake.jp/"
+  "site": "https://iwatake.jp/",
+  "muni": "20485"
  },
  {
   "name": "白馬コルチナ国際スキー場",
@@ -632,7 +691,8 @@
   "drop": 530,
   "base": 823,
   "top": 1416,
-  "site": "https://www.hgp.co.jp/cortina/ski/"
+  "site": "https://www.hgp.co.jp/cortina/ski/",
+  "muni": "20486"
  },
  {
   "name": "青森スプリング・スキーリゾート",
@@ -642,7 +702,8 @@
   "drop": 525,
   "base": 391,
   "top": 888,
-  "site": "https://aomorispring.com/"
+  "site": "https://aomorispring.com/",
+  "muni": "02321"
  },
  {
   "name": "タングラムスキーサーカス",
@@ -653,7 +714,8 @@
   "base": 804,
   "top": 1276,
   "site": "https://www.tangram.jp/ski/",
-  "map": "https://www.tangram.jp/ski/ski/map.php"
+  "map": "https://www.tangram.jp/ski/ski/map.php",
+  "muni": "20583"
  },
  {
   "name": "シャルマン火打スキー場",
@@ -664,7 +726,8 @@
   "base": 516,
   "top": 1006,
   "site": "https://charmant-hiuchi.jp/",
-  "map": "https://charmant-hiuchi.jp/gelande/"
+  "map": "https://charmant-hiuchi.jp/gelande/",
+  "muni": "15216"
  },
  {
   "name": "恐羅漢スノーパーク",
@@ -675,7 +738,8 @@
   "base": 902,
   "top": 1308,
   "site": "https://www.osorakan.co.jp/winter/",
-  "map": "https://osorakan.co.jp/winter/course"
+  "map": "https://osorakan.co.jp/winter/course",
+  "muni": "34368"
  },
  {
   "name": "白馬乗鞍温泉スキー場",
@@ -685,7 +749,8 @@
   "drop": 500,
   "base": 819,
   "top": 1319,
-  "site": "https://www.hakubanorikura.jp/"
+  "site": "https://www.hakubanorikura.jp/",
+  "muni": "20486"
  },
  {
   "name": "白山一里野温泉スキー場",
@@ -695,7 +760,8 @@
   "drop": 500,
   "base": 545,
   "top": 1018,
-  "site": "http://www.sam-hakusan.com/"
+  "site": "http://www.sam-hakusan.com/",
+  "muni": "17210"
  },
  {
   "name": "めがひらスキー場",
@@ -706,7 +772,8 @@
   "base": 633,
   "top": 1058,
   "site": "http://www.megahira.co.jp/pc/ski.html",
-  "map": "https://www.megahira.co.jp/ski/map/"
+  "map": "https://www.megahira.co.jp/ski/map/",
+  "muni": "34213"
  },
  {
   "name": "ハチ高原スキー場",
@@ -717,7 +784,8 @@
   "base": 671,
   "top": 1209,
   "site": "https://www.hachi-hachikita.co.jp/",
-  "map": "https://www.hachi-hachikita.co.jp/hachi/slope.html"
+  "map": "https://www.hachi-hachikita.co.jp/hachi/slope.html",
+  "muni": "28222"
  },
  {
   "name": "名寄ピヤシリスキー場",
@@ -727,7 +795,8 @@
   "drop": 480,
   "base": 248,
   "top": 658,
-  "site": "https://www.nayoro.co.jp/piyashiri/top/"
+  "site": "https://www.nayoro.co.jp/piyashiri/top/",
+  "muni": "01221"
  },
  {
   "name": "ウイングヒルズ白鳥リゾート",
@@ -738,7 +807,8 @@
   "base": 874,
   "top": 1327,
   "site": "https://winghills.net/",
-  "map": "https://winghills.net/green/files/images/home/map2026.pdf"
+  "map": "https://winghills.net/green/files/images/home/map2026.pdf",
+  "muni": "21219"
  },
  {
   "name": "札幌国際スキー場",
@@ -749,7 +819,8 @@
   "base": 629,
   "top": 1090,
   "site": "https://www.sapporo-kokusai.jp/",
-  "map": "https://www.sapporo-kokusai.jp/slopes/"
+  "map": "https://www.sapporo-kokusai.jp/slopes/",
+  "muni": "01106"
  },
  {
   "name": "ハンターマウンテン塩原",
@@ -759,7 +830,8 @@
   "drop": 460,
   "base": 1138,
   "top": 1589,
-  "site": "https://www.hunter.co.jp/"
+  "site": "https://www.hunter.co.jp/",
+  "muni": "09213"
  },
  {
   "name": "ブランシュたかやまスキーリゾート",
@@ -770,7 +842,8 @@
   "base": 1376,
   "top": 1788,
   "site": "https://www.blanche-ski.com/",
-  "map": "https://blanche-ski.com/winter/course/"
+  "map": "https://blanche-ski.com/winter/course/",
+  "muni": "20350"
  },
  {
   "name": "箕輪スキー場",
@@ -780,7 +853,8 @@
   "drop": 450,
   "base": 1049,
   "top": 1460,
-  "site": "https://www.ski-minowa.jp/"
+  "site": "https://www.ski-minowa.jp/",
+  "muni": "07408"
  },
  {
   "name": "志賀高原 焼額山スキー場",
@@ -791,7 +865,8 @@
   "base": 1555,
   "top": 2005,
   "site": "https://www.princehotels.co.jp/ski/shiga/winter/",
-  "map": "https://www.princehotels.co.jp/ski/shiga/winter/coursemap/"
+  "map": "https://www.princehotels.co.jp/ski/shiga/winter/coursemap/",
+  "muni": "20561"
  },
  {
   "name": "ダイナランド",
@@ -802,7 +877,8 @@
   "base": 985,
   "top": 1423,
   "site": "https://www.dynaland.co.jp/",
-  "map": "https://www.dynaland.co.jp/gelande/"
+  "map": "https://www.dynaland.co.jp/gelande/",
+  "muni": "21219"
  },
  {
   "name": "鷲ヶ岳スキー場",
@@ -813,7 +889,8 @@
   "base": 903,
   "top": 1335,
   "site": "https://ski.washigatake.jp/",
-  "map": "https://ski.washigatake.jp/gelande/"
+  "map": "https://ski.washigatake.jp/gelande/",
+  "muni": "21219"
  },
  {
   "name": "斑尾高原スキー場",
@@ -823,7 +900,8 @@
   "drop": 440,
   "base": 914,
   "top": 1323,
-  "site": "https://www.madarao.jp/"
+  "site": "https://www.madarao.jp/",
+  "muni": "20213"
  },
  {
   "name": "夏油高原スキー場",
@@ -833,7 +911,8 @@
   "drop": 430,
   "base": 641,
   "top": 1068,
-  "site": "https://www.getokogen.com/winter/index.html"
+  "site": "https://www.getokogen.com/winter/index.html",
+  "muni": "03206"
  },
  {
   "name": "岩原スキー場",
@@ -844,7 +923,8 @@
   "base": 397,
   "top": 797,
   "site": "https://www.iwa-ppara.com/",
-  "map": "https://iwa-ppara.com/gelande/"
+  "map": "https://iwa-ppara.com/gelande/",
+  "muni": "15461"
  },
  {
   "name": "ユートピアサイオト",
@@ -854,7 +934,8 @@
   "drop": 400,
   "base": 730,
   "top": 1122,
-  "site": "https://www.saioto.co.jp/"
+  "site": "https://www.saioto.co.jp/",
+  "muni": "34369"
  },
  {
   "name": "ホワイトバレースキー場",
@@ -864,7 +945,8 @@
   "drop": 380,
   "base": 644,
   "top": 972,
-  "site": "https://www.whitevalley.jp/"
+  "site": "https://www.whitevalley.jp/",
+  "muni": "10449"
  },
  {
   "name": "車山高原スキー場",
@@ -874,7 +956,8 @@
   "drop": 365,
   "base": 1584,
   "top": 1910,
-  "site": "https://kurumayama.com/"
+  "site": "https://kurumayama.com/",
+  "muni": "20214"
  },
  {
   "name": "札幌藻岩山スキー場",
@@ -884,7 +967,8 @@
   "drop": 358,
   "base": 185,
   "top": 444,
-  "site": "https://www.rinyu.co.jp/moiwa/"
+  "site": "https://www.rinyu.co.jp/moiwa/",
+  "muni": "01106"
  },
  {
   "name": "飛騨ほおのき平スキー場",
@@ -895,7 +979,8 @@
   "base": 1222,
   "top": 1526,
   "site": "https://hounoki-daira.com/",
-  "map": "https://hounoki-daira.com/coursemap/"
+  "map": "https://hounoki-daira.com/coursemap/",
+  "muni": "21203"
  },
  {
   "name": "万座温泉スキー場",
@@ -906,7 +991,8 @@
   "base": 1678,
   "top": 1986,
   "site": "https://www.princehotels.co.jp/ski/manza/winter/",
-  "map": "https://www.princehotels.co.jp/ski/manza/winter/coursemap/"
+  "map": "https://www.princehotels.co.jp/ski/manza/winter/coursemap/",
+  "muni": "10425"
  },
  {
   "name": "草津温泉スキー場",
@@ -916,7 +1002,8 @@
   "drop": 335,
   "base": 1245,
   "top": 1663,
-  "site": "https://www.932-onsen.com/winter/index"
+  "site": "https://www.932-onsen.com/winter/index",
+  "muni": "10426"
  },
  {
   "name": "ぴっぷスキー場",
@@ -927,7 +1014,8 @@
   "base": 247,
   "top": 569,
   "site": "https://www.town.pippu.hokkaido.jp/ski/top.html",
-  "map": "https://www.town.pippu.hokkaido.jp/ski/map.html"
+  "map": "https://www.town.pippu.hokkaido.jp/ski/map.html",
+  "muni": "01455"
  },
  {
   "name": "かたしな高原スキー場",
@@ -937,7 +1025,8 @@
   "drop": 320,
   "base": 952,
   "top": 1256,
-  "site": "https://www.katashinakogen.co.jp/"
+  "site": "https://www.katashinakogen.co.jp/",
+  "muni": "10443"
  },
  {
   "name": "牛岳温泉スキー場",
@@ -948,7 +1037,8 @@
   "base": 337,
   "top": 641,
   "site": "https://ushidake.com/ski/index.php",
-  "map": "https://ushidake.com/ski/gelande/"
+  "map": "https://ushidake.com/ski/gelande/",
+  "muni": "16201"
  },
  {
   "name": "星野リゾート 猫魔スキー場",
@@ -959,7 +1049,8 @@
   "base": 1029,
   "top": 1340,
   "site": "https://www.nekoma.co.jp/",
-  "map": "https://www.nekoma.co.jp/liftguide/"
+  "map": "https://www.nekoma.co.jp/liftguide/",
+  "muni": "07402"
  },
  {
   "name": "菅平高原スキー場",
@@ -969,7 +1060,8 @@
   "drop": 310,
   "base": 1300,
   "top": 1650,
-  "site": "https://sugadaira-snowresort.com/"
+  "site": "https://sugadaira-snowresort.com/",
+  "muni": "20203"
  },
  {
   "name": "たんばらスキーパーク",
@@ -980,7 +1072,8 @@
   "base": 1254,
   "top": 1557,
   "site": "https://www.tambara.co.jp/winter/",
-  "map": "https://www.tambara.co.jp/winter/course/"
+  "map": "https://www.tambara.co.jp/winter/course/",
+  "muni": "10206"
  },
  {
   "name": "白樺高原国際スキー場",
@@ -990,7 +1083,8 @@
   "drop": 300,
   "base": 1563,
   "top": 1818,
-  "site": "https://whitebirch.co.jp/kokusai/"
+  "site": "https://whitebirch.co.jp/kokusai/",
+  "muni": "20324"
  },
  {
   "name": "白樺湖ロイヤルヒルスキー場",
@@ -1000,7 +1094,8 @@
   "drop": 300,
   "base": 1444,
   "top": 1692,
-  "site": "https://royalhill.co.jp/"
+  "site": "https://royalhill.co.jp/",
+  "muni": "20214"
  },
  {
   "name": "だいせんホワイトリゾート",
@@ -1010,7 +1105,8 @@
   "drop": 296,
   "base": 699,
   "top": 1068,
-  "site": "https://www.daisen-resort.jp/"
+  "site": "https://www.daisen-resort.jp/",
+  "muni": "31386"
  },
  {
   "name": "さっぽろばんけいスキー場",
@@ -1020,7 +1116,8 @@
   "drop": 283,
   "base": 190,
   "top": 408,
-  "site": "https://www.bankei.co.jp/"
+  "site": "https://www.bankei.co.jp/",
+  "muni": "01101"
  },
  {
   "name": "湯沢中里スノーリゾート",
@@ -1031,7 +1128,8 @@
   "base": 465,
   "top": 684,
   "site": "https://www.yuzawa-nakazato.com/winter/",
-  "map": "https://www.yuzawa-nakazato.com/winter/gerende/course/"
+  "map": "https://www.yuzawa-nakazato.com/winter/gerende/course/",
+  "muni": "15461"
  },
  {
   "name": "びわ湖バレイ",
@@ -1042,7 +1140,8 @@
   "base": 1050,
   "top": 1174,
   "site": "https://www.biwako-valley.com/winter/",
-  "map": "https://www.biwako-valley.com/w_season/openclose/"
+  "map": "https://www.biwako-valley.com/w_season/openclose/",
+  "muni": "25201"
  },
  {
   "name": "軽井沢プリンスホテルスキー場",
@@ -1053,7 +1152,8 @@
   "base": 938,
   "top": 1143,
   "site": "https://www.princehotels.co.jp/ski/karuizawa/winter/",
-  "map": "https://www.princehotels.co.jp/ski/karuizawa/winter/coursemap/"
+  "map": "https://www.princehotels.co.jp/ski/karuizawa/winter/coursemap/",
+  "muni": "20321"
  },
  {
   "name": "カムイみさかスキー場",
@@ -1064,7 +1164,8 @@
   "base": 877,
   "top": 1059,
   "site": "http://misaka.kamuisp.com/",
-  "map": "https://misaka.kamuisp.com/map/"
+  "map": "https://misaka.kamuisp.com/map/",
+  "muni": "19211"
  },
  {
   "name": "箱館山スキー場",
@@ -1074,7 +1175,8 @@
   "drop": 65,
   "base": 575,
   "top": 686,
-  "site": "https://www.hakodateyama.com/winter/"
+  "site": "https://www.hakodateyama.com/winter/",
+  "muni": "25212"
  },
  {
   "name": "スノーウェーブパーク白鳥高原",
@@ -1086,6 +1188,7 @@
   "top": 1175,
   "yomi": "白鳥高原 しろとりこうげん",
   "site": "https://siratori-k.jp/swp/",
-  "map": "https://siratori-k.jp/swp/gelande"
+  "map": "https://siratori-k.jp/swp/gelande",
+  "muni": "21219"
  }
 ]

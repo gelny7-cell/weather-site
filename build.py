@@ -81,6 +81,103 @@ def hours_of(h, key, day, hours):
             if t[:10] == day and int(t[11:13]) in hours and v is not None]
 
 
+# ---------------------------------------------------------------- 警報・注意報、火山(気象庁)
+# 警報・注意報の種類コード: (名前, レベル)。レベル20=注意報、30以上=警報(40=危険警報、50=特別警報)
+WARN_KINDS = {
+    "02": ("暴風雪警報", 30), "03": ("レベル3大雨警報", 30), "05": ("暴風警報", 30), "06": ("大雪警報", 30),
+    "07": ("波浪警報", 30), "08": ("レベル3高潮警報", 30), "09": ("レベル3土砂災害警報", 30),
+    "10": ("レベル2大雨注意報", 20), "12": ("大雪注意報", 20), "13": ("風雪注意報", 20), "14": ("雷注意報", 20),
+    "15": ("強風注意報", 20), "16": ("波浪注意報", 20), "17": ("融雪注意報", 20), "19": ("レベル2高潮注意報", 20),
+    "20": ("濃霧注意報", 20), "21": ("乾燥注意報", 20), "22": ("なだれ注意報", 20), "23": ("低温注意報", 20),
+    "24": ("霜注意報", 20), "25": ("着氷注意報", 20), "26": ("着雪注意報", 20), "29": ("レベル2土砂災害注意報", 20),
+    "30": ("レベル3氾濫警報", 30), "31": ("レベル3氾濫警報", 30), "32": ("暴風雪特別警報", 50),
+    "33": ("レベル5大雨特別警報", 50), "35": ("暴風特別警報", 50), "36": ("大雪特別警報", 50), "37": ("波浪特別警報", 50),
+    "38": ("レベル5高潮特別警報", 50), "39": ("レベル5土砂災害特別警報", 50), "40": ("レベル4氾濫危険警報", 40),
+    "41": ("レベル4氾濫危険警報", 40), "43": ("レベル4大雨危険警報", 40), "48": ("レベル4高潮危険警報", 40),
+    "49": ("レベル4土砂災害危険警報", 40), "51": ("レベル5氾濫特別警報", 50), "53": ("レベル5氾濫特別警報", 50),
+}
+
+
+def fetch_alerts():
+    """いま出ている警報・注意報。{市町村(class20)のコード: [(名前, レベル)]}。取れなければ空"""
+    try:
+        reports = fetch("https://www.jma.go.jp/bosai/warning/data/r8/map.json", {})
+    except Exception as ex:
+        print(f"警報・注意報の取得に失敗: {type(ex).__name__}")
+        return {}
+    out = {}
+    for r in sorted(reports, key=lambda r: r["reportDatetime"]):     # 同じ地域は新しい発表で上書き
+        for a in r.get("warning", {}).get("class20Items", []):
+            out[a["areaCode"]] = sorted({WARN_KINDS[k["code"]] for k in a["kinds"]
+                                         if k.get("status") in ("発表", "継続") and k.get("code") in WARN_KINDS},
+                                        key=lambda x: -x[1])
+    return out
+
+
+def fetch_volcanoes():
+    """噴火警報・予報が出ている火山。[(緯度, 経度, 火山名, 警報の名前, 発表日)]。取れなければ空。
+    一覧に載っていない火山は噴火警戒レベル1(または警報なし)"""
+    try:
+        places = {v["code"]: (float(v["latlon"][0]), float(v["latlon"][1]), v["name_jp"])
+                  for v in fetch("https://www.jma.go.jp/bosai/volcano/const/volcano_list.json", {})
+                  if v.get("latlon") and v.get("code")}     # 位置のない項目(海域など)は除く
+        reports = fetch("https://www.jma.go.jp/bosai/volcano/data/warning.json", {})
+    except Exception as ex:
+        print(f"火山の情報の取得に失敗: {type(ex).__name__}")
+        return []
+    now = {}
+    for r in sorted(reports, key=lambda r: r["reportDatetime"]):
+        for vi in r["volcanoInfos"]:
+            if vi["type"] != "噴火警報・予報（対象火山）":
+                continue
+            for it in vi["items"]:
+                for a in it["areas"]:
+                    now[a["code"]] = (it["name"], r["reportDatetime"][:10])
+    now = {c: v for c, v in now.items() if "留意" not in v[0]}    # 「活火山であることに留意」(レベル1相当)は除く
+    return [(*places[c][:2], places[c][2], name, day) for c, (name, day) in now.items() if c in places]
+
+
+def km_between(lat1, lon1, lat2, lon2):
+    return 6371 * math.hypot(math.radians(lon2 - lon1) * math.cos(math.radians(lat1)), math.radians(lat2 - lat1))
+
+
+def attach_alerts(items, alerts, volcanoes, near_volcano):
+    """各場所に、その市町村の警報・注意報と、10km以内の火山の噴火警報を付ける"""
+    for x in items:
+        muni = x.get("muni")
+        found = {k for code, ks in alerts.items() if muni and code.startswith(muni) for k in ks}
+        x["alerts"] = sorted(found, key=lambda k: (-k[1], k[0]))
+        x["volcano"] = None
+        if near_volcano:
+            close = [v for v in volcanoes if km_between(x["lat"], x["lon"], v[0], v[1]) <= 10]
+            x["volcano"] = close[0] if close else None
+
+
+def alert_tags(x):
+    """一覧の名前の横に付ける印(火山・警報・注意報)"""
+    out = ""
+    if x.get("volcano"):
+        out += f" <span class='tag danger'>🌋 {e(x['volcano'][3].split('（')[0])}</span>"
+    lv = max((k[1] for k in x.get("alerts", [])), default=0)
+    if lv >= 30:
+        out += " <span class='tag danger'>警報</span>"
+    elif lv:
+        out += " <span class='tag warn'>注意報</span>"
+    return out
+
+
+def alert_box(x):
+    """詳細の上に出す、火山・警報・注意報の内容"""
+    out = ""
+    if x.get("volcano"):
+        lat, lon, name, warn, day = x["volcano"]
+        out += (f"<p class='alert'>🌋 {e(name)}: {e(warn)}"
+                f"<small class='muted'>(気象庁 {int(day[5:7])}/{int(day[8:10])}発表)</small></p>")
+    if x.get("alerts"):
+        out += f"<p class='alert'>⚠️ 気象庁: {e('・'.join(k[0] for k in x['alerts']))}</p>"
+    return out
+
+
 # ---------------------------------------------------------------- 表示の部品
 def wx(code):
     if code is None:
@@ -365,6 +462,21 @@ MT_MODELS = [("jma_msm", 3, range(0, 3)),
              ("jma_gsm", 11, range(6, 11))]
 
 
+def wind_chill(t, v):
+    """体感温度(℃)。気温 t(℃)と風速 v(m/s)から、カナダ気象局などが使う式で求める。
+    気温が10℃を超えるときや風が弱いときは、気温のまま"""
+    kmh = v * 3.6
+    if t > 10 or kmh < 4.8:
+        return t
+    return 13.12 + 0.6215 * t - 11.37 * kmh ** 0.16 + 0.3965 * t * kmh ** 0.16
+
+
+def by_hour(h, key, d, hours):
+    """hourly データから、指定日・指定時間帯の {時: 値}(値のない時刻は除く)"""
+    return {int(t[11:13]): v for t, v in zip(h["time"], h[key])
+            if t[:10] == d and int(t[11:13]) in hours and v is not None}
+
+
 def mt_day(h, d, elev, strict):
     """1日分(6〜15時)の山頂の天気。値が足りなければ None。strict なら10時間すべてそろった日だけ"""
     hours = range(6, 16)
@@ -377,8 +489,14 @@ def mt_day(h, d, elev, strict):
                   if len(w := hours_of(h, f"wind_speed_{lv}hPa", d, hours)) >= need), None)
     if not winds or min(len(rains), len(temps), len(codes)) < need:
         return None
+    # 体感温度: 同じ時刻の気温と風速の組から求めた、6〜15時で最も低い値
+    lv = next(lv for lv, _ in sorted(LEVELS, key=lambda x: abs(x[1] - elev))
+              if len(hours_of(h, f"wind_speed_{lv}hPa", d, hours)) >= need)
+    th, wh = by_hour(h, "temperature_2m", d, hours), by_hour(h, f"wind_speed_{lv}hPa", d, hours)
+    feels = [wind_chill(th[k], wh[k]) for k in th if k in wh]
     return {"rain": sum(rains), "wind": max(winds), "wind_avg": sum(winds) / len(winds),
-            "tmin": min(temps), "tmax": max(temps), "code": max(codes)}
+            "tmin": min(temps), "tmax": max(temps), "code": max(codes),
+            "feel": min(feels) if feels else min(temps)}
 
 
 def mt_hours(h, d, elev, step):
@@ -393,7 +511,8 @@ def mt_hours(h, d, elev, step):
         codes = hours_of(h, "weather_code", d, hrs)
         winds = next((w for lv in near if len(w := hours_of(h, f"wind_speed_{lv}hPa", d, hrs)) == step), None)
         if len(rains) == step and len(codes) == step and temps and winds:
-            rows.append({"hour": start, "code": max(codes), "temp": temps[0], "wind": max(winds), "rain": sum(rains)})
+            rows.append({"hour": start, "code": max(codes), "temp": temps[0], "wind": max(winds), "rain": sum(rains),
+                         "feel": wind_chill(temps[0], max(winds))})
     return rows
 
 
@@ -459,7 +578,9 @@ def mt_detail(m, with_map=True, compact=False):
         rows += (f"<tr><td class='dt'>{label}</td>"
                  f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b></td>"
                  f"<td>{wx(d['code'])[0]} {wx(d['code'])[1]}</td>"
-                 f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td><td>{d['wind_avg']:.0f}m/s</td>"
+                 f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td>"
+                 + ("" if compact else f"<td>{round(d['feel'])}℃</td>")
+                 + f"<td>{d['wind_avg']:.0f}m/s</td>"
                  + ("" if compact else f"<td>{d['wind']:.0f}m/s</td>")
                  + f"<td>{d['rain']:.1f}mm</td>" + (f"<td>{d['thunder']}%</td>" if has_t else "") + "</tr>")
         for x in hours or []:
@@ -467,7 +588,8 @@ def mt_detail(m, with_map=True, compact=False):
             # 時間ごとの行: 判定・雷は空ける。風速は平均・最大の2列にまたがって出す
             rows += (f"<tr class='hr' hidden><td class='dt'>{when}</td><td></td>"
                      f"<td>{wx(x['code'])[0]} {wx(x['code'])[1]}</td><td>{round(x['temp'])}℃</td>"
-                     f"<td colspan='{1 if compact else 2}'>{x['wind']:.0f}m/s</td>"
+                     + ("" if compact else f"<td>{round(x['feel'])}℃</td>")
+                     + f"<td colspan='{1 if compact else 2}'>{x['wind']:.0f}m/s</td>"
                      f"<td>{x['rain']:.1f}mm</td>" + ("<td></td>" if has_t else "") + "</tr>")
     if not m.get("access"):
         place = maplink(trailhead(m), trailhead_label(m))
@@ -482,8 +604,9 @@ def mt_detail(m, with_map=True, compact=False):
             + conbilink(near["lat"], near["lon"])) if with_map else ""
     sun = (f"<p class='muted'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</p>"
            if m.get("sun") else "")
-    return (f"{link}{sun}<div class='scroll'><table class='sub'>"
-            "<tr><th class='dt'>日付</th><th>判定</th><th>天気(6〜15時)</th><th>山頂付近の気温</th><th>平均風速</th>"
+    return (f"{link}{alert_box(m)}{sun}<div class='scroll'><table class='sub'>"
+            "<tr><th class='dt'>日付</th><th>判定</th><th>天気(6〜15時)</th><th>山頂付近の気温</th>"
+            + ("" if compact else "<th>体感温度</th>") + "<th>平均風速</th>"
             + ("" if compact else "<th>最大風速</th>")
             + f"<th>降水量</th>{'<th>雷の確率</th>' if has_t else ''}</tr>{rows}</table></div>")
 
@@ -508,7 +631,7 @@ def mountains_page(mts):
             + (f" data-prefs='{e(','.join(m['prefs']))}'" if m["region"] == "近畿" else "") + ">"
             f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
             f"<span>{e(m['name'])}</span>"
-            + tags(m)
+            + tags(m) + alert_tags(m)
             + f"<small>{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>"
             f"</button></th>{cells}</tr>"
             f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{mt_detail(m)}</td></tr></tbody>")
@@ -527,6 +650,8 @@ def mountains_page(mts):
 <li><b class='r1'>△</b> 降水10mm未満、風速17m/s未満</li>
 <li><b class='r0'>×</b> それ以上、または雷の確率50%以上</li></ul>
 <p>雷の確率: 米国の予報モデル(GFS)を条件を少しずつ変えて31通り計算したうち、6〜15時に「大気が不安定で雨が降る」時間がある割合です。20%以上で判定は最高でも△、50%以上で×。山では早めの下山を。</p>
+<p>体感温度: 山頂付近の気温と風速から求めた、6〜15時で最も低い値です(風が強いほど低くなります)。</p>
+<p>⚠️ 警報・注意報は、駐車場・登山口(分からない山は山頂)のある市町村に気象庁がいま出しているものです。🌋 は、山頂から10km以内の火山に噴火警戒レベル2以上などの噴火警報・予報が出ているときに付けています。</p>
 <p>風速は山頂の高さに最も近い上空(約760m・1,000m・1,500m・1,950m・3,000mのいずれか)の予報です。稜線の実際の風とは異なることがあり、突風はさらに強くなります。</p>
 <p>予報モデル: 今日〜2日後は気象庁MSM、3〜5日後は英国気象局UKMO、6〜10日後は気象庁GSM、それ以降は Open-Meteo のおまかせ(各国のモデルの組み合わせ)を使っています。</p>
 <h2>このページについて</h2>
@@ -597,13 +722,15 @@ def ski_hours(th, bh, d, today):
     for hr in (range(9, 17) if step == 1 else (9, 12, 15)):
         win = range(hr - step + 1, hr + 1)
         at = {k: hours_of(th, k, d, [hr]) for k in
-              ("weather_code", "temperature_2m", "wind_speed_10m", "wind_gusts_10m", "snow_depth", "freezing_level_height")}
+              ("weather_code", "temperature_2m", "wind_speed_10m", "wind_gusts_10m", "snow_depth", "freezing_level_height",
+               "wind_direction_10m")}
         code_b = hours_of(bh, "weather_code", d, [hr])
         sums = {(src, k): hours_of(h, k, d, win) for src, h in (("t", th), ("b", bh)) for k in ("snowfall", "rain")}
         if not all(at.values()) or not code_b or any(len(v) != step for v in sums.values()):
             continue
         rows.append({"hour": hr, "code": at["weather_code"][0], "code_base": code_b[0],
                      "temp": at["temperature_2m"][0], "wind": at["wind_speed_10m"][0], "gust": at["wind_gusts_10m"][0],
+                     "feel": wind_chill(at["temperature_2m"][0], at["wind_speed_10m"][0]), "wind_dir": at["wind_direction_10m"][0],
                      "depth": at["snow_depth"][0] * 100, "fl": at["freezing_level_height"][0],
                      "snow": sum(sums[("t", "snowfall")]), "snow_base": sum(sums[("b", "snowfall")]),
                      "rain": sum(sums[("t", "rain")]), "rain_base": sum(sums[("b", "rain")])})
@@ -616,7 +743,7 @@ def build_ski():
     # 前日の夜の降雪も数えるため、前日分(past_days=1)も取得する。前日そのものは表示しない
     top = forecast([(s["lat"], s["lon"], s["top"]) for s in ski], past_days=1,
                    hourly="snow_depth,freezing_level_height,wind_speed_10m,snowfall,"
-                          "weather_code,temperature_2m,wind_gusts_10m,rain")
+                          "weather_code,temperature_2m,wind_gusts_10m,rain,wind_direction_10m")
     base = forecast([(s["lat"], s["lon"], s["base"]) for s in ski], past_days=1,
                     hourly="snowfall,weather_code,rain")
     today = datetime.now(JST).date().isoformat()
@@ -641,6 +768,8 @@ def build_ski():
                     or len(code_b) != 9 or len(rain) != 8 or len(rain_b) != 8):
                 continue                # 値のない日は表示しない
             ws = v["wind_speed_10m"]
+            th, wh = by_hour(h, "temperature_2m", d, open_hrs), by_hour(h, "wind_speed_10m", d, open_hrs)
+            wd = by_hour(h, "wind_direction_10m", d, open_hrs)
             s["days"].append({
                 "date": d,
                 "code": max(v["weather_code"]), "code_base": max(code_b),
@@ -649,6 +778,8 @@ def build_ski():
                 "tmin": min(v["temperature_2m"]), "tmax": max(v["temperature_2m"]),
                 "rain": sum(rain), "rain_base": sum(rain_b),
                 "fl": min(v["freezing_level_height"]), "gust": max(v["wind_gusts_10m"]), "wind_avg": sum(ws) / len(ws),
+                "feel": min(wind_chill(th[k], wh[k]) for k in th if k in wh),
+                "wind_dir": mean_dir([wd[k] for k in wd if k in wh], [wh[k] for k in wd if k in wh]) if wd else None,
                 "hours": ski_hours(h, bh, d, today),
             })
     ski = align(ski, "スノーボード")
@@ -683,10 +814,17 @@ def ski_detail(s, with_map=True, simple=False):
             rows += (f"<tr><td class='dt'>{day_label(d['date'])}</td><td>{icon} {label}{rain}</td>"
                      f"<td>{d['snow']:.0f}cm{powder}</td><td>{d['depth']:.0f}cm</td>"
                      f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td>"
-                     f"<td>{d['gust']:.0f}m/s</td></tr>")
-        return ("<div class='scroll'><table class='sub'><tr><th class='dt'>日付</th><th>天気</th><th>新雪</th>"
+                     f"<td>{d['gust']:.0f}m/s" + (" <span class='tag warn'>運休注意</span>" if d["gust"] >= 15 else "")
+                     + "</td></tr>")
+        return (alert_box(s) + "<div class='scroll'><table class='sub'><tr><th class='dt'>日付</th><th>天気</th><th>新雪</th>"
                 "<th>積雪</th><th>気温</th><th>最大瞬間風速</th></tr>"
                 f"{rows}</table></div>")
+    def gust(g):                # 突風が強い日はゴンドラ・リフトが止まりやすい
+        return f"{g:.0f}m/s" + (" <span class='tag warn'>運休注意</span>" if g >= 15 else "")
+
+    def wind(direction, speed):
+        return (f"{dir_name(direction)} " if direction is not None else "") + f"{speed:.0f}m/s"
+
     def weather(code, rain):
         icon, label = wx(code)
         tag = f" <span class='tag warn'>雨{rain:.0f}mm</span>" if rain >= 1 else ""
@@ -700,14 +838,14 @@ def ski_detail(s, with_map=True, simple=False):
                  f"<td>{weather(d['code'], d['rain'])}</td><td>{weather(d['code_base'], d['rain_base'])}</td>"
                  f"<td>{d['snow']:.0f}cm{powder}</td><td>{d['snow_base']:.0f}cm</td>"
                  f"<td>{d['depth']:.0f}cm</td>"
-                 f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td>"
-                 f"<td>{d['fl']:,.0f}m</td><td>{d['wind_avg']:.0f}m/s</td><td>{d['gust']:.0f}m/s</td></tr>")
+                 f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td><td>{round(d['feel'])}℃</td>"
+                 f"<td>{d['fl']:,.0f}m</td><td>{wind(d.get('wind_dir'), d['wind_avg'])}</td><td>{gust(d['gust'])}</td></tr>")
         for x in d.get("hours", []):    # 時間ごと(雪・雨は前の3時間の合計、ほかはその時刻の値)
             rows += (f"<tr class='hr' hidden><td class='dt'>{x['hour']}時</td>"
                      f"<td>{weather(x['code'], x['rain'])}</td><td>{weather(x['code_base'], x['rain_base'])}</td>"
                      f"<td>{x['snow']:.0f}cm</td><td>{x['snow_base']:.0f}cm</td><td>{x['depth']:.0f}cm</td>"
-                     f"<td>{round(x['temp'])}℃</td><td>{x['fl']:,.0f}m</td>"
-                     f"<td>{x['wind']:.0f}m/s</td><td>{x['gust']:.0f}m/s</td></tr>")
+                     f"<td>{round(x['temp'])}℃</td><td>{round(x['feel'])}℃</td><td>{x['fl']:,.0f}m</td>"
+                     f"<td>{wind(x.get('wind_dir'), x['wind'])}</td><td>{gust(x['gust'])}</td></tr>")
     link = ""
     if with_map:                # 公式ページ・ゲレンデマップ(分かるスキー場だけ)・駐車場の地図
         link = ((sitelink(s["site"], "🏠 公式ページ") + " " if s.get("site") else "")
@@ -717,13 +855,13 @@ def ski_detail(s, with_map=True, simple=False):
     obs = ""
     if am:
         fresh = f" ／ 過去24時間の降雪 {am['snow24h']}cm" if am["snow24h"] is not None else ""
-        obs = (f"<p class='obs'>ゲレンデベースの積雪(観測): <b>{am['snow']}cm</b>{fresh}"
+        obs = (f"<p class='obs'>ベースの積雪(観測): <b>{am['snow']}cm</b>{fresh}"
                f"<small class='muted'> · {e(am['name'])}(標高{am['alt']:,}m・{am['km']:.0f}km) "
                f"{am['time'].month}/{am['time'].day} {am['time'].hour}時 気象庁アメダス</small></p>")
-    return (f"{link}{obs}"
+    return (f"{link}{alert_box(s)}{obs}"
             f"<p class='muted'>上部 {s['top']:,}m / 下部 {s['base']:,}m</p><div class='scroll'><table class='sub'>"
             "<tr><th rowspan='2' class='dt'>日付</th><th colspan='2'>天気</th><th colspan='2'>新雪</th><th rowspan='2'>積雪<br>(上部)</th>"
-            "<th rowspan='2'>気温<br>(上部)</th><th rowspan='2'>0℃の高さ<br>(8〜16時)</th><th rowspan='2'>平均風速<br>(上部)</th>"
+            "<th rowspan='2'>気温<br>(上部)</th><th rowspan='2'>体感温度<br>(上部)</th><th rowspan='2'>0℃の高さ<br>(8〜16時)</th><th rowspan='2'>平均風速<br>(上部)</th>"
             "<th rowspan='2'>最大瞬間風速<br>(上部)</th></tr>"
             "<tr><th>上部</th><th>下部</th><th>上部</th><th>下部</th></tr>"
             f"{rows}</table></div>")
@@ -750,7 +888,7 @@ def ski_page(ski):
                 f"<tbody class='mt' id='{s['key']}' data-region='{r}' data-name='{e(s['name'] + s.get('yomi', ''))}'"
                 + (" data-fav='1'" if s["name"] in favs else "") + ">"
                 f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
-                f"<span>{e(s['name'])}</span><small>{e(s['pref'])} · 7日間 {total7:.0f}cm</small>"
+                f"<span>{e(s['name'])}</span>{alert_tags(s)}<small>{e(s['pref'])} · 7日間 {total7:.0f}cm</small>"
                 f"</button></th>{cells}</tr>"
                 f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{ski_detail(s)}</td></tr></tbody>")
     chips = ("<button class='chip on' data-r=''>すべて</button>"
@@ -766,8 +904,11 @@ def ski_page(ski):
 <div class='note'><ul>
 <li>新雪: 前日17時〜当日8時(ゲレンデが閉まってから開くまで)に降る雪の量の予報</li>
 <li>積雪: 朝9時に積もっている雪の深さの予報(気象モデルの推定。実際の積雪と大きく違うことがあります)</li>
-<li>ゲレンデベースの積雪(観測): 15km以内に気象庁アメダスの観測点があり、ゲレンデ下部との標高差が300m以内のスキー場だけ表示しています(圧雪・人工降雪は含みません)</li>
+<li>ベースの積雪(観測): 15km以内に気象庁アメダスの観測点があり、ゲレンデ下部との標高差が300m以内のスキー場だけ表示しています(圧雪・人工降雪は含みません)</li>
 <li><span class='tag'>パウダー期待</span> 上部の新雪が10cm以上で、上部の最高気温が-2℃以下</li>
+<li>体感温度: 上部の気温と風速から求めた、8〜16時で最も低い値。平均風速には風向(風が吹いてくる方角)も表示しています</li>
+<li><span class='tag warn'>運休注意</span> 上部の最大瞬間風速が15m/s以上(ゴンドラ・リフトが止まりやすい強さ)</li>
+<li>⚠️ 警報・注意報は、スキー場のある市町村に気象庁がいま出しているもの。🌋 は10km以内の火山に噴火警報・予報が出ているとき</li>
 <li>天気・雨・気温・0℃の高さ・平均風速・最大瞬間風速は、営業時間(8〜16時)の予報からまとめています(天気は最も悪いもの、0℃の高さは最も低いもの)</li>
 <li>日付を押すと時間ごとの予報が開きます(今日は9〜16時の1時間ごと、ほかの日は9時・12時・15時)。雪・雨はその時刻までの1時間(3時間ごとの日は3時間)の合計、気温・積雪・0℃の高さ・風はその時刻の値です(風速の列は平均ではなくその時刻の風速、最大瞬間風速の列はその時刻の突風)</li>
 <li><span class='tag warn'>雨</span> 雨の予報(雪質が重くなりやすい)</li>
@@ -806,18 +947,66 @@ def surf_hours(s, wh, fh, d, today):
     return rows
 
 
+def tide_events(m15):
+    """15分ごとの潮位から満潮・干潮を探す。[(時刻 "YYYY-MM-DDTHH:MM", "満潮" or "干潮")]。
+    潮位は1cm単位で同じ値が続くので、同じ値の区間を1つ(真ん中の時刻)にまとめてから山と谷を探す。
+    潮の差が小さい日本海側で細かい揺れを拾わないよう、隣の山・谷との差が5cm未満のものは除く"""
+    runs = []                           # [(時刻, 潮位)]
+    seg = []
+    for t, v in zip(m15["time"], m15["sea_level_height_msl"]):
+        if v is None:
+            continue
+        if seg and v != seg[0][1]:
+            runs.append(seg[len(seg) // 2])
+            seg = []
+        seg.append((t, v))
+    if seg:
+        runs.append(seg[len(seg) // 2])
+    ev = []
+    for i in range(1, len(runs) - 1):
+        a, b, c = runs[i - 1][1], runs[i][1], runs[i + 1][1]
+        if b > a and b > c:
+            ev.append([runs[i][0], "満潮", b])
+        elif b < a and b < c:
+            ev.append([runs[i][0], "干潮", b])
+    changed = True
+    while changed:                      # 差の小さい山と谷の組を取り除く
+        changed = False
+        for i in range(len(ev) - 1):
+            if abs(ev[i][2] - ev[i + 1][2]) < 0.05:
+                del ev[i:i + 2]
+                changed = True
+                break
+    return [(x[0], x[1]) for x in ev]
+
+
+def tide_text(m15, events, d, hrs):
+    """時間帯の潮: その間の満潮・干潮の時刻。なければ上げ潮・下げ潮。値がなければ None"""
+    inside = [f"{k} {int(x[11:13])}:{x[14:16]}" for x, k in events if x[:10] == d and int(x[11:13]) in hrs]
+    if inside:
+        return "・".join(inside)
+    vals = [v for x, v in zip(m15["time"], m15["sea_level_height_msl"])
+            if x[:10] == d and int(x[11:13]) in hrs and v is not None]
+    if len(vals) < 2:
+        return None
+    return "上げ潮" if vals[-1] > vals[0] else "下げ潮"
+
+
 def build_surf():
     spots = json.loads((ROOT / "data/surf.json").read_text(encoding="utf-8"))
     today = datetime.now(JST).date()
     waves = marine([(s["sea_lat"], s["sea_lon"]) for s in spots], hourly=",".join([
         "wave_height", "wave_period", "wave_direction", "swell_wave_height", "swell_wave_period",
         "sea_surface_temperature"]))
+    tides = marine([(s["sea_lat"], s["sea_lon"]) for s in spots], minutely_15="sea_level_height_msl")
     winds = forecast([(s["lat"], s["lon"], 0) for s in spots],
                      hourly="wind_speed_10m,wind_direction_10m,weather_code,temperature_2m")
-    for s, w, f in zip(spots, waves, winds):
+    for s, w, f, tide in zip(spots, waves, winds, tides):
         s["days"] = []
         if w is None or f is None:
             continue
+        m15 = tide["minutely_15"] if tide else None
+        events = tide_events(m15) if m15 else []
         s["grid"] = (w["latitude"], w["longitude"])
         for d in sorted({t[:10] for t in w["hourly"]["time"]}):
             slots = []
@@ -855,11 +1044,15 @@ def build_surf():
                 sea = hours_of(w["hourly"], "sea_surface_temperature", d, hrs)
                 slots.append({"slot": name, "height": h_, "period": p_, "swell": sum(swh) / len(swh),
                               "air": sum(air) / len(air) if air else None, "sea": sum(sea) / len(sea) if sea else None,
+                              "tide": tide_text(m15, events, d, hrs) if m15 else None,
                               "wave_dir": mean_dir(wdir), "wind": w_, "wind_dir": wdeg,
                               "kind": kind, "score": score,
                               "code": max(codes)})
             if len(slots) == 2:         # 朝・昼の両方がそろった日だけ表示する
-                s["days"].append({"date": d, "slots": slots, "hours": surf_hours(s, w["hourly"], f["hourly"], d, today)})
+                hours = surf_hours(s, w["hourly"], f["hourly"], d, today)
+                for x in hours:             # 時間ごとの潮: その時刻の前後1時間に満潮・干潮があればその時刻、なければ上げ・下げ
+                    x["tide"] = tide_text(m15, events, d, range(x["hour"], x["hour"] + 1)) if m15 else None
+                s["days"].append({"date": d, "slots": slots, "hours": hours})
     return align(spots, "サーフィン")
 
 
@@ -869,6 +1062,7 @@ def surf_table(s):
     every = [x for d in s["days"] for x in d["slots"] + d.get("hours", [])]
     has_air = all(x["air"] is not None for x in every)    # 値の欠けたスポットは列ごと出さない
     has_sea = all(x["sea"] is not None for x in every)
+    has_tide = all(x.get("tide") for x in every)
 
     def temps(x):
         return ((f"<td>{x['air']:.0f}℃</td>" if has_air else "")
@@ -882,25 +1076,25 @@ def surf_table(s):
             rows += (f"<tr>{date_cell}<td>{sl['slot']}</td><td class='{cls}'><b>{mark}</b></td>"
                      f"<td>{sl['height']:.1f}m</td>"
                      f"<td>{sl['swell']:.1f}m</td><td>{sl['period']:.1f}秒</td>"
-                     f"<td>{dir_name(sl['wave_dir'])}</td>"
-                     f"<td>{dir_name(sl['wind_dir'])} {sl['wind']:.1f}m/s <small>{sl['kind']}</small></td>"
+                     f"<td>{dir_name(sl['wave_dir'])}</td>" + (f"<td>{sl['tide']}</td>" if has_tide else "")
+                     + f"<td>{dir_name(sl['wind_dir'])} {sl['wind']:.1f}m/s <small>{sl['kind']}</small></td>"
                      f"<td>{wx(sl['code'])[0]}</td>{temps(sl)}</tr>")
         for x in d.get("hours", []):
             rows += (f"<tr class='hr' hidden><td class='dt'>{x['hour']}時</td><td colspan='2'></td>"
                      f"<td>{x['height']:.1f}m</td><td>{x['swell']:.1f}m</td><td>{x['period']:.1f}秒</td>"
-                     f"<td>{dir_name(x['wave_dir'])}</td>"
-                     f"<td>{dir_name(x['wind_dir'])} {x['wind']:.1f}m/s <small>{x['kind']}</small></td>"
+                     f"<td>{dir_name(x['wave_dir'])}</td>" + (f"<td>{x['tide']}</td>" if has_tide else "")
+                     + f"<td>{dir_name(x['wind_dir'])} {x['wind']:.1f}m/s <small>{x['kind']}</small></td>"
                      f"<td>{wx(x['code'])[0]}</td>{temps(x)}</tr>")
     return ("<div class='scroll'><table class='sub'>"
-            "<tr><th class='dt'>日付</th><th></th><th>判定</th><th>波の高さ</th><th>うねり</th><th>周期</th><th>波の向き</th>"
-            f"<th>風</th><th>天気</th>{'<th>気温</th>' if has_air else ''}{'<th>水温</th>' if has_sea else ''}</tr>{rows}</table></div>")
+            "<tr><th class='dt'>日付</th><th></th><th>判定</th><th>波の高さ</th><th>うねり</th><th>周期</th><th>波の向き</th>" + ("<th>潮</th>" if has_tide else "")
+            + f"<th>風</th><th>天気</th>{'<th>気温</th>' if has_air else ''}{'<th>水温</th>' if has_sea else ''}</tr>{rows}</table></div>")
 
 
 def surf_page(spots):
     cards = ""
     for s in spots:
-        cards += (f"<section class='card' id='{s['key']}'><h3>{e(s['name'])} <small>{e(s['pref'])} · "
-                  f"浜の向き {dir_name(s['facing'])}</small> {maplink(s['parking'], '駐車場の地図')} {onsenlink(s['lat'], s['lon'])}{foodlink(s['lat'], s['lon'], s['pref'][:s['pref'].index('県') + 1] if '県' in s['pref'] else s['pref'][:3], "surf")}{michilink(s['lat'], s['lon'])}{conbilink(s['lat'], s['lon'])}</h3>"
+        cards += (f"<section class='card' id='{s['key']}'><h3>{e(s['name'])}{alert_tags(s)} <small>{e(s['pref'])} · "
+                  f"浜の向き {dir_name(s['facing'])}</small> {maplink(s['parking'], '駐車場の地図')} {onsenlink(s['lat'], s['lon'])}{foodlink(s['lat'], s['lon'], s['pref'][:s['pref'].index('県') + 1] if '県' in s['pref'] else s['pref'][:3], "surf")}{michilink(s['lat'], s['lon'])}{conbilink(s['lat'], s['lon'])}</h3>{alert_box(s)}"
                   f"{surf_table(s)}"
                   f"<p class='muted'>波は沖合({s['grid'][0]:.2f}, {s['grid'][1]:.2f})の予報</p></section>")
     return f"""
@@ -913,6 +1107,8 @@ def surf_page(spots):
 <li>オフショア=陸から海へ吹く風(波の面が整いやすい)、オンショア=海から陸へ吹く風</li>
 <li>波の高さ=風波とうねりを合わせた高さ。うねり・周期=遠くから届く波(うねり)だけの高さと周期(周期が長いほど力のある波)</li>
 <li>気温は浜付近、水温は沖合の海面水温の予報</li>
+<li>潮: その時間帯にある満潮・干潮の時刻。なければ上げ潮・下げ潮(沖合の潮位の予報から求めた目安で、港の潮汐表とは数十分ずれることがあります)</li>
+<li>⚠️ 警報・注意報は、浜のある市町村に気象庁がいま出しているもの</li>
 <li>今日〜明後日の日付を押すと、6〜16時の時間ごとの予報が開きます(今日・明日は1時間ごと、明後日は3時間ごと。その時刻の値)</li></ul>
 <h2>このページについて</h2>
 <p>朝(6〜11時)と昼(12〜17時)の平均です。波の高さは沖合の予報で、浜では地形や向きにより小さくなることが多いです。</p></div>
@@ -990,7 +1186,7 @@ def index_page(mts, ski, spots):
                           f"<small class='muted'> {round(d['tmin'])}〜{round(d['tmax'])}℃ · "
                           f"風{d['wind']:.0f}m/s</small></td>")
         tag = tags(m)
-        mt_rows += expand_row(f"<b>{e(m['name'])}</b>{tag}<br><small class='muted'>"
+        mt_rows += expand_row(f"<b>{e(m['name'])}</b>{tag}{alert_tags(m)}<br><small class='muted'>"
                               f"{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>",
                               cells, mt_detail(m, with_map=False, compact=True), 4, f"mountains.html#{m['key']}")
     we_head = "".join(f"<th>{day_label(d)}</th>" for d in we)
@@ -1009,7 +1205,7 @@ def index_page(mts, ski, spots):
                         f" <small class='muted'>積雪</small>{d['depth']:.0f}cm</td>"
                         for d in s["days"] if d["date"] in we)
         until = sum(d["snow"] for d in s["days"] if d["date"] <= upto)
-        fav_rows += expand_row(f"<b>{e(n)}</b><br><small class='muted'>週末まで {until:.0f}cm</small>",
+        fav_rows += expand_row(f"<b>{e(n)}</b>{alert_tags(s)}<br><small class='muted'>週末まで {until:.0f}cm</small>",
                                cells, ski_detail(s, with_map=False, simple=True), 4, f"snow.html#{s['key']}")
     fav = (f"<div class='scroll'><table class='sub'><tr><th></th>"
            + "".join(f"<th>{day_label(d)}</th>" for d in we)
@@ -1028,7 +1224,7 @@ def index_page(mts, ski, spots):
                 mark, cls = RATE[sl["score"]]
                 cells += (f"<td class='{cls}' title='波{sl['height']:.1f}m うねり{sl['swell']:.1f}m 周期{sl['period']:.1f}秒 {sl['kind']}'>"
                           f"<b>{mark}</b><small class='muted'>{sl['height']:.1f}m</small></td>")
-        surf_rows += expand_row(f"<b>{e(s['name'])}</b>",
+        surf_rows += expand_row(f"<b>{e(s['name'])}</b>{alert_tags(s)}",
                                 cells, surf_table(s), 6, f"surf.html#{s['key']}")
     surf_list = (f"{surf_comment}<div class='scroll'><table class='sub mini'><tr><th></th>{heads}<th></th></tr>"
                  f"{surf_rows}</table></div>")
@@ -1088,6 +1284,8 @@ tr.detail td>*{position:sticky;left:8px;max-width:calc(100vw - 72px)}.sub .dt{bo
 .hbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 tr.hr td{font-size:12px;color:var(--sub);padding-top:3px;padding-bottom:3px}
 tbody[id],section[id]{scroll-margin-top:56px}   /* 上に固定したメニューに隠れないように */
+.alert{margin:6px 0;color:var(--r0);font-size:13px;font-weight:600}.alert small{font-weight:400;margin-left:4px}
+.tag.danger{background:var(--hyaku-bg);color:var(--r0);font-weight:600}
 .obs{margin:6px 0}.obs b{display:inline!important}  /* 表の中の b{display:block} に負けないように */
 .comment{background:var(--hl);border-radius:8px;padding:8px 12px;margin:0 0 8px;font-size:14px}
 .sub.mini td,.sub.mini th{text-align:center;padding:4px 6px}.sub.mini td b{display:block}
@@ -1174,6 +1372,10 @@ def layout(file, title, body, updated):
 def main():
     updated = datetime.now(JST)
     mts, ski, spots = build_mountains(), build_ski(), build_surf()
+    alerts, volcanoes = fetch_alerts(), fetch_volcanoes()
+    attach_alerts(mts, alerts, volcanoes, True)
+    attach_alerts(ski, alerts, volcanoes, True)
+    attach_alerts(spots, alerts, volcanoes, False)
     for prefix, items in (("m", mts), ("s", ski), ("w", spots)):   # 行の id(トップページの「詳細」のリンク先)
         for i, x in enumerate(items):
             x["key"] = f"{prefix}{i}"
