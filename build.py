@@ -201,11 +201,11 @@ def thunder_prob(mts):
     return out
 
 
-# 日ごとに使う予報モデル: (モデル, 取得日数, 使う日(今日=0), 表示名)。上から順に、6〜15時の値がそろったものを使う。
+# 日ごとに使う予報モデル: (モデル, 取得日数, 使う日(今日=0))。上から順に、6〜15時の値がそろったものを使う。
 # てんきとくらすとの比較(2026-10-29)で近かった組み合わせ。どれも使えない日は Open-Meteo のおまかせ(best_match)
-MT_MODELS = [("jma_msm", 3, range(0, 3), "気象庁MSM"),
-             ("ukmo_global_deterministic_10km", 6, range(3, 6), "英国UKMO"),
-             ("jma_gsm", 11, range(6, 11), "気象庁GSM")]
+MT_MODELS = [("jma_msm", 3, range(0, 3)),
+             ("ukmo_global_deterministic_10km", 6, range(3, 6)),
+             ("jma_gsm", 11, range(6, 11))]
 
 
 def mt_day(h, d, elev, strict):
@@ -229,8 +229,8 @@ def build_mountains():
     points = [(m["lat"], m["lon"], m["elev"]) for m in mts]
     hourly = ",".join(["temperature_2m", "precipitation", "weather_code"]
                       + [f"wind_speed_{p}hPa" for p, _ in LEVELS])
-    res = forecast(points, hourly=hourly)
-    extra = [forecast(points, hourly=hourly, models=model, forecast_days=n) for model, n, _, _ in MT_MODELS]
+    res = forecast(points, hourly=hourly, daily="sunrise,sunset")
+    extra = [forecast(points, hourly=hourly, models=model, forecast_days=n) for model, n, _ in MT_MODELS]
     probs = thunder_prob(mts)
     today = datetime.now(JST).date()
     for i, (m, r) in enumerate(zip(mts, res)):
@@ -238,18 +238,21 @@ def build_mountains():
         if r is None:
             continue
         prob = probs.get(grid(m), {})
+        dl = r.get("daily", {})
+        if str(today) in dl.get("time", []):    # 本日の日の出・日の入り(山頂ではなく平地の地平線での時刻)
+            k = dl["time"].index(str(today))
+            if dl["sunrise"][k] and dl["sunset"][k]:
+                m["sun"] = (dl["sunrise"][k][11:16], dl["sunset"][k][11:16])
         for d in sorted({t[:10] for t in r["hourly"]["time"]}):
             lead = (date.fromisoformat(d) - today).days
             day = None
-            for (_, _, use, label), ex in zip(MT_MODELS, extra):
+            for (_, _, use), ex in zip(MT_MODELS, extra):
                 if lead in use and ex[i] is not None and (day := mt_day(ex[i]["hourly"], d, m["elev"], True)):
-                    day["model"] = label
                     break
             if not day:
                 day = mt_day(r["hourly"], d, m["elev"], False)
                 if not day:
                     continue            # 値のない日は表示しない
-                day["model"] = "おまかせ"
             rain, wind = day["rain"], day["wind"]
             thunder = prob.get(d)       # 雷の確率(%)。取得できなかった日は None
             if rain >= 10 or wind >= 17 or (thunder or 0) >= 50:
@@ -273,12 +276,14 @@ def mt_detail(m, with_map=True):
         f"<tr><td class='dt'>{day_label(d['date'])}</td><td>{wx(d['code'])[0]} {wx(d['code'])[1]}</td>"
         f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td><td>{d['wind_avg']:.0f}m/s</td><td>{d['wind']:.0f}m/s</td>"
         f"<td>{d['rain']:.1f}mm</td>" + (f"<td>{d['thunder']}%</td>" if has_t else "")
-        + f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b></td><td><small>{d['model']}</small></td></tr>"
+        + f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b></td></tr>"
         for d in m["days"])
     link = maplink(trailhead(m), '登山口の地図: ' + trailhead(m)) if with_map else ""
-    return (f"{link}<div class='scroll'><table class='sub'>"
+    sun = (f"<p class='muted'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</p>"
+           if m.get("sun") else "")
+    return (f"{link}{sun}<div class='scroll'><table class='sub'>"
             "<tr><th class='dt'>日付</th><th>天気(6〜15時)</th><th>山頂付近の気温</th><th>平均風速</th><th>最大風速</th>"
-            f"<th>降水量</th>{'<th>雷の確率</th>' if has_t else ''}<th>判定</th><th>予報</th></tr>{rows}</table></div>")
+            f"<th>降水量</th>{'<th>雷の確率</th>' if has_t else ''}<th>判定</th></tr>{rows}</table></div>")
 
 
 def mountains_page(mts):
@@ -306,8 +311,6 @@ def mountains_page(mts):
         f"<button class='chip' data-r='{r}'>{r}</button>" for r in regions)
     return f"""
 <h1>日本百名山＋関西百名山 登山天気</h1>
-<p class='lead'>日本百名山と<span class='tag'>関西百名山</span>(山と溪谷社『関西百名山』)の予報です。両方に入る伊吹山・大台ヶ原山・大峰山は1つにまとめています。
-山頂の標高での予報(6〜15時)から、登山に向いた天気かを判定しています。表は7日間で、山名を押すと最大16日間の詳細が開きます。</p>
 <div class='filters'><input id='q' type='search' placeholder='山名で絞り込み(例: 槍、ふじ)' aria-label='山名で絞り込み'>
 <div class='chips'>{chips}</div></div>
 <div class='scroll'><table class='grid' id='mt'><thead><tr><th class='nm'>山名</th>{head}</tr></thead>{rows}</table></div>
@@ -318,7 +321,11 @@ def mountains_page(mts):
 <li><b class='r0'>×</b> それ以上、または雷の確率50%以上</li></ul>
 <p>雷の確率: 米国の予報モデル(GFS)を条件を少しずつ変えて31通り計算したうち、6〜15時に「大気が不安定で雨が降る」時間がある割合です。20%以上で判定は最高でも△、50%以上で×。山では早めの下山を。</p>
 <p>風速は山頂の高さに最も近い上空(約760m・1,000m・1,500m・1,950m・3,000mのいずれか)の予報です。稜線の実際の風とは異なることがあり、突風はさらに強くなります。</p>
-<p>予報モデル: 今日〜2日後は気象庁MSM、3〜5日後は英国気象局UKMO、6〜10日後は気象庁GSM、それ以降は Open-Meteo のおまかせ(各国のモデルの組み合わせ)を使っています。詳細の「予報」の列に、その日に使ったモデルを表示しています。</p></div>
+<p>予報モデル: 今日〜2日後は気象庁MSM、3〜5日後は英国気象局UKMO、6〜10日後は気象庁GSM、それ以降は Open-Meteo のおまかせ(各国のモデルの組み合わせ)を使っています。</p>
+<h2>このページについて</h2>
+<p>日本百名山と<span class='tag'>関西百名山</span>(山と溪谷社『関西百名山』)の予報です。両方に入る伊吹山・大台ヶ原山・大峰山は1つにまとめています。
+山頂の標高での予報(6〜15時)から、登山に向いた天気かを判定しています。表は7日間で、山名を押すと最大16日間の詳細が開きます。
+日の出・日の入りは本日の時刻で、平地の地平線を基準にしています(山頂ではもう少し早く昇り、遅く沈みます)。</p></div>
 """
 
 
@@ -511,7 +518,6 @@ def ski_page(ski):
 <div class='scroll'><table class='grid'><thead><tr><th class='nm'>スキー場</th>{head}</tr></thead>{rows}</table></div>"""
     return f"""
 <h1>スノーボード 雪と天気</h1>
-<p class='lead'>標高差の大きいスキー場100か所に、志賀高原 焼額山・キューピットバレイ・だいせんホワイトリゾートを加えた一覧です。表の数字はゲレンデ上部の新雪(前日17時〜当日8時、閉場から開場までに積もる雪)の予報(cm)です。表は7日間で、スキー場名を押すと最大16日間の積雪・気温・0℃の高さ・風の詳細が開きます。</p>
 {cards}
 <div class='note'><ul>
 <li>新雪: 前日17時〜当日8時(ゲレンデが閉まってから開くまで)に降る雪の量の予報</li>
@@ -520,7 +526,9 @@ def ski_page(ski):
 <li><span class='tag'>パウダー期待</span> 上部の新雪が10cm以上で、上部の最高気温が-2℃以下</li>
 <li><span class='tag warn'>雨</span> 雨の予報(雪質が重くなりやすい)</li>
 <li>上部・下部の標高: OpenStreetMap のリフトの位置と地形の標高から求めた値(一部は手作業で補正)。概算です</li>
-<li>スキー場の一覧・標高差: Wikipedia、Wikidata。リフトの位置: © OpenStreetMap contributors</li></ul></div>
+<li>スキー場の一覧・標高差: Wikipedia、Wikidata。リフトの位置: © OpenStreetMap contributors</li></ul>
+<h2>このページについて</h2>
+<p>標高差の大きいスキー場100か所に、志賀高原 焼額山・キューピットバレイ・だいせんホワイトリゾートを加えた一覧です。表の数字はゲレンデ上部の新雪(前日17時〜当日8時、閉場から開場までに積もる雪)の予報(cm)です。表は7日間で、スキー場名を押すと最大16日間の積雪・気温・0℃の高さ・風の詳細が開きます。</p></div>
 """
 
 
@@ -602,13 +610,14 @@ def surf_page(spots):
                   f"<p class='muted'>波は沖合({s['grid'][0]:.2f}, {s['grid'][1]:.2f})の予報</p></section>")
     return f"""
 <h1>サーフィン 波と風</h1>
-<p class='lead'>朝(6〜11時)と昼(12〜17時)の平均です。波の高さは沖合の予報で、浜では地形や向きにより小さくなることが多いです。</p>
 {cards}
 <div class='note'><h2>判定の基準</h2><ul>
 <li><b class='r3'>◎</b> 波0.6〜2.0mで周期7秒以上(オフショアの弱い風なら一段上げる)</li>
 <li><b class='r1'>△</b> 周期5秒未満の風波、5m/s以上のオンショア、2mを超える大きな波(上級者向け)で一段下げる</li>
 <li><b class='r0'>×</b> 0.3m未満(フラット)、または3mを超える荒れた海</li>
-<li>オフショア=陸から海へ吹く風(波の面が整いやすい)、オンショア=海から陸へ吹く風</li></ul></div>
+<li>オフショア=陸から海へ吹く風(波の面が整いやすい)、オンショア=海から陸へ吹く風</li></ul>
+<h2>このページについて</h2>
+<p>朝(6〜11時)と昼(12〜17時)の平均です。波の高さは沖合の予報で、浜では地形や向きにより小さくなることが多いです。</p></div>
 """
 
 
@@ -725,7 +734,6 @@ def index_page(mts, ski, spots):
                  f"{surf_rows}</table></div>")
     return f"""
 <h1>今週末の山と雪と波</h1>
-<p class='lead'>{label} の予報から、よさそうな場所をまとめました。</p>
 <section class='card big'><h2><a href='mountains.html'>⛰️ 登山</a></h2>
 <p class='muted'>週末の両日が○以上の山(上位15座、判定が良く風の弱い順)。気温・風は山頂付近の6〜15時。山名を押すと7日間の予報が開きます</p>{mt_list}
 <p><a href='mountains.html'>日本百名山＋関西百名山をすべて見る →</a></p></section>
@@ -735,6 +743,7 @@ def index_page(mts, ski, spots):
 <section class='card'><h2><a href='surf.html'>🏄 サーフィン</a></h2>{surf_list}
 <p><a href='surf.html'>波の詳細 →</a></p></section>
 </div>
+<div class='note'><p>{label} の予報から、よさそうな場所をまとめました。</p></div>
 """
 
 
@@ -754,7 +763,7 @@ nav a.on{color:var(--text);border-color:var(--accent);font-weight:600}
 main{max-width:1000px;margin:0 auto;padding:20px 16px 48px}
 h1{font-size:22px;margin:4px 0 6px}h2{font-size:17px;margin:24px 0 8px}h3{font-size:16px;margin:0 0 8px}
 h3 small,li small{color:var(--muted);font-weight:400}
-.lead{color:var(--sub);margin:0 0 16px}.muted{color:var(--muted);font-size:13px}
+.muted{color:var(--muted);font-size:13px}
 a{color:var(--accent)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:12px 0}
 .cards2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
