@@ -174,6 +174,11 @@ def star(kind, x):
             f"aria-label='{e(x['name'])}をお気に入りに登録'>☆</button>")
 
 
+def intro(x):
+    """詳細の一番上に出す一言紹介(data の intro。書いてある場所だけ)"""
+    return f"<p class='intro'>{e(x['intro'])}</p>" if x.get("intro") else ""
+
+
 def alert_tags(x):
     """一覧の名前の横に付ける印(火山・警報・注意報)"""
     out = ""
@@ -655,7 +660,7 @@ def mt_detail(m, with_map=True, compact=False):
             + conbilink(near["lat"], near["lon"])) if with_map else ""
     sun = (f"<p class='muted'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</p>"
            if m.get("sun") else "")
-    return (f"{link}{alert_box(m)}{sun}<div class='scroll'><table class='sub'>"
+    return (f"{intro(m)}{link}{alert_box(m)}{sun}<div class='scroll'><table class='sub'>"
             "<tr><th class='dt'>日付</th><th>判定</th><th>天気(6〜15時)</th>"
             + ("<th>展望</th>" if has_v else "") + "<th>山頂付近の気温</th>"
             + ("" if compact else "<th>体感温度</th>") + "<th>平均風速</th>"
@@ -902,7 +907,7 @@ def ski_detail(s, with_map=True, simple=False):
                      f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td>"
                      f"<td>{d['gust']:.0f}m/s" + (" <span class='tag warn'>運休注意</span>" if d["gust"] >= 20 else "")
                      + "</td>" + (f"<td>{road(d['road'])}</td>" if has_road else "") + "</tr>")
-        return (alert_box(s) + "<div class='scroll'><table class='sub'><tr><th class='dt'>日付</th><th>天気</th><th>新雪</th>"
+        return (intro(s) + alert_box(s) + "<div class='scroll'><table class='sub'><tr><th class='dt'>日付</th><th>天気</th><th>新雪</th>"
                 "<th>積雪</th><th>気温</th><th>最大瞬間風速</th>" + ("<th>朝の路面</th>" if has_road else "") + "</tr>"
                 f"{rows}</table></div>")
     def gust(g):                # 突風が強い日はゴンドラ・リフトが止まりやすい
@@ -947,7 +952,7 @@ def ski_detail(s, with_map=True, simple=False):
         obs = (f"<p class='obs'>ベースの積雪(観測): <b>{am['snow']}cm</b>{fresh}"
                f"<small class='muted'> · {e(am['name'])}(標高{am['alt']:,}m・{am['km']:.0f}km) "
                f"{am['time'].month}/{am['time'].day} {am['time'].hour}時 気象庁アメダス</small></p>")
-    return (f"{link}{alert_box(s)}{obs}"
+    return (f"{intro(s)}{link}{alert_box(s)}{obs}"
             f"<p class='muted'>上部 {s['top']:,}m / 下部 {s['base']:,}m</p>{ski_hours_line(s)}<div class='scroll'><table class='sub'>"
             "<tr><th rowspan='2' class='dt'>日付</th><th colspan='2'>天気</th><th colspan='2'>新雪</th><th rowspan='2'>積雪<br>(上部)</th>"
             "<th rowspan='2'>気温<br>(上部)</th><th rowspan='2'>体感温度<br>(上部)</th><th rowspan='2'>0℃の高さ<br>(8〜16時)</th><th rowspan='2'>平均風速<br>(上部)</th>"
@@ -1387,6 +1392,7 @@ tbody[id],section[id]{scroll-margin-top:56px}   /* 上に固定したメニュ�
 .star:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 h3 .star{float:none;margin-right:4px}
 .favbox h3{font-size:14px;margin:4px 0}
+.intro{margin:0 0 8px;font-size:14px;color:var(--text)}
 .obs{margin:6px 0}.obs b{display:inline!important}  /* 表の中の b{display:block} に負けないように */
 .comment{background:var(--hl);border-radius:8px;padding:8px 12px;margin:0 0 8px;font-size:14px}
 .sub.mini td,.sub.mini th{text-align:center;padding:4px 6px}.sub.mini td b{display:block}
