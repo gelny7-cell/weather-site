@@ -1270,7 +1270,7 @@ def index_page(mts, ski, spots):
                           cells, mt_detail(m, with_map=False, compact=True), 4, f"mountains.html#{m['key']}", attrs)
     mt_rows = "".join(mt_row(m) for m in good[:10])
     we_head = "".join(f"<th>{day_label(d)}</th>" for d in we)
-    mt_list = (f"<div class='scroll'><table class='sub'><tr><th>山</th>{we_head}<th></th></tr>"
+    mt_list = (f"<div class='scroll'><table class='sub'><tr><th>週末天気が良さそうな山</th>{we_head}<th></th></tr>"
                f"{mt_rows}</table></div>" if mt_rows else "<p>週末に条件の良い山は見当たりません</p>")
     # お気に入り(☆で登録)の山: 全部の山を隠して入れておき、登録されたものだけ表示する(時間ごとの予報は省いて軽くする)
     fav_mt = "".join(mt_row({**m, "days": [{**d, "hours": []} for d in m["days"]]},
@@ -1315,13 +1315,14 @@ def index_page(mts, ski, spots):
 <h1>今週末の山と雪と波</h1>
 <section class='card big'><h2><a href='mountains.html'>⛰️ 登山</a></h2>
 {fav_mt_box}
-<p class='muted'>週末の両日が○以上の山(上位10座、判定が良く風の弱い順)。気温・風は山頂付近の6〜15時。山名を押すと7日間の予報が開きます</p>{mt_list}
+{mt_list}
 </section>
 <section class='card'><h2><a href='snow.html'>🏂 スノーボード</a></h2>{fav}
 </section>
 <section class='card'><h2><a href='surf.html'>🏄 サーフィン</a></h2>{surf_list}
 </section>
-<div class='note'><p>{label} の予報から、よさそうな場所をまとめました。</p></div>
+<div class='note'><p>{label} の予報から、よさそうな場所をまとめました。</p>
+<p>週末天気が良さそうな山: 週末の両日が○以上の山(上位10座、判定が良く風の弱い順)。気温・風は山頂付近の6〜15時。山名を押すと7日間の予報が開きます。</p></div>
 """
 
 
