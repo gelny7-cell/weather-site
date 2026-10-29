@@ -341,7 +341,13 @@ def mt_detail(m, with_map=True, compact=False):
                      f"<td>{wx(x['code'])[0]} {wx(x['code'])[1]}</td><td>{round(x['temp'])}℃</td>"
                      f"<td colspan='{1 if compact else 2}'>{x['wind']:.0f}m/s</td>"
                      f"<td>{x['rain']:.1f}mm</td>" + ("<td></td>" if has_t else "") + "</tr>")
-    link = routelinks(m) + maplink(trailhead(m), trailhead_label(m)) if with_map else ""
+    if m.get("trailhead") or not m.get("access"):
+        place = maplink(trailhead(m), trailhead_label(m))
+    else:                       # 登山口が未登録の山は YAMAP の駐車場(なければ登山口・駅)の位置を示す
+        a = m["access"]
+        label = a["name"] if a["name"] not in ("駐車場", "有料駐車場", "登山者駐車場") else f"{m['name']} {a['name']}"
+        place = maplink(f"{a['lat']},{a['lon']}", label)
+    link = routelinks(m) + place if with_map else ""
     sun = (f"<p class='muted'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</p>"
            if m.get("sun") else "")
     return (f"{link}{sun}<div class='scroll'><table class='sub'>"
@@ -473,44 +479,43 @@ def ski_hours(th, bh, d):
 def build_ski():
     """ゲレンデ上部(top)と下部(base)の標高で、それぞれ予報を取得する"""
     ski = json.loads((ROOT / "data/ski.json").read_text(encoding="utf-8"))
-    daily = ",".join(["weather_code", "temperature_2m_max", "temperature_2m_min",
-                      "snowfall_sum", "rain_sum", "wind_gusts_10m_max"])
-    keys = daily.split(",")
     # 前日の夜の降雪も数えるため、前日分(past_days=1)も取得する。前日そのものは表示しない
-    top = forecast([(s["lat"], s["lon"], s["top"]) for s in ski], daily=daily, past_days=1,
+    top = forecast([(s["lat"], s["lon"], s["top"]) for s in ski], past_days=1,
                    hourly="snow_depth,freezing_level_height,wind_speed_10m,snowfall,"
                           "weather_code,temperature_2m,wind_gusts_10m,rain")
-    base = forecast([(s["lat"], s["lon"], s["base"]) for s in ski], daily=daily, past_days=1,
+    base = forecast([(s["lat"], s["lon"], s["base"]) for s in ski], past_days=1,
                     hourly="snowfall,weather_code,rain")
     today = datetime.now(JST).date().isoformat()
+    open_hrs = range(8, 17)             # 営業時間(8〜16時)の値で1日分をまとめる
+    rain_hrs = range(9, 17)             # 雨は1時間ごとの値がその前の1時間の量なので、9〜16時の値で8〜16時の合計
     for s, t, b in zip(ski, top, base):
         s["days"] = []
         if t is None or b is None:
             continue
-        td, bd, h = t["daily"], b["daily"], t["hourly"]
-        bi = {d: i for i, d in enumerate(bd["time"])}
-        for i, d in enumerate(td["time"]):
+        h, bh = t["hourly"], b["hourly"]
+        for d in sorted({x[:10] for x in h["time"]}):
             if d < today:
                 continue
-            j = bi.get(d)
             night = overnight_snow(h, d)                # 上部の新雪(前日17時〜当日8時)
-            night_base = overnight_snow(b["hourly"], d)
+            night_base = overnight_snow(bh, d)
             depth = hours_of(h, "snow_depth", d, [9])
-            fl = hours_of(h, "freezing_level_height", d, range(6, 18))
-            ws = hours_of(h, "wind_speed_10m", d, range(8, 17))     # 営業時間帯(8〜16時)
-            if (j is None or night is None or night_base is None or not depth or not fl or not ws or any(td[k][i] is None for k in keys)
-                    or any(bd[k][j] is None for k in keys)):
+            v = {k: hours_of(h, k, d, open_hrs) for k in
+                 ("weather_code", "temperature_2m", "wind_speed_10m", "wind_gusts_10m", "freezing_level_height")}
+            code_b = hours_of(bh, "weather_code", d, open_hrs)
+            rain, rain_b = hours_of(h, "rain", d, rain_hrs), hours_of(bh, "rain", d, rain_hrs)
+            if (night is None or night_base is None or not depth or any(len(x) != 9 for x in v.values())
+                    or len(code_b) != 9 or len(rain) != 8 or len(rain_b) != 8):
                 continue                # 値のない日は表示しない
+            ws = v["wind_speed_10m"]
             s["days"].append({
                 "date": d,
-                "code": td["weather_code"][i], "code_base": bd["weather_code"][j],
-                "snow": night, "snow_base": night_base, "snow_day": td["snowfall_sum"][i],
+                "code": max(v["weather_code"]), "code_base": max(code_b),
+                "snow": night, "snow_base": night_base,
                 "depth": depth[0] * 100,
-                "tmin": td["temperature_2m_min"][i], "tmax": td["temperature_2m_max"][i],
-                "bmin": bd["temperature_2m_min"][j], "bmax": bd["temperature_2m_max"][j],
-                "rain": td["rain_sum"][i], "rain_base": bd["rain_sum"][j],
-                "fl": min(fl), "gust": td["wind_gusts_10m_max"][i], "wind_avg": sum(ws) / len(ws),
-                "hours": ski_hours(h, b["hourly"], d),
+                "tmin": min(v["temperature_2m"]), "tmax": max(v["temperature_2m"]),
+                "rain": sum(rain), "rain_base": sum(rain_b),
+                "fl": min(v["freezing_level_height"]), "gust": max(v["wind_gusts_10m"]), "wind_avg": sum(ws) / len(ws),
+                "hours": ski_hours(h, bh, d),
             })
     ski = align(ski, "スノーボード")
     attach_amedas(ski)
@@ -584,7 +589,7 @@ def ski_detail(s, with_map=True, simple=False):
     return (f"{link}{obs}"
             f"<p class='muted'>上部 {s['top']:,}m / 下部 {s['base']:,}m</p><div class='scroll'><table class='sub'>"
             "<tr><th rowspan='2' class='dt'>日付</th><th colspan='2'>天気</th><th colspan='2'>新雪</th><th rowspan='2'>積雪<br>(上部)</th>"
-            "<th rowspan='2'>気温<br>(上部)</th><th rowspan='2'>0℃の高さ<br>(日中)</th><th rowspan='2'>平均風速<br>(上部)</th>"
+            "<th rowspan='2'>気温<br>(上部)</th><th rowspan='2'>0℃の高さ<br>(8〜16時)</th><th rowspan='2'>平均風速<br>(上部)</th>"
             "<th rowspan='2'>最大瞬間風速<br>(上部)</th></tr>"
             "<tr><th>上部</th><th>下部</th><th>上部</th><th>下部</th></tr>"
             f"{rows}</table></div>")
@@ -629,6 +634,7 @@ def ski_page(ski):
 <li>積雪: 朝9時に積もっている雪の深さの予報(気象モデルの推定。実際の積雪と大きく違うことがあります)</li>
 <li>ゲレンデベースの積雪(観測): 15km以内に気象庁アメダスの観測点があり、ゲレンデ下部との標高差が300m以内のスキー場だけ表示しています(圧雪・人工降雪は含みません)</li>
 <li><span class='tag'>パウダー期待</span> 上部の新雪が10cm以上で、上部の最高気温が-2℃以下</li>
+<li>天気・雨・気温・0℃の高さ・平均風速・最大瞬間風速は、営業時間(8〜16時)の予報からまとめています(天気は最も悪いもの、0℃の高さは最も低いもの)</li>
 <li>日付を押すと9時・12時・15時の予報が開きます。雪・雨はその時刻までの3時間の合計、気温・積雪・0℃の高さ・風はその時刻の値です(風速の列は平均ではなくその時刻の風速、最大瞬間風速の列はその時刻の突風)</li>
 <li><span class='tag warn'>雨</span> 雨の予報(雪質が重くなりやすい)</li>
 <li>上部・下部の標高: OpenStreetMap のリフトの位置と地形の標高から求めた値(一部は手作業で補正)。概算です</li>
