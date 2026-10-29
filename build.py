@@ -132,7 +132,7 @@ def tags(m):
     """入っている一覧の印。日本百名山にも入る山は日本百名山だけにする"""
     lists = m.get("lists", [])
     shown = ["日本百名山"] if "百名山" in lists else lists
-    return "".join(f" <span class='tag'>{t}</span>" for t in shown)
+    return "".join(f" <span class='tag{' hyaku' if t == '日本百名山' else ''}'>{t}</span>" for t in shown)
 
 
 def trailhead(m):
@@ -493,8 +493,9 @@ def build_ski():
 SKI_REGIONS = {
     "北海道": ["北海道"],
     "東北": ["青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県"],
-    "関東": ["茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県"],
-    "甲信越": ["新潟県", "長野県", "山梨県"],
+    "関東": ["茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県", "山梨県"],
+    "新潟": ["新潟県"],
+    "長野": ["長野県"],
     "北陸": ["富山県", "石川県", "福井県"],
     "東海": ["岐阜県", "静岡県", "愛知県"],
     "近畿": ["三重県", "滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県"],
@@ -558,9 +559,12 @@ def ski_page(ski):
     favs = set(json.loads((ROOT / "data/favorites.json").read_text(encoding="utf-8")).get("ski", []))
     days = [d["date"] for d in ski[0]["days"][:TOP_DAYS]]   # 一覧は7日、詳細は全日数
     head = "".join(f"<th>{day_label(d)}</th>" for d in days)
+    used = []
     rows = ""
     for r in SKI_REGIONS:                       # 地方の順に並べる
         for s in [x for x in ski if PREF_SKI_REGION[x["pref"]] == r]:
+            if r not in used:
+                used.append(r)
             cells = ""
             for d in s["days"][:TOP_DAYS]:
                 icon, label = wx(d["code"])
@@ -569,7 +573,7 @@ def ski_page(ski):
                           f"<b class='{snow_cls}'>{d['snow']:.0f}</b><small>{icon}</small></td>")
             total7 = sum(d["snow"] for d in s["days"][:TOP_DAYS])
             rows += (
-                f"<tbody class='mt' data-region='{r}' data-prefs='{e(s['pref'])}' data-name='{e(s['name'] + s.get('yomi', ''))}'"
+                f"<tbody class='mt' data-region='{r}' data-name='{e(s['name'] + s.get('yomi', ''))}'"
                 + (" data-fav='1'" if s["name"] in favs else "") + ">"
                 f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
                 f"<span>{e(s['name'])}</span><small>{e(s['pref'])} · 7日間 {total7:.0f}cm</small>"
@@ -577,7 +581,7 @@ def ski_page(ski):
                 f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{ski_detail(s)}</td></tr></tbody>")
     chips = ("<button class='chip on' data-r=''>すべて</button>"
              + ("<button class='chip' data-r='fav'>★お気に入り</button>" if favs else "")
-             + "".join(f"<button class='chip' data-r='pref:{p}'>{p.rstrip('県')}</button>" for p in ("長野県", "新潟県")))
+             + "".join(f"<button class='chip' data-r='{r}'>{r}</button>" for r in used))
     cards = f"""
 <div class='filters'><input id='q' type='search' placeholder='スキー場名で絞り込み' aria-label='スキー場名で絞り込み'>
 <div class='chips'>{chips}</div></div>
@@ -839,12 +843,12 @@ def index_page(mts, ski, spots):
 <h1>今週末の山と雪と波</h1>
 <section class='card big'><h2><a href='mountains.html'>⛰️ 登山</a></h2>
 <p class='muted'>週末の両日が○以上の山(上位15座、判定が良く風の弱い順)。気温・風は山頂付近の6〜15時。山名を押すと7日間の予報が開きます</p>{mt_list}
-<p><a href='mountains.html'>日本百名山＋関西百名山をすべて見る →</a></p></section>
+</section>
 <div class='cards2'>
 <section class='card'><h2><a href='snow.html'>🏂 スノーボード</a></h2>{fav}
-<p><a href='snow.html'>スキー場の詳細 →</a></p></section>
+</section>
 <section class='card'><h2><a href='surf.html'>🏄 サーフィン</a></h2>{surf_list}
-<p><a href='surf.html'>波の詳細 →</a></p></section>
+</section>
 </div>
 <div class='note'><p>{label} の予報から、よさそうな場所をまとめました。</p></div>
 """
@@ -853,10 +857,10 @@ def index_page(mts, ski, spots):
 # ---------------------------------------------------------------- 共通レイアウト
 CSS = """
 :root{color-scheme:light;--bg:#f6f7f5;--card:#fff;--line:#e2e4df;--text:#14171a;--sub:#55595e;--muted:#868a8f;
---accent:#1f6fb2;--r3:#0b7a3b;--r2:#2a78d6;--r1:#b27300;--r0:#c4312f;--sat:#2a6fd6;--sun:#d03b3b;--hl:#e8f1fb}
+--accent:#1f6fb2;--r3:#0b7a3b;--r2:#2a78d6;--r1:#b27300;--r0:#c4312f;--sat:#2a6fd6;--sun:#d03b3b;--hl:#e8f1fb;--hyaku:#c4312f;--hyaku-bg:#fdecea}
 @media (prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#151617;--card:#1e2022;--line:#34373a;--text:#eef0f2;
 --sub:#b9bdc2;--muted:#8c9196;--accent:#6aaee8;--r3:#47c47c;--r2:#5fa3ef;--r1:#e0a43a;--r0:#ef6b69;--sat:#6aa6f0;
---sun:#f07a7a;--hl:#1f2a36}}
+--sun:#f07a7a;--hl:#1f2a36;--hyaku:#ff8a87;--hyaku-bg:#3a2222}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);
 font:15px/1.65 system-ui,-apple-system,"Hiragino Sans","Noto Sans JP","Yu Gothic UI",sans-serif}
 header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
@@ -909,6 +913,7 @@ small{font-size:12px}
 .r3{color:var(--r3)}.r2{color:var(--r2)}.r1{color:var(--r1)}.r0{color:var(--r0)}
 .big{font-weight:700;color:var(--r2)}.mid{font-weight:600}
 .tag{display:inline-block;font-size:11px;padding:0 6px;border-radius:99px;background:var(--hl);color:var(--accent)}
+.tag.hyaku{background:var(--hyaku-bg);color:var(--hyaku)}
 .tag.warn{color:var(--r1)}
 .filters{display:flex;flex-direction:column;gap:8px;margin:8px 0 12px}
 #q{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text);max-width:320px}
