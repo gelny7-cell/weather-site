@@ -341,11 +341,12 @@ def mt_detail(m, with_map=True, compact=False):
                      f"<td>{wx(x['code'])[0]} {wx(x['code'])[1]}</td><td>{round(x['temp'])}℃</td>"
                      f"<td colspan='{1 if compact else 2}'>{x['wind']:.0f}m/s</td>"
                      f"<td>{x['rain']:.1f}mm</td>" + ("<td></td>" if has_t else "") + "</tr>")
-    if m.get("trailhead") or not m.get("access"):
+    if not m.get("access"):
         place = maplink(trailhead(m), trailhead_label(m))
-    else:                       # 登山口が未登録の山は YAMAP の駐車場(なければ登山口・駅)の位置を示す
+    else:                       # YAMAP の駐車場(なければ登山口・駅)の位置を示す。文字は登録した登山口の名前を優先
         a = m["access"]
-        label = a["name"] if a["name"] not in ("駐車場", "有料駐車場", "登山者駐車場") else f"{m['name']} {a['name']}"
+        label = (trailhead_label(m) if m.get("trailhead") else
+                 a["name"] if a["name"] not in ("駐車場", "有料駐車場", "登山者駐車場") else f"{m['name']} {a['name']}")
         place = maplink(f"{a['lat']},{a['lon']}", label)
     link = routelinks(m) + place if with_map else ""
     sun = (f"<p class='muted'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</p>"
