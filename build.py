@@ -284,9 +284,27 @@ def maplink(query, label):
             f"title='{e(query)}'>📍 {e(label)}</a>")
 
 
+_holidays = None
+
+
+def holidays():
+    """祝日(振替休日を含む)の日付の集合。内閣府の祝日一覧を1回だけ読む。取れなければ空(祝日の色を付けない)"""
+    global _holidays
+    if _holidays is None:
+        _holidays = set()
+        try:
+            with urllib.request.urlopen("https://www8.cao.go.jp/chosei/shukujitsu/syukujitsu.csv", timeout=30) as r:
+                for line in r.read().decode("cp932").splitlines()[1:]:
+                    y, m, d = line.split(",")[0].split("/")
+                    _holidays.add(date(int(y), int(m), int(d)))
+        except Exception as ex:
+            print(f"祝日一覧の取得に失敗: {type(ex).__name__}")
+    return _holidays
+
+
 def day_label(d):
     dt = date.fromisoformat(d)
-    cls = "sat" if dt.weekday() == 5 else ("sun" if dt.weekday() == 6 else "")
+    cls = "sat" if dt.weekday() == 5 else ("sun" if dt.weekday() == 6 or dt in holidays() else "")
     return f"<span class='{cls}'>{dt.month}/{dt.day}<small>({WEEK[dt.weekday()]})</small></span>"
 
 
@@ -1066,7 +1084,7 @@ text-decoration-thickness:1px;text-underline-offset:3px}.xbtn:focus-visible{outl
 .sub .dt,.sub td.l,.grid .nm{position:sticky;left:0;z-index:1;background:var(--card)}
 tr.detail .sub .dt{background:var(--hl)}
 tr.detail td>*{position:sticky;left:8px;max-width:calc(100vw - 72px)}.sub .dt{box-shadow:1px 0 0 var(--line)}
-.hbtn{all:unset;cursor:pointer;color:var(--accent);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+.hbtn{all:unset;cursor:pointer;color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
 .hbtn[aria-expanded='false']::after{content:' ▼';font-size:10px}.hbtn[aria-expanded='true']::after{content:' ▲';font-size:10px}
 .hbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 tr.hr td{font-size:12px;color:var(--sub);padding-top:3px;padding-bottom:3px}
