@@ -796,9 +796,9 @@ def index_page(mts, ski, spots):
         tag = tags(m)
         mt_rows += expand_row(f"<b>{e(m['name'])}</b>{tag}<br><small class='muted'>"
                               f"{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>",
-                              cells + f"<td>{maplink(trailhead(m), '登山口')}</td>", mt_detail(m, with_map=False), 4)
+                              cells, mt_detail(m, with_map=False), 3)
     we_head = "".join(f"<th>{day_label(d)}</th>" for d in we)
-    mt_list = (f"<div class='scroll'><table class='sub'><tr><th>山</th>{we_head}<th>地図</th></tr>"
+    mt_list = (f"<div class='scroll'><table class='sub'><tr><th>山</th>{we_head}</tr>"
                f"{mt_rows}</table></div>" if mt_rows else "<p>週末に条件の良い山は見当たりません</p>")
     # スノー: よく行くスキー場(data/favorites.json)を常に表示する
     upto = we[-1]
@@ -813,10 +813,10 @@ def index_page(mts, ski, spots):
                         for d in s["days"] if d["date"] in we)
         until = sum(d["snow"] for d in s["days"] if d["date"] <= upto)
         fav_rows += expand_row(f"<b>{e(n)}</b><br><small class='muted'>週末まで {until:.0f}cm</small>",
-                               cells + f"<td>{maplink(n + ' 第1駐車場', '駐車場')}</td>", ski_detail(s, with_map=False, simple=True), 4)
+                               cells, ski_detail(s, with_map=False, simple=True), 3)
     fav = (f"<div class='scroll'><table class='sub'><tr><th></th>"
            + "".join(f"<th>{day_label(d)}</th>" for d in we)
-           + f"<th></th></tr>{fav_rows}</table></div>")
+           + f"</tr>{fav_rows}</table></div>")
     # サーフ: 予報コメント + 週末4枠(土朝・土昼・日朝・日昼)の判定表
     surf_comment = "".join(f"<p class='comment'><b>{c}</b> {e(t)}</p>"
                            for c, t in surf_comments(spots, we))
@@ -832,8 +832,8 @@ def index_page(mts, ski, spots):
                 cells += (f"<td class='{cls}' title='波{sl['height']:.1f}m うねり{sl['swell']:.1f}m 周期{sl['period']:.1f}秒 {sl['kind']}'>"
                           f"<b>{mark}</b><small class='muted'>{sl['height']:.1f}m</small></td>")
         surf_rows += expand_row(f"<b>{e(s['name'])}</b>",
-                                cells + f"<td>{maplink(s['parking'], '駐車場')}</td>", surf_table(s), 6)
-    surf_list = (f"{surf_comment}<div class='scroll'><table class='sub mini'><tr><th></th>{heads}<th></th></tr>"
+                                cells, surf_table(s), 5)
+    surf_list = (f"{surf_comment}<div class='scroll'><table class='sub mini'><tr><th></th>{heads}</tr>"
                  f"{surf_rows}</table></div>")
     return f"""
 <h1>今週末の山と雪と波</h1>
