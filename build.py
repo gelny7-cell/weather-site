@@ -250,6 +250,12 @@ def michilink(lat, lon):
     return f" <a class='mapbtn' href='{e(url)}' target='_blank' rel='noopener'>🚗 近くの道の駅</a>"
 
 
+def conbilink(lat, lon):
+    """その地点の周りのコンビニを Google マップで検索するボタン"""
+    url = f"https://www.google.com/maps/search/{urllib.parse.quote('コンビニ')}/@{lat},{lon},13z"
+    return f" <a class='mapbtn' href='{e(url)}' target='_blank' rel='noopener'>🏪 近くのコンビニ</a>"
+
+
 def onsenlink(lat, lon):
     """その地点の周りの日帰り温泉を Google マップで検索するボタン"""
     url = f"https://www.google.com/maps/search/{urllib.parse.quote('日帰り温泉')}/@{lat},{lon},12z"
@@ -439,7 +445,8 @@ def mt_detail(m, with_map=True, compact=False):
         place = maplink(f"{a['lat']},{a['lon']}", label)
     near = m.get("access") or m            # 温泉は駐車場・登山口の位置(分からなければ山頂)の周りで探す
     link = (routelinks(m) + place + " " + onsenlink(near["lat"], near["lon"])
-            + foodlink(near["lat"], near["lon"], m["prefs"][0]) + michilink(near["lat"], near["lon"])) if with_map else ""
+            + foodlink(near["lat"], near["lon"], m["prefs"][0]) + michilink(near["lat"], near["lon"])
+            + conbilink(near["lat"], near["lon"])) if with_map else ""
     sun = (f"<p class='muted'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</p>"
            if m.get("sun") else "")
     return (f"{link}{sun}<div class='scroll'><table class='sub'>"
@@ -672,7 +679,7 @@ def ski_detail(s, with_map=True, simple=False):
     if with_map:                # 公式ページ・ゲレンデマップ(分かるスキー場だけ)・駐車場の地図
         link = ((sitelink(s["site"], "🏠 公式ページ") + " " if s.get("site") else "")
                 + (sitelink(s["map"], "🗺️ ゲレンデマップ") + " " if s.get("map") else "")
-                + maplink(s['name'] + ' 第1駐車場', '駐車場の地図') + " " + onsenlink(s["lat"], s["lon"]) + foodlink(s["lat"], s["lon"], s["pref"]) + michilink(s["lat"], s["lon"]) + " ")
+                + maplink(s['name'] + ' 第1駐車場', '駐車場の地図') + " " + onsenlink(s["lat"], s["lon"]) + foodlink(s["lat"], s["lon"], s["pref"]) + michilink(s["lat"], s["lon"]) + conbilink(s["lat"], s["lon"]) + " ")
     am = s.get("amedas")
     obs = ""
     if am:
@@ -860,7 +867,7 @@ def surf_page(spots):
     cards = ""
     for s in spots:
         cards += (f"<section class='card' id='{s['key']}'><h3>{e(s['name'])} <small>{e(s['pref'])} · "
-                  f"浜の向き {dir_name(s['facing'])}</small> {maplink(s['parking'], '駐車場の地図')} {onsenlink(s['lat'], s['lon'])}{foodlink(s['lat'], s['lon'], s['pref'][:s['pref'].index('県') + 1] if '県' in s['pref'] else s['pref'][:3])}{michilink(s['lat'], s['lon'])}</h3>"
+                  f"浜の向き {dir_name(s['facing'])}</small> {maplink(s['parking'], '駐車場の地図')} {onsenlink(s['lat'], s['lon'])}{foodlink(s['lat'], s['lon'], s['pref'][:s['pref'].index('県') + 1] if '県' in s['pref'] else s['pref'][:3])}{michilink(s['lat'], s['lon'])}{conbilink(s['lat'], s['lon'])}</h3>"
                   f"{surf_table(s)}"
                   f"<p class='muted'>波は沖合({s['grid'][0]:.2f}, {s['grid'][1]:.2f})の予報</p></section>")
     return f"""
