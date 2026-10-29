@@ -621,7 +621,9 @@ def surf_hours(s, wh, fh, d, today):
             (fh, ("wind_speed_10m", "wind_direction_10m", "weather_code"))) for k in keys}
         if all(v.values()):
             v = {k: x[0] for k, x in v.items()}
+            air, sea = hours_of(fh, "temperature_2m", d, [hr]), hours_of(wh, "sea_surface_temperature", d, [hr])
             rows.append({"hour": hr, "height": v["wave_height"], "swell": v["swell_wave_height"],
+                         "air": air[0] if air else None, "sea": sea[0] if sea else None,
                          "period": v["swell_wave_period"], "wave_dir": v["wave_direction"],
                          "wind": v["wind_speed_10m"], "wind_dir": v["wind_direction_10m"],
                          "kind": wind_kind(v["wind_direction_10m"], s["facing"]), "code": v["weather_code"]})
@@ -632,9 +634,10 @@ def build_surf():
     spots = json.loads((ROOT / "data/surf.json").read_text(encoding="utf-8"))
     today = datetime.now(JST).date()
     waves = marine([(s["sea_lat"], s["sea_lon"]) for s in spots], hourly=",".join([
-        "wave_height", "wave_period", "wave_direction", "swell_wave_height", "swell_wave_period"]))
+        "wave_height", "wave_period", "wave_direction", "swell_wave_height", "swell_wave_period",
+        "sea_surface_temperature"]))
     winds = forecast([(s["lat"], s["lon"], 0) for s in spots],
-                     hourly="wind_speed_10m,wind_direction_10m,weather_code")
+                     hourly="wind_speed_10m,wind_direction_10m,weather_code,temperature_2m")
     for s, w, f in zip(spots, waves, winds):
         s["days"] = []
         if w is None or f is None:
@@ -671,7 +674,11 @@ def build_surf():
                     if h_ > 2.0:
                         score = min(score, 1)
                     score = max(score, 0)
+                # 気温・水温は判定に使わないので、値がなくても時間帯は残す(表で列ごと出さない)
+                air = hours_of(f["hourly"], "temperature_2m", d, hrs)
+                sea = hours_of(w["hourly"], "sea_surface_temperature", d, hrs)
                 slots.append({"slot": name, "height": h_, "period": p_, "swell": sum(swh) / len(swh),
+                              "air": sum(air) / len(air) if air else None, "sea": sum(sea) / len(sea) if sea else None,
                               "wave_dir": mean_dir(wdir), "wind": w_, "wind_dir": wdeg,
                               "kind": kind, "score": score,
                               "code": max(codes)})
@@ -683,6 +690,13 @@ def build_surf():
 def surf_table(s):
     """サーフポイントの朝・昼の表"""
     rows = ""
+    every = [x for d in s["days"] for x in d["slots"] + d.get("hours", [])]
+    has_air = all(x["air"] is not None for x in every)    # 値の欠けたスポットは列ごと出さない
+    has_sea = all(x["sea"] is not None for x in every)
+
+    def temps(x):
+        return ((f"<td>{x['air']:.0f}℃</td>" if has_air else "")
+                + (f"<td>{x['sea']:.0f}℃</td>" if has_sea else ""))
     for d in s["days"]:
         for i, sl in enumerate(d["slots"]):
             mark, cls = RATE[sl["score"]]
@@ -690,20 +704,20 @@ def surf_table(s):
                      if d.get("hours") else day_label(d["date"]))
             date_cell = (f"<td rowspan='{len(d['slots'])}' class='dt'>{label}</td>" if i == 0 else "")
             rows += (f"<tr>{date_cell}<td>{sl['slot']}</td><td class='{cls}'><b>{mark}</b></td>"
-                     f"<td>{sl['height']:.1f}m <small>{_size(sl['height'])}</small></td>"
+                     f"<td>{sl['height']:.1f}m</td>"
                      f"<td>{sl['swell']:.1f}m</td><td>{sl['period']:.1f}秒</td>"
                      f"<td>{dir_name(sl['wave_dir'])}</td>"
                      f"<td>{dir_name(sl['wind_dir'])} {sl['wind']:.1f}m/s <small>{sl['kind']}</small></td>"
-                     f"<td>{wx(sl['code'])[0]}</td></tr>")
+                     f"<td>{wx(sl['code'])[0]}</td>{temps(sl)}</tr>")
         for x in d.get("hours", []):
             rows += (f"<tr class='hr' hidden><td class='dt'>{x['hour']}時</td><td colspan='2'></td>"
                      f"<td>{x['height']:.1f}m</td><td>{x['swell']:.1f}m</td><td>{x['period']:.1f}秒</td>"
                      f"<td>{dir_name(x['wave_dir'])}</td>"
                      f"<td>{dir_name(x['wind_dir'])} {x['wind']:.1f}m/s <small>{x['kind']}</small></td>"
-                     f"<td>{wx(x['code'])[0]}</td></tr>")
+                     f"<td>{wx(x['code'])[0]}</td>{temps(x)}</tr>")
     return ("<div class='scroll'><table class='sub'>"
-            "<tr><th class='dt'>日付</th><th></th><th>判定</th><th>波の高さ</th><th>うねり</th><th>うねりの周期</th><th>波の向き</th>"
-            f"<th>風</th><th>天気</th></tr>{rows}</table></div>")
+            "<tr><th class='dt'>日付</th><th></th><th>判定</th><th>波の高さ</th><th>うねり</th><th>周期</th><th>波の向き</th>"
+            f"<th>風</th><th>天気</th>{'<th>気温</th>' if has_air else ''}{'<th>水温</th>' if has_sea else ''}</tr>{rows}</table></div>")
 
 
 def surf_page(spots):
@@ -721,7 +735,8 @@ def surf_page(spots):
 <li><b class='r1'>△</b> うねりの周期5秒未満、5m/s以上のオンショア、2mを超える大きな波(上級者向け)で一段下げる</li>
 <li><b class='r0'>×</b> 0.3m未満(フラット)、または3mを超える荒れた海</li>
 <li>オフショア=陸から海へ吹く風(波の面が整いやすい)、オンショア=海から陸へ吹く風</li>
-<li>波の高さ=風波とうねりを合わせた高さ。うねり=遠くから届く波だけの高さと周期(周期が長いほど力のある波)</li>
+<li>波の高さ=風波とうねりを合わせた高さ。うねり・周期=遠くから届く波(うねり)だけの高さと周期(周期が長いほど力のある波)</li>
+<li>気温は浜付近、水温は沖合の海面水温の予報</li>
 <li>今日〜明後日の日付を押すと、6〜16時の時間ごとの予報が開きます(今日・明日は1時間ごと、明後日は3時間ごと。その時刻の値)</li></ul>
 <h2>このページについて</h2>
 <p>朝(6〜11時)と昼(12〜17時)の平均です。波の高さは沖合の予報で、浜では地形や向きにより小さくなることが多いです。</p></div>
