@@ -450,6 +450,26 @@ def overnight_snow(h, day):
     return sum(vals) if len(vals) == 15 else None
 
 
+def ski_hours(th, bh, d):
+    """日付を押すと開く時間ごとの予報(9・12・15時)。気温・風・積雪・0℃の高さはその時刻の値、
+    雪と雨はその前の3時間の合計(1時間ごとの値はその前の1時間の量)。値の欠けた時刻は出さない"""
+    rows = []
+    for hr in (9, 12, 15):
+        win = range(hr - 2, hr + 1)
+        at = {k: hours_of(th, k, d, [hr]) for k in
+              ("weather_code", "temperature_2m", "wind_speed_10m", "wind_gusts_10m", "snow_depth", "freezing_level_height")}
+        code_b = hours_of(bh, "weather_code", d, [hr])
+        sums = {(src, k): hours_of(h, k, d, win) for src, h in (("t", th), ("b", bh)) for k in ("snowfall", "rain")}
+        if not all(at.values()) or not code_b or any(len(v) != 3 for v in sums.values()):
+            continue
+        rows.append({"hour": hr, "code": at["weather_code"][0], "code_base": code_b[0],
+                     "temp": at["temperature_2m"][0], "wind": at["wind_speed_10m"][0], "gust": at["wind_gusts_10m"][0],
+                     "depth": at["snow_depth"][0] * 100, "fl": at["freezing_level_height"][0],
+                     "snow": sum(sums[("t", "snowfall")]), "snow_base": sum(sums[("b", "snowfall")]),
+                     "rain": sum(sums[("t", "rain")]), "rain_base": sum(sums[("b", "rain")])})
+    return rows
+
+
 def build_ski():
     """ゲレンデ上部(top)と下部(base)の標高で、それぞれ予報を取得する"""
     ski = json.loads((ROOT / "data/ski.json").read_text(encoding="utf-8"))
@@ -458,9 +478,10 @@ def build_ski():
     keys = daily.split(",")
     # 前日の夜の降雪も数えるため、前日分(past_days=1)も取得する。前日そのものは表示しない
     top = forecast([(s["lat"], s["lon"], s["top"]) for s in ski], daily=daily, past_days=1,
-                   hourly="snow_depth,freezing_level_height,wind_speed_10m,snowfall")
+                   hourly="snow_depth,freezing_level_height,wind_speed_10m,snowfall,"
+                          "weather_code,temperature_2m,wind_gusts_10m,rain")
     base = forecast([(s["lat"], s["lon"], s["base"]) for s in ski], daily=daily, past_days=1,
-                    hourly="snowfall")
+                    hourly="snowfall,weather_code,rain")
     today = datetime.now(JST).date().isoformat()
     for s, t, b in zip(ski, top, base):
         s["days"] = []
@@ -489,6 +510,7 @@ def build_ski():
                 "bmin": bd["temperature_2m_min"][j], "bmax": bd["temperature_2m_max"][j],
                 "rain": td["rain_sum"][i], "rain_base": bd["rain_sum"][j],
                 "fl": min(fl), "gust": td["wind_gusts_10m_max"][i], "wind_avg": sum(ws) / len(ws),
+                "hours": ski_hours(h, b["hourly"], d),
             })
     ski = align(ski, "スノーボード")
     attach_amedas(ski)
@@ -533,12 +555,20 @@ def ski_detail(s, with_map=True, simple=False):
     rows = ""
     for d in s["days"]:
         powder = " <span class='tag'>パウダー期待</span>" if d["snow"] >= 10 and d["tmax"] <= -2 else ""
-        rows += (f"<tr><td class='dt'>{day_label(d['date'])}</td>"
+        label = (f"<button type='button' class='hbtn' aria-expanded='false'>{day_label(d['date'])}</button>"
+                 if d.get("hours") else day_label(d["date"]))
+        rows += (f"<tr><td class='dt'>{label}</td>"
                  f"<td>{weather(d['code'], d['rain'])}</td><td>{weather(d['code_base'], d['rain_base'])}</td>"
                  f"<td>{d['snow']:.0f}cm{powder}</td><td>{d['snow_base']:.0f}cm</td>"
                  f"<td>{d['depth']:.0f}cm</td>"
                  f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td>"
                  f"<td>{d['fl']:,.0f}m</td><td>{d['wind_avg']:.0f}m/s</td><td>{d['gust']:.0f}m/s</td></tr>")
+        for x in d.get("hours", []):    # 時間ごと(雪・雨は前の3時間の合計、ほかはその時刻の値)
+            rows += (f"<tr class='hr' hidden><td class='dt'>{x['hour']}時</td>"
+                     f"<td>{weather(x['code'], x['rain'])}</td><td>{weather(x['code_base'], x['rain_base'])}</td>"
+                     f"<td>{x['snow']:.0f}cm</td><td>{x['snow_base']:.0f}cm</td><td>{x['depth']:.0f}cm</td>"
+                     f"<td>{round(x['temp'])}℃</td><td>{x['fl']:,.0f}m</td>"
+                     f"<td>{x['wind']:.0f}m/s</td><td>{x['gust']:.0f}m/s</td></tr>")
     link = ""
     if with_map:                # 公式ページ・ゲレンデマップ(分かるスキー場だけ)・駐車場の地図
         link = ((sitelink(s["site"], "🏠 公式ページ") + " " if s.get("site") else "")
@@ -599,6 +629,7 @@ def ski_page(ski):
 <li>積雪: 朝9時に積もっている雪の深さの予報(気象モデルの推定。実際の積雪と大きく違うことがあります)</li>
 <li>ゲレンデベースの積雪(観測): 15km以内に気象庁アメダスの観測点があり、ゲレンデ下部との標高差が300m以内のスキー場だけ表示しています(圧雪・人工降雪は含みません)</li>
 <li><span class='tag'>パウダー期待</span> 上部の新雪が10cm以上で、上部の最高気温が-2℃以下</li>
+<li>日付を押すと9時・12時・15時の予報が開きます。雪・雨はその時刻までの3時間の合計、気温・積雪・0℃の高さ・風はその時刻の値です(風速の列は平均ではなくその時刻の風速、最大瞬間風速の列はその時刻の突風)</li>
 <li><span class='tag warn'>雨</span> 雨の予報(雪質が重くなりやすい)</li>
 <li>上部・下部の標高: OpenStreetMap のリフトの位置と地形の標高から求めた値(一部は手作業で補正)。概算です</li>
 <li>スキー場の一覧・標高差: Wikipedia、Wikidata。リフトの位置: © OpenStreetMap contributors</li>
