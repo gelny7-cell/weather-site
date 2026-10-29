@@ -153,6 +153,17 @@ def attach_alerts(items, alerts, volcanoes, near_volcano):
             x["volcano"] = close[0] if close else None
 
 
+def fid(kind, x):
+    """お気に入りの目印。場所の追加で並び順が変わっても崩れないよう名前で作る(同名の雲取山は県で区別)"""
+    return {"m": f"m:{x['name']}:{x['prefs'][0]}" if "prefs" in x else "", "s": f"s:{x['name']}", "w": f"w:{x['name']}"}[kind]
+
+
+def star(kind, x):
+    """お気に入りの☆ボタン(押すと★。登録は見ている人のブラウザに保存する)"""
+    return (f"<button type='button' class='star' data-fid='{e(fid(kind, x))}' aria-pressed='false' "
+            f"aria-label='{e(x['name'])}をお気に入りに登録'>☆</button>")
+
+
 def alert_tags(x):
     """一覧の名前の横に付ける印(火山・警報・注意報)"""
     out = ""
@@ -627,15 +638,15 @@ def mountains_page(mts):
                       f"雨{d['rain']:.0f}mm" + (f" 雷{d['thunder']}%" if d["thunder"] is not None else "") + "'>"
                       f"<b>{mark}</b><small>{icon}</small></td>")
         rows += (
-            f"<tbody class='mt' id='{m['key']}' data-region='{e(m['region'])}' data-name='{e(m['name'] + m['yomi'])}'"
+            f"<tbody class='mt' id='{m['key']}' data-fid='{e(fid('m', m))}' data-region='{e(m['region'])}' data-name='{e(m['name'] + m['yomi'])}'"
             + (f" data-prefs='{e(','.join(m['prefs']))}'" if m["region"] == "近畿" else "") + ">"
-            f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
+            f"<tr class='main'><th class='nm'>{star('m', m)}<button type='button' aria-expanded='false'>"
             f"<span>{e(m['name'])}</span>"
             + tags(m) + alert_tags(m)
             + f"<small>{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>"
             f"</button></th>{cells}</tr>"
             f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{mt_detail(m)}</td></tr></tbody>")
-    chips = ("<button class='chip on' data-r=''>すべて</button>"
+    chips = ("<button class='chip on' data-r=''>すべて</button><button class='chip' data-r='fav'>★お気に入り</button>"
              + "".join(f"<button class='chip' data-r='{r}'>{r}</button>" for r in regions)
              + "".join(f"<button class='chip' data-r='pref:{p}'>{p.rstrip('県府')}</button>" for p in kinki)
              + "".join(f"<button class='chip' data-r='{r}'>{r}</button>" for r in after))
@@ -814,13 +825,13 @@ def ski_detail(s, with_map=True, simple=False):
             rows += (f"<tr><td class='dt'>{day_label(d['date'])}</td><td>{icon} {label}{rain}</td>"
                      f"<td>{d['snow']:.0f}cm{powder}</td><td>{d['depth']:.0f}cm</td>"
                      f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td>"
-                     f"<td>{d['gust']:.0f}m/s" + (" <span class='tag warn'>運休注意</span>" if d["gust"] >= 15 else "")
+                     f"<td>{d['gust']:.0f}m/s" + (" <span class='tag warn'>運休注意</span>" if d["gust"] >= 20 else "")
                      + "</td></tr>")
         return (alert_box(s) + "<div class='scroll'><table class='sub'><tr><th class='dt'>日付</th><th>天気</th><th>新雪</th>"
                 "<th>積雪</th><th>気温</th><th>最大瞬間風速</th></tr>"
                 f"{rows}</table></div>")
     def gust(g):                # 突風が強い日はゴンドラ・リフトが止まりやすい
-        return f"{g:.0f}m/s" + (" <span class='tag warn'>運休注意</span>" if g >= 15 else "")
+        return f"{g:.0f}m/s" + (" <span class='tag warn'>運休注意</span>" if g >= 20 else "")
 
     def wind(direction, speed):
         return (f"{dir_name(direction)} " if direction is not None else "") + f"{speed:.0f}m/s"
@@ -868,7 +879,6 @@ def ski_detail(s, with_map=True, simple=False):
 
 
 def ski_page(ski):
-    favs = set(json.loads((ROOT / "data/favorites.json").read_text(encoding="utf-8")).get("ski", []))
     days = [d["date"] for d in ski[0]["days"][:TOP_DAYS]]   # 一覧は7日、詳細は全日数
     head = "".join(f"<th>{day_label(d)}</th>" for d in days)
     used = []
@@ -885,14 +895,13 @@ def ski_page(ski):
                           f"<b class='{snow_cls}'>{d['snow']:.0f}</b><small>{icon}</small></td>")
             total7 = sum(d["snow"] for d in s["days"][:TOP_DAYS])
             rows += (
-                f"<tbody class='mt' id='{s['key']}' data-region='{r}' data-name='{e(s['name'] + s.get('yomi', ''))}'"
-                + (" data-fav='1'" if s["name"] in favs else "") + ">"
-                f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
+                f"<tbody class='mt' id='{s['key']}' data-fid='{e(fid('s', s))}' data-region='{r}' data-name='{e(s['name'] + s.get('yomi', ''))}'>"
+                f"<tr class='main'><th class='nm'>{star('s', s)}<button type='button' aria-expanded='false'>"
                 f"<span>{e(s['name'])}</span>{alert_tags(s)}<small>{e(s['pref'])} · 7日間 {total7:.0f}cm</small>"
                 f"</button></th>{cells}</tr>"
                 f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{ski_detail(s)}</td></tr></tbody>")
     chips = ("<button class='chip on' data-r=''>すべて</button>"
-             + ("<button class='chip' data-r='fav'>★お気に入り</button>" if favs else "")
+             + "<button class='chip' data-r='fav'>★お気に入り</button>"
              + "".join(f"<button class='chip' data-r='{r}'>{r}</button>" for r in used))
     cards = f"""
 <div class='filters'><input id='q' type='search' placeholder='スキー場名で絞り込み' aria-label='スキー場名で絞り込み'>
@@ -907,7 +916,7 @@ def ski_page(ski):
 <li>ベースの積雪(観測): 15km以内に気象庁アメダスの観測点があり、ゲレンデ下部との標高差が300m以内のスキー場だけ表示しています(圧雪・人工降雪は含みません)</li>
 <li><span class='tag'>パウダー期待</span> 上部の新雪が10cm以上で、上部の最高気温が-2℃以下</li>
 <li>体感温度: 上部の気温と風速から求めた、8〜16時で最も低い値。平均風速には風向(風が吹いてくる方角)も表示しています</li>
-<li><span class='tag warn'>運休注意</span> 上部の最大瞬間風速が15m/s以上(ゴンドラ・リフトが止まりやすい強さ)</li>
+<li><span class='tag warn'>運休注意</span> 上部の最大瞬間風速が20m/s以上(ゴンドラ・リフトが止まりやすい強さ)</li>
 <li>⚠️ 警報・注意報は、スキー場のある市町村に気象庁がいま出しているもの。🌋 は10km以内の火山に噴火警報・予報が出ているとき</li>
 <li>天気・雨・気温・0℃の高さ・平均風速・最大瞬間風速は、営業時間(8〜16時)の予報からまとめています(天気は最も悪いもの、0℃の高さは最も低いもの)</li>
 <li>日付を押すと時間ごとの予報が開きます(今日は9〜16時の1時間ごと、ほかの日は9時・12時・15時)。雪・雨はその時刻までの1時間(3時間ごとの日は3時間)の合計、気温・積雪・0℃の高さ・風はその時刻の値です(風速の列は平均ではなくその時刻の風速、最大瞬間風速の列はその時刻の突風)</li>
@@ -1093,7 +1102,7 @@ def surf_table(s):
 def surf_page(spots):
     cards = ""
     for s in spots:
-        cards += (f"<section class='card' id='{s['key']}'><h3>{e(s['name'])}{alert_tags(s)} <small>{e(s['pref'])} · "
+        cards += (f"<section class='card' id='{s['key']}'><h3>{star('w', s)}{e(s['name'])}{alert_tags(s)} <small>{e(s['pref'])} · "
                   f"浜の向き {dir_name(s['facing'])}</small> {maplink(s['parking'], '駐車場の地図')} {onsenlink(s['lat'], s['lon'])}{foodlink(s['lat'], s['lon'], s['pref'][:s['pref'].index('県') + 1] if '県' in s['pref'] else s['pref'][:3], "surf")}{michilink(s['lat'], s['lon'])}{conbilink(s['lat'], s['lon'])}</h3>{alert_box(s)}"
                   f"{surf_table(s)}"
                   f"<p class='muted'>波は沖合({s['grid'][0]:.2f}, {s['grid'][1]:.2f})の予報</p></section>")
@@ -1158,10 +1167,10 @@ def surf_comments(spots, we):
     return out
 
 
-def expand_row(name_html, cells_html, detail_html, ncols, page=""):
+def expand_row(name_html, cells_html, detail_html, ncols, page="", attrs=""):
     """名前を押すと、下に日ごとの詳細が開く行(トップページ用)。page があれば右端に、そのページで予報を開くボタン"""
     more = f"<td><a class='mapbtn' href='{page}'>詳細</a></td>" if page else ""
-    return (f"<tbody><tr><td class='l'><button type='button' class='xbtn' aria-expanded='false'>"
+    return (f"<tbody{attrs}><tr><td class='l'><button type='button' class='xbtn' aria-expanded='false'>"
             f"{name_html}</button></td>{cells_html}{more}</tr>"
             f"<tr class='detail' hidden><td colspan='{ncols}'>{detail_html}</td></tr></tbody>")
 
@@ -1176,8 +1185,7 @@ def index_page(mts, ski, spots):
     best = sorted(mts, key=lambda m: (-sum(d["score"] for d in m["days"] if d["date"] in we),
                                       max(d["wind"] for d in m["days"] if d["date"] in we)))
     good = [m for m in best if all(d["score"] >= 2 for d in m["days"] if d["date"] in we)]
-    mt_rows = ""
-    for m in good[:15]:
+    def mt_row(m, attrs=""):
         cells = ""
         for d in m["days"]:
             if d["date"] in we:
@@ -1185,31 +1193,34 @@ def index_page(mts, ski, spots):
                 cells += (f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b> {icon}"
                           f"<small class='muted'> {round(d['tmin'])}〜{round(d['tmax'])}℃ · "
                           f"風{d['wind']:.0f}m/s</small></td>")
-        tag = tags(m)
-        mt_rows += expand_row(f"<b>{e(m['name'])}</b>{tag}{alert_tags(m)}<br><small class='muted'>"
-                              f"{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>",
-                              cells, mt_detail(m, with_map=False, compact=True), 4, f"mountains.html#{m['key']}")
+        return expand_row(f"<b>{e(m['name'])}</b>{tags(m)}{alert_tags(m)}<br><small class='muted'>"
+                          f"{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>",
+                          cells, mt_detail(m, with_map=False, compact=True), 4, f"mountains.html#{m['key']}", attrs)
+    mt_rows = "".join(mt_row(m) for m in good[:15])
     we_head = "".join(f"<th>{day_label(d)}</th>" for d in we)
     mt_list = (f"<div class='scroll'><table class='sub'><tr><th>山</th>{we_head}<th></th></tr>"
                f"{mt_rows}</table></div>" if mt_rows else "<p>週末に条件の良い山は見当たりません</p>")
+    # お気に入り(☆で登録)の山: 全部の山を隠して入れておき、登録されたものだけ表示する(時間ごとの予報は省いて軽くする)
+    fav_mt = "".join(mt_row({**m, "days": [{**d, "hours": []} for d in m["days"]]},
+                            f" class='favonly' data-fid='{e(fid('m', m))}' hidden") for m in mts)
+    fav_mt_box = (f"<div class='favbox' hidden><h3>★お気に入りの山</h3><div class='scroll'><table class='sub'>"
+                  f"<tr><th>山</th>{we_head}<th></th></tr>{fav_mt}</table></div></div>")
     # スノー: よく行くスキー場(data/favorites.json)を常に表示する
     upto = we[-1]
-    favs = json.loads((ROOT / "data/favorites.json").read_text(encoding="utf-8")).get("ski", [])
-    by_name = {s["name"]: s for s in ski}
     fav_rows = ""
-    for n in favs:
-        s = by_name.get(n)
-        if not s:
-            continue
+    for s in ski:
+        n = s["name"]
         cells = "".join(f"<td>{wx(d['code'])[0]} <small class='muted'>新雪</small>{d['snow']:.0f}cm"
                         f" <small class='muted'>積雪</small>{d['depth']:.0f}cm</td>"
                         for d in s["days"] if d["date"] in we)
         until = sum(d["snow"] for d in s["days"] if d["date"] <= upto)
         fav_rows += expand_row(f"<b>{e(n)}</b>{alert_tags(s)}<br><small class='muted'>週末まで {until:.0f}cm</small>",
-                               cells, ski_detail(s, with_map=False, simple=True), 4, f"snow.html#{s['key']}")
-    fav = (f"<div class='scroll'><table class='sub'><tr><th></th>"
+                               cells, ski_detail(s, with_map=False, simple=True), 4, f"snow.html#{s['key']}",
+                               f" class='favonly' data-fid='{e(fid('s', s))}' hidden")
+    fav = (f"<div class='favbox' hidden><div class='scroll'><table class='sub'><tr><th></th>"
            + "".join(f"<th>{day_label(d)}</th>" for d in we)
-           + f"<th></th></tr>{fav_rows}</table></div>")
+           + f"<th></th></tr>{fav_rows}</table></div></div>"
+           + "<p class='favhint muted'>スノーボードのページでスキー場の☆を押すと、ここに表示されます</p>")
     # サーフ: 予報コメント + 週末4枠(土朝・土昼・日朝・日昼)の判定表
     surf_comment = "".join(f"<p class='comment'><b>{c}</b> {e(t)}</p>"
                            for c, t in surf_comments(spots, we))
@@ -1231,6 +1242,7 @@ def index_page(mts, ski, spots):
     return f"""
 <h1>今週末の山と雪と波</h1>
 <section class='card big'><h2><a href='mountains.html'>⛰️ 登山</a></h2>
+{fav_mt_box}
 <p class='muted'>週末の両日が○以上の山(上位15座、判定が良く風の弱い順)。気温・風は山頂付近の6〜15時。山名を押すと7日間の予報が開きます</p>{mt_list}
 </section>
 <section class='card'><h2><a href='snow.html'>🏂 スノーボード</a></h2>{fav}
@@ -1286,6 +1298,10 @@ tr.hr td{font-size:12px;color:var(--sub);padding-top:3px;padding-bottom:3px}
 tbody[id],section[id]{scroll-margin-top:56px}   /* 上に固定したメニューに隠れないように */
 .alert{margin:6px 0;color:var(--r0);font-size:13px;font-weight:600}.alert small{font-weight:400;margin-left:4px}
 .tag.danger{background:var(--hyaku-bg);color:var(--r0);font-weight:600}
+.star{all:unset;cursor:pointer;float:right;font-size:18px;line-height:1;padding:2px 4px;color:var(--r1)}
+.star:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h3 .star{float:none;margin-right:4px}
+.favbox h3{font-size:14px;margin:4px 0}
 .obs{margin:6px 0}.obs b{display:inline!important}  /* 表の中の b{display:block} に負けないように */
 .comment{background:var(--hl);border-radius:8px;padding:8px 12px;margin:0 0 8px;font-size:14px}
 .sub.mini td,.sub.mini th{text-align:center;padding:4px 6px}.sub.mini td b{display:block}
@@ -1320,10 +1336,30 @@ footer{max-width:1000px;margin:0 auto;padding:16px;color:var(--muted);font-size:
 """
 
 JS = """
+// お気に入り: 見ている人のブラウザに保存する(保存できない環境でも表示は崩れない)
+const FKEY='weather-site-favs';
+let favs=null;
+try{favs=JSON.parse(localStorage.getItem(FKEY));}catch(e){}
+if(!Array.isArray(favs))favs=DEFAULT_FAVS.slice();
+const isFav=f=>favs.includes(f);
+let apply=()=>{};
+const paintFavs=()=>{
+  document.querySelectorAll('.star').forEach(b=>{const on=isFav(b.dataset.fid);b.textContent=on?'★':'☆';b.setAttribute('aria-pressed',String(on));});
+  document.querySelectorAll('tbody.mt[data-fid]').forEach(b=>{b.dataset.fav=isFav(b.dataset.fid)?'1':'';});
+  document.querySelectorAll('.favonly').forEach(b=>{b.hidden=!isFav(b.dataset.fid);});
+  document.querySelectorAll('.favbox').forEach(box=>{box.hidden=!box.querySelector('.favonly:not([hidden])');
+    const hint=box.nextElementSibling;if(hint&&hint.classList.contains('favhint'))hint.hidden=!box.hidden;});
+};
+document.querySelectorAll('.star').forEach(b=>b.addEventListener('click',ev=>{
+  ev.stopPropagation();const f=b.dataset.fid;
+  favs=isFav(f)?favs.filter(x=>x!==f):favs.concat([f]);
+  try{localStorage.setItem(FKEY,JSON.stringify(favs));}catch(e){}
+  paintFavs();apply();}));
+paintFavs();
 const q=document.getElementById('q');
 if(q){
   let region='';
-  const apply=()=>{const t=q.value.trim();
+  apply=()=>{const t=q.value.trim();
     document.querySelectorAll('tbody.mt').forEach(b=>{
       const inRegion=!region||b.dataset.region===region||(region==='fav'&&b.dataset.fav)
         ||(region.startsWith('pref:')&&(b.dataset.prefs||'').split(',').includes(region.slice(5)));
@@ -1337,14 +1373,14 @@ document.querySelectorAll('.hbtn').forEach(btn=>btn.addEventListener('click',()=
   const open=btn.getAttribute('aria-expanded')!=='true';
   for(let r=btn.closest('tr').nextElementSibling;r&&!r.querySelector('.hbtn');r=r.nextElementSibling)if(r.classList.contains('hr'))r.hidden=!open;
   btn.setAttribute('aria-expanded',String(open));}));
-document.querySelectorAll('.nm button, .xbtn').forEach(btn=>btn.addEventListener('click',()=>{
+document.querySelectorAll('.nm button:not(.star), .xbtn').forEach(btn=>btn.addEventListener('click',()=>{
   const d=btn.closest('tbody').querySelector('tr.detail');d.hidden=!d.hidden;
   btn.setAttribute('aria-expanded',String(!d.hidden));}));
 document.addEventListener('click',ev=>{        // 「飲食店」の一覧は、外を押したら閉じる
   document.querySelectorAll('details.menu[open]').forEach(m=>{if(!m.contains(ev.target))m.open=false;});});
 const target=location.hash&&document.getElementById(location.hash.slice(1));
 if(target){
-  const d=target.querySelector('tr.detail'),b=target.querySelector('.nm button');
+  const d=target.querySelector('tr.detail'),b=target.querySelector('.nm button:not(.star)');
   if(d){d.hidden=false;if(b)b.setAttribute('aria-expanded','true');}
   target.scrollIntoView({block:'start'});
 }
@@ -1352,6 +1388,12 @@ if(target){
 
 PAGES = [("index.html", "週末"), ("mountains.html", "登山"), ("snow.html", "スノーボード"),
          ("surf.html", "サーフィン")]
+
+
+def default_favs():
+    """☆をまだ押していない人に最初から入れておくお気に入り(data/favorites.json のスキー場)"""
+    favs = json.loads((ROOT / "data/favorites.json").read_text(encoding="utf-8"))
+    return [f"s:{n}" for n in favs.get("ski", [])]
 
 
 def layout(file, title, body, updated):
@@ -1366,7 +1408,7 @@ def layout(file, title, body, updated):
 <footer>予報は目安です。登山・海に出る前に、気象庁の警報・注意報と現地の情報を必ず確認してください。<br>
 気象データ: <a href="https://open-meteo.com/">Open-Meteo.com</a>(CC BY 4.0) · 積雪の観測: 気象庁(アメダス) · リフトの位置: © OpenStreetMap contributors ·
 山の一覧・座標: Wikipedia「日本百名山」、Wikidata、ヤマレコ「関西百名山」</footer>
-<script>{JS}</script></body></html>"""
+<script>const DEFAULT_FAVS={json.dumps(default_favs(), ensure_ascii=False)};{JS}</script></body></html>"""
 
 
 def main():
