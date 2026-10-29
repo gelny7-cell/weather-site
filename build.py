@@ -584,9 +584,9 @@ def surf_table(s):
             mark, cls = RATE[sl["score"]]
             date_cell = (f"<td rowspan='{len(d['slots'])}' class='dt'>{day_label(d['date'])}</td>" if i == 0 else "")
             rows += (f"<tr>{date_cell}<td>{sl['slot']}</td><td class='{cls}'><b>{mark}</b></td>"
-                     f"<td>{sl['height']:.1f}m <small>{_size(sl['height'])}</small></td><td>{sl['period']:.0f}秒</td>"
+                     f"<td>{sl['height']:.1f}m <small>{_size(sl['height'])}</small></td><td>{sl['period']:.1f}秒</td>"
                      f"<td>{dir_name(sl['wave_dir'])}</td>"
-                     f"<td>{dir_name(sl['wind_dir'])} {sl['wind']:.0f}m/s <small>{sl['kind']}</small></td>"
+                     f"<td>{dir_name(sl['wind_dir'])} {sl['wind']:.1f}m/s <small>{sl['kind']}</small></td>"
                      f"<td>{wx(sl['code'])[0]}</td></tr>")
     return ("<div class='scroll'><table class='sub'>"
             "<tr><th class='dt'>日付</th><th></th><th>判定</th><th>波の高さ</th><th>周期</th><th>波の向き</th>"
@@ -638,8 +638,8 @@ def surf_comments(spots, we):
                     "サーフィンには厳しそうです。")
         else:
             text = (f"{when}の{s['name']}が{RATE[sl['score']][0]}。{_size(sl['height'])}({sl['height']:.1f}m)の"
-                    f"{dir_name(sl['wave_dir'])}からの{_swell(sl['period'])}(周期{sl['period']:.0f}秒)に、"
-                    f"{dir_name(sl['wind_dir'])}の風{sl['wind']:.0f}m/s({sl['kind']})の予報です。")
+                    f"{dir_name(sl['wave_dir'])}からの{_swell(sl['period'])}(周期{sl['period']:.1f}秒)に、"
+                    f"{dir_name(sl['wind_dir'])}の風{sl['wind']:.1f}m/s({sl['kind']})の予報です。")
         # 土日の波の高さの変化
         if len(we) == 2:
             avg = [sum(x[2]["height"] for x in slots if x[1] == d) / max(1, sum(1 for x in slots if x[1] == d))
@@ -717,7 +717,7 @@ def index_page(mts, ski, spots):
                 continue
             for sl in d["slots"]:
                 mark, cls = RATE[sl["score"]]
-                cells += (f"<td class='{cls}' title='{sl['height']:.1f}m {sl['period']:.0f}秒 {sl['kind']}'>"
+                cells += (f"<td class='{cls}' title='{sl['height']:.1f}m {sl['period']:.1f}秒 {sl['kind']}'>"
                           f"<b>{mark}</b><small class='muted'>{sl['height']:.1f}m</small></td>")
         surf_rows += expand_row(f"<b>{e(s['name'])}</b>",
                                 cells + f"<td>{maplink(s['parking'], '駐車場')}</td>", surf_table(s), 6)
