@@ -141,11 +141,21 @@ def km_between(lat1, lon1, lat2, lon2):
     return 6371 * math.hypot(math.radians(lon2 - lon1) * math.cos(math.radians(lat1)), math.radians(lat2 - lat1))
 
 
-def attach_alerts(items, alerts, volcanoes, near_volcano):
-    """各場所に、その市町村の警報・注意報と、10km以内の火山の噴火警報を付ける"""
+# ページごとに関係のない警報・注意報(名前に含まれる言葉)。山で波浪注意報などを出さないため
+ALERT_SKIP = {
+    "mountain": ("波浪", "高潮", "氾濫", "乾燥", "霜"),
+    "ski": ("波浪", "高潮", "氾濫", "乾燥", "霜"),
+    "surf": ("大雪", "なだれ", "低温", "霜", "乾燥", "着氷", "着雪", "融雪", "土砂災害", "氾濫"),
+}
+
+
+def attach_alerts(items, alerts, volcanoes, near_volcano, page):
+    """各場所に、その市町村の警報・注意報(そのページに関係のあるもの)と、10km以内の火山の噴火警報を付ける"""
+    skip = ALERT_SKIP[page]
     for x in items:
         muni = x.get("muni")
-        found = {k for code, ks in alerts.items() if muni and code.startswith(muni) for k in ks}
+        found = {k for code, ks in alerts.items() if muni and code.startswith(muni) for k in ks
+                 if not any(w in k[0] for w in skip)}
         x["alerts"] = sorted(found, key=lambda k: (-k[1], k[0]))
         x["volcano"] = None
         if near_volcano:
@@ -695,7 +705,7 @@ def mountains_page(mts):
 <p>展望: 6〜12時の雲の量の平均で、◎20%未満・○50%未満・△80%未満・×それ以上(霧の時間があれば×)。眺めの目安です。</p>
 <p><span class='tag warn'>凍結注意</span> 山頂付近の最低気温(6〜15時)が0℃以下で前日昼〜当日に雨・雪が0.5mm以上の日、または最低気温が-3℃以下の日。登山道が凍りやすいので、チェーンスパイクやアイゼンの目安に。</p>
 <p>体感温度: 山頂付近の気温と風速から求めた、6〜15時で最も低い値です(風が強いほど低くなります)。</p>
-<p>⚠️ 警報・注意報は、駐車場・登山口(分からない山は山頂)のある市町村に気象庁がいま出しているものです。🌋 は、山頂から10km以内の火山に噴火警戒レベル2以上などの噴火警報・予報が出ているときに付けています。</p>
+<p>⚠️ 警報・注意報は、駐車場・登山口(分からない山は山頂)のある市町村に気象庁がいま出しているもののうち、登山に関係するものです(波浪・高潮・氾濫・乾燥・霜は除く)。🌋 は、山頂から10km以内の火山に噴火警戒レベル2以上などの噴火警報・予報が出ているときに付けています。</p>
 <p>風速は山頂の高さに最も近い上空(約760m・1,000m・1,500m・1,950m・3,000mのいずれか)の予報です。稜線の実際の風とは異なることがあり、突風はさらに強くなります。</p>
 <p>予報モデル: 今日〜2日後は気象庁MSM、3〜5日後は英国気象局UKMO、6〜10日後は気象庁GSM、それ以降は Open-Meteo のおまかせ(各国のモデルの組み合わせ)を使っています。</p>
 <h2>このページについて</h2>
@@ -1496,9 +1506,9 @@ def main():
     updated = datetime.now(JST)
     mts, ski, spots = build_mountains(), build_ski(), build_surf()
     alerts, volcanoes = fetch_alerts(), fetch_volcanoes()
-    attach_alerts(mts, alerts, volcanoes, True)
-    attach_alerts(ski, alerts, volcanoes, True)
-    attach_alerts(spots, alerts, volcanoes, False)
+    attach_alerts(mts, alerts, volcanoes, True, "mountain")
+    attach_alerts(ski, alerts, volcanoes, True, "ski")
+    attach_alerts(spots, alerts, volcanoes, False, "surf")
     for prefix, items in (("m", mts), ("s", ski), ("w", spots)):   # 行の id(トップページの「詳細」のリンク先)
         for i, x in enumerate(items):
             x["key"] = f"{prefix}{i}"
