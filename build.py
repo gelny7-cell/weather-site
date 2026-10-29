@@ -515,7 +515,11 @@ def ski_detail(s, with_map=True, simple=False):
                  f"<td>{d['depth']:.0f}cm</td>"
                  f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td>"
                  f"<td>{d['fl']:,.0f}m</td><td>{d['wind_avg']:.0f}m/s</td><td>{d['gust']:.0f}m/s</td></tr>")
-    link = maplink(s['name'] + ' 第1駐車場', '駐車場の地図') + ' ' if with_map else ""
+    link = ""
+    if with_map:                # 公式ページ・ゲレンデマップ(分かるスキー場だけ)・駐車場の地図
+        link = ((sitelink(s["site"], "🏠 公式ページ") + " " if s.get("site") else "")
+                + (sitelink(s["map"], "🗺️ ゲレンデマップ") + " " if s.get("map") else "")
+                + maplink(s['name'] + ' 第1駐車場', '駐車場の地図') + " ")
     am = s.get("amedas")
     obs = ""
     if am:
@@ -573,7 +577,8 @@ def ski_page(ski):
 <li><span class='tag'>パウダー期待</span> 上部の新雪が10cm以上で、上部の最高気温が-2℃以下</li>
 <li><span class='tag warn'>雨</span> 雨の予報(雪質が重くなりやすい)</li>
 <li>上部・下部の標高: OpenStreetMap のリフトの位置と地形の標高から求めた値(一部は手作業で補正)。概算です</li>
-<li>スキー場の一覧・標高差: Wikipedia、Wikidata。リフトの位置: © OpenStreetMap contributors</li></ul>
+<li>スキー場の一覧・標高差: Wikipedia、Wikidata。リフトの位置: © OpenStreetMap contributors</li>
+<li>公式ページ・ゲレンデマップのボタンは、リンク先が確認できたスキー場だけに出しています</li></ul>
 <h2>このページについて</h2>
 <p>標高差の大きいスキー場100か所に、志賀高原 焼額山・キューピットバレイ・だいせんホワイトリゾートを加えた一覧です。表の数字はゲレンデ上部の新雪(前日17時〜当日8時、閉場から開場までに積もる雪)の予報(cm)です。表は7日間で、スキー場名を押すと最大16日間の積雪・気温・0℃の高さ・風の詳細が開きます。</p></div>
 """
