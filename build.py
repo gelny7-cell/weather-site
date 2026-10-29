@@ -366,7 +366,7 @@ def mountains_page(mts):
                       f"雨{d['rain']:.0f}mm" + (f" 雷{d['thunder']}%" if d["thunder"] is not None else "") + "'>"
                       f"<b>{mark}</b><small>{icon}</small></td>")
         rows += (
-            f"<tbody class='mt' data-region='{e(m['region'])}' data-name='{e(m['name'] + m['yomi'])}'"
+            f"<tbody class='mt' id='{m['key']}' data-region='{e(m['region'])}' data-name='{e(m['name'] + m['yomi'])}'"
             + (f" data-prefs='{e(','.join(m['prefs']))}'" if m["region"] == "近畿" else "") + ">"
             f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
             f"<span>{e(m['name'])}</span>"
@@ -578,7 +578,7 @@ def ski_page(ski):
                           f"<b class='{snow_cls}'>{d['snow']:.0f}</b><small>{icon}</small></td>")
             total7 = sum(d["snow"] for d in s["days"][:TOP_DAYS])
             rows += (
-                f"<tbody class='mt' data-region='{r}' data-name='{e(s['name'] + s.get('yomi', ''))}'"
+                f"<tbody class='mt' id='{s['key']}' data-region='{r}' data-name='{e(s['name'] + s.get('yomi', ''))}'"
                 + (" data-fav='1'" if s["name"] in favs else "") + ">"
                 f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
                 f"<span>{e(s['name'])}</span><small>{e(s['pref'])} · 7日間 {total7:.0f}cm</small>"
@@ -728,7 +728,7 @@ def surf_table(s):
 def surf_page(spots):
     cards = ""
     for s in spots:
-        cards += (f"<section class='card'><h3>{e(s['name'])} <small>{e(s['pref'])} · "
+        cards += (f"<section class='card' id='{s['key']}'><h3>{e(s['name'])} <small>{e(s['pref'])} · "
                   f"浜の向き {dir_name(s['facing'])}</small> {maplink(s['parking'], '駐車場の地図')}</h3>"
                   f"{surf_table(s)}"
                   f"<p class='muted'>波は沖合({s['grid'][0]:.2f}, {s['grid'][1]:.2f})の予報</p></section>")
@@ -791,10 +791,11 @@ def surf_comments(spots, we):
     return out
 
 
-def expand_row(name_html, cells_html, detail_html, ncols):
-    """名前を押すと、下に日ごとの詳細が開く行(トップページ用)"""
+def expand_row(name_html, cells_html, detail_html, ncols, page=""):
+    """名前を押すと、下に日ごとの詳細が開く行(トップページ用)。page があれば右端に、そのページで予報を開くボタン"""
+    more = f"<td><a class='mapbtn' href='{page}'>詳細</a></td>" if page else ""
     return (f"<tbody><tr><td class='l'><button type='button' class='xbtn' aria-expanded='false'>"
-            f"{name_html}</button></td>{cells_html}</tr>"
+            f"{name_html}</button></td>{cells_html}{more}</tr>"
             f"<tr class='detail' hidden><td colspan='{ncols}'>{detail_html}</td></tr></tbody>")
 
 
@@ -820,9 +821,9 @@ def index_page(mts, ski, spots):
         tag = tags(m)
         mt_rows += expand_row(f"<b>{e(m['name'])}</b>{tag}<br><small class='muted'>"
                               f"{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>",
-                              cells, mt_detail(m, with_map=False, compact=True), 3)
+                              cells, mt_detail(m, with_map=False, compact=True), 4, f"mountains.html#{m['key']}")
     we_head = "".join(f"<th>{day_label(d)}</th>" for d in we)
-    mt_list = (f"<div class='scroll'><table class='sub'><tr><th>山</th>{we_head}</tr>"
+    mt_list = (f"<div class='scroll'><table class='sub'><tr><th>山</th>{we_head}<th></th></tr>"
                f"{mt_rows}</table></div>" if mt_rows else "<p>週末に条件の良い山は見当たりません</p>")
     # スノー: よく行くスキー場(data/favorites.json)を常に表示する
     upto = we[-1]
@@ -837,10 +838,10 @@ def index_page(mts, ski, spots):
                         for d in s["days"] if d["date"] in we)
         until = sum(d["snow"] for d in s["days"] if d["date"] <= upto)
         fav_rows += expand_row(f"<b>{e(n)}</b><br><small class='muted'>週末まで {until:.0f}cm</small>",
-                               cells, ski_detail(s, with_map=False, simple=True), 3)
+                               cells, ski_detail(s, with_map=False, simple=True), 4, f"snow.html#{s['key']}")
     fav = (f"<div class='scroll'><table class='sub'><tr><th></th>"
            + "".join(f"<th>{day_label(d)}</th>" for d in we)
-           + f"</tr>{fav_rows}</table></div>")
+           + f"<th></th></tr>{fav_rows}</table></div>")
     # サーフ: 予報コメント + 週末4枠(土朝・土昼・日朝・日昼)の判定表
     surf_comment = "".join(f"<p class='comment'><b>{c}</b> {e(t)}</p>"
                            for c, t in surf_comments(spots, we))
@@ -856,20 +857,18 @@ def index_page(mts, ski, spots):
                 cells += (f"<td class='{cls}' title='波{sl['height']:.1f}m うねり{sl['swell']:.1f}m 周期{sl['period']:.1f}秒 {sl['kind']}'>"
                           f"<b>{mark}</b><small class='muted'>{sl['height']:.1f}m</small></td>")
         surf_rows += expand_row(f"<b>{e(s['name'])}</b>",
-                                cells, surf_table(s), 5)
-    surf_list = (f"{surf_comment}<div class='scroll'><table class='sub mini'><tr><th></th>{heads}</tr>"
+                                cells, surf_table(s), 6, f"surf.html#{s['key']}")
+    surf_list = (f"{surf_comment}<div class='scroll'><table class='sub mini'><tr><th></th>{heads}<th></th></tr>"
                  f"{surf_rows}</table></div>")
     return f"""
 <h1>今週末の山と雪と波</h1>
 <section class='card big'><h2><a href='mountains.html'>⛰️ 登山</a></h2>
 <p class='muted'>週末の両日が○以上の山(上位15座、判定が良く風の弱い順)。気温・風は山頂付近の6〜15時。山名を押すと7日間の予報が開きます</p>{mt_list}
 </section>
-<div class='cards2'>
 <section class='card'><h2><a href='snow.html'>🏂 スノーボード</a></h2>{fav}
 </section>
 <section class='card'><h2><a href='surf.html'>🏄 サーフィン</a></h2>{surf_list}
 </section>
-</div>
 <div class='note'><p>{label} の予報から、よさそうな場所をまとめました。</p></div>
 """
 
@@ -893,8 +892,7 @@ h3 small,li small{color:var(--muted);font-weight:400}
 .muted{color:var(--muted);font-size:13px}
 a{color:var(--accent)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:12px 0}
-.cards2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
-.cards2 .card{margin:0}.card h2{margin-top:0}.card h2 a{text-decoration:none;color:var(--text)}
+.card h2{margin-top:0}.card h2 a{text-decoration:none;color:var(--text)}
 .card ul{padding-left:18px;margin:6px 0}.card.big{margin:0 0 12px}
 .sub td.l{white-space:normal;min-width:120px}
 .mapbtn{display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;border:1px solid var(--line);
@@ -911,6 +909,7 @@ tr.detail td>*{position:sticky;left:8px;max-width:calc(100vw - 72px)}.sub .dt{bo
 .hbtn[aria-expanded='false']::after{content:' ▼';font-size:10px}.hbtn[aria-expanded='true']::after{content:' ▲';font-size:10px}
 .hbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 tr.hr td{font-size:12px;color:var(--sub);padding-top:3px;padding-bottom:3px}
+tbody[id],section[id]{scroll-margin-top:56px}   /* 上に固定したメニューに隠れないように */
 .obs{margin:6px 0}.obs b{display:inline!important}  /* 表の中の b{display:block} に負けないように */
 .comment{background:var(--hl);border-radius:8px;padding:8px 12px;margin:0 0 8px;font-size:14px}
 .sub.mini td,.sub.mini th{text-align:center;padding:4px 6px}.sub.mini td b{display:block}
@@ -965,6 +964,12 @@ document.querySelectorAll('.hbtn').forEach(btn=>btn.addEventListener('click',()=
 document.querySelectorAll('.nm button, .xbtn').forEach(btn=>btn.addEventListener('click',()=>{
   const d=btn.closest('tbody').querySelector('tr.detail');d.hidden=!d.hidden;
   btn.setAttribute('aria-expanded',String(!d.hidden));}));
+const target=location.hash&&document.getElementById(location.hash.slice(1));
+if(target){
+  const d=target.querySelector('tr.detail'),b=target.querySelector('.nm button');
+  if(d){d.hidden=false;if(b)b.setAttribute('aria-expanded','true');}
+  target.scrollIntoView({block:'start'});
+}
 """
 
 PAGES = [("index.html", "週末"), ("mountains.html", "登山"), ("snow.html", "スノーボード"),
@@ -989,6 +994,9 @@ def layout(file, title, body, updated):
 def main():
     updated = datetime.now(JST)
     mts, ski, spots = build_mountains(), build_ski(), build_surf()
+    for prefix, items in (("m", mts), ("s", ski), ("w", spots)):   # 行の id(トップページの「詳細」のリンク先)
+        for i, x in enumerate(items):
+            x["key"] = f"{prefix}{i}"
     OUT.mkdir(exist_ok=True)
     def first(items):                  # トップページは最初の TOP_DAYS 日だけ
         return [{**x, "days": x["days"][:TOP_DAYS]} for x in items]
