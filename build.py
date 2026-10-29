@@ -183,7 +183,7 @@ def hut_tags(m):
 def hut_line(m):
     """詳細に出す、山小屋・テント場の数"""
     parts = ([f"🏠 山小屋 {len(m['huts'])}軒"] if m.get("huts") else []) + ([f"⛺ テント場 {len(m['tents'])}か所"] if m.get("tents") else [])
-    return f"<p class='muted'>{' · '.join(parts)}(山頂から4km以内・ヤマレコ)</p>" if parts else ""
+    return f"<p class='muted'>{' · '.join(parts)}</p>" if parts else ""     # 範囲と出典はページ下部の説明に
 
 
 def hutlink(m):
