@@ -488,6 +488,23 @@ def by_hour(h, key, d, hours):
             if t[:10] == d and int(t[11:13]) in hours and v is not None}
 
 
+VIEW = {3: "◎", 2: "○", 1: "△", 0: "×"}
+
+
+def view_rate(h, d):
+    """展望(見晴らし)の目安。6〜12時の雲の量の平均で ◎20%未満・○50%未満・△80%未満・×それ以上。
+    霧の時間があれば ×。雲の量がそろわなければ None(列を出さない)"""
+    if "cloud_cover" not in h:
+        return None
+    clouds = hours_of(h, "cloud_cover", d, range(6, 13))
+    if len(clouds) < 7:
+        return None
+    if any(c in (45, 48) for c in hours_of(h, "weather_code", d, range(6, 13))):
+        return 0
+    avg = sum(clouds) / len(clouds)
+    return 3 if avg < 20 else 2 if avg < 50 else 1 if avg < 80 else 0
+
+
 def mt_day(h, d, elev, strict):
     """1日分(6〜15時)の山頂の天気。値が足りなければ None。strict なら10時間すべてそろった日だけ"""
     hours = range(6, 16)
@@ -506,7 +523,7 @@ def mt_day(h, d, elev, strict):
     th, wh = by_hour(h, "temperature_2m", d, hours), by_hour(h, f"wind_speed_{lv}hPa", d, hours)
     feels = [wind_chill(th[k], wh[k]) for k in th if k in wh]
     return {"rain": sum(rains), "wind": max(winds), "wind_avg": sum(winds) / len(winds),
-            "tmin": min(temps), "tmax": max(temps), "code": max(codes),
+            "tmin": min(temps), "tmax": max(temps), "code": max(codes), "view": view_rate(h, d),
             "feel": min(feels) if feels else min(temps)}
 
 
@@ -522,7 +539,9 @@ def mt_hours(h, d, elev, step):
         codes = hours_of(h, "weather_code", d, hrs)
         winds = next((w for lv in near if len(w := hours_of(h, f"wind_speed_{lv}hPa", d, hrs)) == step), None)
         if len(rains) == step and len(codes) == step and temps and winds:
+            cloud = hours_of(h, "cloud_cover", d, [start]) if "cloud_cover" in h else []
             rows.append({"hour": start, "code": max(codes), "temp": temps[0], "wind": max(winds), "rain": sum(rains),
+                         "cloud": cloud[0] if cloud else None,
                          "feel": wind_chill(temps[0], max(winds))})
     return rows
 
@@ -530,7 +549,7 @@ def mt_hours(h, d, elev, step):
 def build_mountains():
     mts = json.loads((ROOT / "data/mountains.json").read_text(encoding="utf-8"))
     points = [(m["lat"], m["lon"], m["elev"]) for m in mts]
-    hourly = ",".join(["temperature_2m", "precipitation", "weather_code"]
+    hourly = ",".join(["temperature_2m", "precipitation", "weather_code", "cloud_cover"]
                       + [f"wind_speed_{p}hPa" for p, _ in LEVELS])
     res = forecast(points, hourly=hourly, daily="sunrise,sunset")
     extra = [forecast(points, hourly=hourly, models=model, forecast_days=n) for model, n, _ in MT_MODELS]
@@ -581,6 +600,7 @@ def mt_detail(m, with_map=True, compact=False):
     """山の日ごとの詳細(登山口の地図ボタン付き)。判定は日付のすぐ右。
     compact=True はトップページ用で、最大風速と雷の確率を出さない"""
     has_t = not compact and all(d["thunder"] is not None for d in m["days"])   # 雷の確率がない日があれば列ごと出さない
+    has_v = all(d.get("view") is not None for d in m["days"])                  # 展望も同じ
     rows = ""
     for d in m["days"]:
         hours = d.get("hours")
@@ -589,7 +609,8 @@ def mt_detail(m, with_map=True, compact=False):
         rows += (f"<tr><td class='dt'>{label}</td>"
                  f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b></td>"
                  f"<td>{wx(d['code'])[0]} {wx(d['code'])[1]}</td>"
-                 f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td>"
+                 + (f"<td class='{RATE[d['view']][1]}'>{VIEW[d['view']]}</td>" if has_v else "")
+                 + f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td>"
                  + ("" if compact else f"<td>{round(d['feel'])}℃</td>")
                  + f"<td>{d['wind_avg']:.0f}m/s</td>"
                  + ("" if compact else f"<td>{d['wind']:.0f}m/s</td>")
@@ -598,7 +619,9 @@ def mt_detail(m, with_map=True, compact=False):
             when = f"{x['hour']}時" if d["step"] == 1 else f"{x['hour']}〜{x['hour'] + 3}時"
             # 時間ごとの行: 判定・雷は空ける。風速は平均・最大の2列にまたがって出す
             rows += (f"<tr class='hr' hidden><td class='dt'>{when}</td><td></td>"
-                     f"<td>{wx(x['code'])[0]} {wx(x['code'])[1]}</td><td>{round(x['temp'])}℃</td>"
+                     f"<td>{wx(x['code'])[0]} {wx(x['code'])[1]}</td>"
+                     + (f"<td>雲{x['cloud']:.0f}%</td>" if has_v and x.get("cloud") is not None else "<td></td>" if has_v else "")
+                     + f"<td>{round(x['temp'])}℃</td>"
                      + ("" if compact else f"<td>{round(x['feel'])}℃</td>")
                      + f"<td colspan='{1 if compact else 2}'>{x['wind']:.0f}m/s</td>"
                      f"<td>{x['rain']:.1f}mm</td>" + ("<td></td>" if has_t else "") + "</tr>")
@@ -616,7 +639,8 @@ def mt_detail(m, with_map=True, compact=False):
     sun = (f"<p class='muted'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</p>"
            if m.get("sun") else "")
     return (f"{link}{alert_box(m)}{sun}<div class='scroll'><table class='sub'>"
-            "<tr><th class='dt'>日付</th><th>判定</th><th>天気(6〜15時)</th><th>山頂付近の気温</th>"
+            "<tr><th class='dt'>日付</th><th>判定</th><th>天気(6〜15時)</th>"
+            + ("<th>展望</th>" if has_v else "") + "<th>山頂付近の気温</th>"
             + ("" if compact else "<th>体感温度</th>") + "<th>平均風速</th>"
             + ("" if compact else "<th>最大風速</th>")
             + f"<th>降水量</th>{'<th>雷の確率</th>' if has_t else ''}</tr>{rows}</table></div>")
@@ -661,6 +685,7 @@ def mountains_page(mts):
 <li><b class='r1'>△</b> 降水10mm未満、風速17m/s未満</li>
 <li><b class='r0'>×</b> それ以上、または雷の確率50%以上</li></ul>
 <p>雷の確率: 米国の予報モデル(GFS)を条件を少しずつ変えて31通り計算したうち、6〜15時に「大気が不安定で雨が降る」時間がある割合です。20%以上で判定は最高でも△、50%以上で×。山では早めの下山を。</p>
+<p>展望: 6〜12時の雲の量の平均で、◎20%未満・○50%未満・△80%未満・×それ以上(霧の時間があれば×)。眺めの目安です。</p>
 <p>体感温度: 山頂付近の気温と風速から求めた、6〜15時で最も低い値です(風が強いほど低くなります)。</p>
 <p>⚠️ 警報・注意報は、駐車場・登山口(分からない山は山頂)のある市町村に気象庁がいま出しているものです。🌋 は、山頂から10km以内の火山に噴火警戒レベル2以上などの噴火警報・予報が出ているときに付けています。</p>
 <p>風速は山頂の高さに最も近い上空(約760m・1,000m・1,500m・1,950m・3,000mのいずれか)の予報です。稜線の実際の風とは異なることがあり、突風はさらに強くなります。</p>
@@ -756,7 +781,7 @@ def build_ski():
                    hourly="snow_depth,freezing_level_height,wind_speed_10m,snowfall,"
                           "weather_code,temperature_2m,wind_gusts_10m,rain,wind_direction_10m")
     base = forecast([(s["lat"], s["lon"], s["base"]) for s in ski], past_days=1,
-                    hourly="snowfall,weather_code,rain")
+                    hourly="snowfall,weather_code,rain,temperature_2m")
     today = datetime.now(JST).date().isoformat()
     open_hrs = range(8, 17)             # 営業時間(8〜16時)の値で1日分をまとめる
     rain_hrs = range(9, 17)             # 雨は1時間ごとの値がその前の1時間の量なので、9〜16時の値で8〜16時の合計
@@ -774,6 +799,7 @@ def build_ski():
             v = {k: hours_of(h, k, d, open_hrs) for k in
                  ("weather_code", "temperature_2m", "wind_speed_10m", "wind_gusts_10m", "freezing_level_height")}
             code_b = hours_of(bh, "weather_code", d, open_hrs)
+            morning = hours_of(bh, "temperature_2m", d, range(3, 9))    # 朝の路面: ふもと(下部)の3〜8時の最低気温
             rain, rain_b = hours_of(h, "rain", d, rain_hrs), hours_of(bh, "rain", d, rain_hrs)
             if (night is None or night_base is None or not depth or any(len(x) != 9 for x in v.values())
                     or len(code_b) != 9 or len(rain) != 8 or len(rain_b) != 8):
@@ -792,6 +818,7 @@ def build_ski():
                 "feel": min(wind_chill(th[k], wh[k]) for k in th if k in wh),
                 "wind_dir": mean_dir([wd[k] for k in wd if k in wh], [wh[k] for k in wd if k in wh]) if wd else None,
                 "hours": ski_hours(h, bh, d, today),
+                "road": min(morning) if len(morning) == 6 else None,
             })
     ski = align(ski, "スノーボード")
     attach_amedas(ski)
@@ -813,9 +840,18 @@ SKI_REGIONS = {
 PREF_SKI_REGION = {p: r for r, ps in SKI_REGIONS.items() for p in ps}
 
 
+def road(t):
+    """朝の路面: ふもとの最低気温と凍結の印(-2℃以下=凍結注意、1℃以下=凍結のおそれ)"""
+    t = round(t)                        # 表示する値で判定する(1.2℃が「1℃」なのに印がない、を防ぐ)
+    tag = (" <span class='tag danger'>凍結注意</span>" if t <= -2 else
+           " <span class='tag warn'>凍結のおそれ</span>" if t <= 1 else "")
+    return f"{t}℃{tag}"
+
+
 def ski_detail(s, with_map=True, simple=False):
     """スキー場の日ごとの詳細。上部と下部の天気・気温を並べる(駐車場の地図ボタン付き)。
     simple=True はトップページ用で、これまでどおり1列ずつ(値はゲレンデ上部)"""
+    has_road = all(d.get("road") is not None for d in s["days"])     # 値のない日があれば列ごと出さない
     if simple:
         rows = ""
         for d in s["days"]:
@@ -826,9 +862,9 @@ def ski_detail(s, with_map=True, simple=False):
                      f"<td>{d['snow']:.0f}cm{powder}</td><td>{d['depth']:.0f}cm</td>"
                      f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td>"
                      f"<td>{d['gust']:.0f}m/s" + (" <span class='tag warn'>運休注意</span>" if d["gust"] >= 20 else "")
-                     + "</td></tr>")
+                     + "</td>" + (f"<td>{road(d['road'])}</td>" if has_road else "") + "</tr>")
         return (alert_box(s) + "<div class='scroll'><table class='sub'><tr><th class='dt'>日付</th><th>天気</th><th>新雪</th>"
-                "<th>積雪</th><th>気温</th><th>最大瞬間風速</th></tr>"
+                "<th>積雪</th><th>気温</th><th>最大瞬間風速</th>" + ("<th>朝の路面</th>" if has_road else "") + "</tr>"
                 f"{rows}</table></div>")
     def gust(g):                # 突風が強い日はゴンドラ・リフトが止まりやすい
         return f"{g:.0f}m/s" + (" <span class='tag warn'>運休注意</span>" if g >= 20 else "")
@@ -850,13 +886,15 @@ def ski_detail(s, with_map=True, simple=False):
                  f"<td>{d['snow']:.0f}cm{powder}</td><td>{d['snow_base']:.0f}cm</td>"
                  f"<td>{d['depth']:.0f}cm</td>"
                  f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td><td>{round(d['feel'])}℃</td>"
-                 f"<td>{d['fl']:,.0f}m</td><td>{wind(d.get('wind_dir'), d['wind_avg'])}</td><td>{gust(d['gust'])}</td></tr>")
+                 f"<td>{d['fl']:,.0f}m</td><td>{wind(d.get('wind_dir'), d['wind_avg'])}</td><td>{gust(d['gust'])}</td>"
+                 + (f"<td>{road(d['road'])}</td>" if has_road else "") + "</tr>")
         for x in d.get("hours", []):    # 時間ごと(雪・雨は前の3時間の合計、ほかはその時刻の値)
             rows += (f"<tr class='hr' hidden><td class='dt'>{x['hour']}時</td>"
                      f"<td>{weather(x['code'], x['rain'])}</td><td>{weather(x['code_base'], x['rain_base'])}</td>"
                      f"<td>{x['snow']:.0f}cm</td><td>{x['snow_base']:.0f}cm</td><td>{x['depth']:.0f}cm</td>"
                      f"<td>{round(x['temp'])}℃</td><td>{round(x['feel'])}℃</td><td>{x['fl']:,.0f}m</td>"
-                     f"<td>{wind(x.get('wind_dir'), x['wind'])}</td><td>{gust(x['gust'])}</td></tr>")
+                     f"<td>{wind(x.get('wind_dir'), x['wind'])}</td><td>{gust(x['gust'])}</td>"
+                     + ("<td></td>" if has_road else "") + "</tr>")
     link = ""
     if with_map:                # 公式ページ・ゲレンデマップ(分かるスキー場だけ)・駐車場の地図
         link = ((sitelink(s["site"], "🏠 公式ページ") + " " if s.get("site") else "")
@@ -873,7 +911,8 @@ def ski_detail(s, with_map=True, simple=False):
             f"<p class='muted'>上部 {s['top']:,}m / 下部 {s['base']:,}m</p><div class='scroll'><table class='sub'>"
             "<tr><th rowspan='2' class='dt'>日付</th><th colspan='2'>天気</th><th colspan='2'>新雪</th><th rowspan='2'>積雪<br>(上部)</th>"
             "<th rowspan='2'>気温<br>(上部)</th><th rowspan='2'>体感温度<br>(上部)</th><th rowspan='2'>0℃の高さ<br>(8〜16時)</th><th rowspan='2'>平均風速<br>(上部)</th>"
-            "<th rowspan='2'>最大瞬間風速<br>(上部)</th></tr>"
+            "<th rowspan='2'>最大瞬間風速<br>(上部)</th>"
+            + ("<th rowspan='2'>朝の路面<br>(下部3〜8時)</th>" if has_road else "") + "</tr>"
             "<tr><th>上部</th><th>下部</th><th>上部</th><th>下部</th></tr>"
             f"{rows}</table></div>")
 
@@ -916,6 +955,7 @@ def ski_page(ski):
 <li>ベースの積雪(観測): 15km以内に気象庁アメダスの観測点があり、ゲレンデ下部との標高差が300m以内のスキー場だけ表示しています(圧雪・人工降雪は含みません)</li>
 <li><span class='tag'>パウダー期待</span> 上部の新雪が10cm以上で、上部の最高気温が-2℃以下</li>
 <li>体感温度: 上部の気温と風速から求めた、8〜16時で最も低い値。平均風速には風向(風が吹いてくる方角)も表示しています</li>
+<li>朝の路面: ふもと(ゲレンデ下部)の3〜8時の最低気温。<span class='tag danger'>凍結注意</span> -2℃以下、<span class='tag warn'>凍結のおそれ</span> 1℃以下。冬用タイヤ・チェーンの準備の目安です(実際の路面は除雪や日当たりで変わります)</li>
 <li><span class='tag warn'>運休注意</span> 上部の最大瞬間風速が20m/s以上(ゴンドラ・リフトが止まりやすい強さ)</li>
 <li>⚠️ 警報・注意報は、スキー場のある市町村に気象庁がいま出しているもの。🌋 は10km以内の火山に噴火警報・予報が出ているとき</li>
 <li>天気・雨・気温・0℃の高さ・平均風速・最大瞬間風速は、営業時間(8〜16時)の予報からまとめています(天気は最も悪いもの、0℃の高さは最も低いもの)</li>
