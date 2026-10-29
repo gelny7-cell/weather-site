@@ -1268,15 +1268,17 @@ def index_page(mts, ski, spots):
         return expand_row(f"<b>{e(m['name'])}</b>{tags(m)}{alert_tags(m)}<br><small class='muted'>"
                           f"{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>",
                           cells, mt_detail(m, with_map=False, compact=True), 4, f"mountains.html#{m['key']}", attrs)
-    mt_rows = "".join(mt_row(m) for m in good[:10])
+    mt_rows = "".join(mt_row(m) for m in good[:10]) or (
+        f"<tbody><tr><td colspan='4'>週末に条件の良い山は見当たりません</td></tr></tbody>")
     we_head = "".join(f"<th>{day_label(d)}</th>" for d in we)
-    mt_list = (f"<div class='scroll'><table class='sub'><tr><th>週末天気が良さそうな山</th>{we_head}<th></th></tr>"
-               f"{mt_rows}</table></div>" if mt_rows else "<p>週末に条件の良い山は見当たりません</p>")
     # お気に入り(☆で登録)の山: 全部の山を隠して入れておき、登録されたものだけ表示する(時間ごとの予報は省いて軽くする)
     fav_mt = "".join(mt_row({**m, "days": [{**d, "hours": []} for d in m["days"]]},
                             f" class='favonly' data-fid='{e(fid('m', m))}' hidden") for m in mts)
-    fav_mt_box = (f"<div class='favbox' hidden><div class='scroll'><table class='sub'>"
-                  f"<tr><th><a href='mountains.html#fav'><span class='favmark'>★</span>お気に入りの山</a></th>{we_head}<th></th></tr>{fav_mt}</table></div></div>")
+    # お気に入りと天気が良さそうな山は、列の幅がそろうよう1つの表にして、見出しの行を間に挟む
+    mt_list = (f"<div class='scroll'><table class='sub'>"
+               f"<tbody class='favhead' hidden><tr><th><a href='mountains.html#fav'><span class='favmark'>★</span>お気に入りの山</a></th>"
+               f"{we_head}<th></th></tr></tbody>{fav_mt}"
+               f"<tbody><tr><th>週末天気が良さそうな山</th>{we_head}<th></th></tr></tbody>{mt_rows}</table></div>")
     # スノー: よく行くスキー場(data/favorites.json)を常に表示する
     upto = we[-1]
     fav_rows = ""
@@ -1314,7 +1316,6 @@ def index_page(mts, ski, spots):
     return f"""
 <h1>今週末の山と雪と波</h1>
 <section class='card big'><h2><a href='mountains.html'>⛰️ 登山</a></h2>
-{fav_mt_box}
 {mt_list}
 </section>
 <section class='card'><h2><a href='snow.html'>🏂 スノーボード</a></h2>{fav}
@@ -1421,6 +1422,7 @@ const paintFavs=()=>{
   document.querySelectorAll('.star').forEach(b=>{const on=isFav(b.dataset.fid);b.textContent=on?'★':'☆';b.setAttribute('aria-pressed',String(on));});
   document.querySelectorAll('tbody.mt[data-fid]').forEach(b=>{b.dataset.fav=isFav(b.dataset.fid)?'1':'';});
   document.querySelectorAll('.favonly').forEach(b=>{b.hidden=!isFav(b.dataset.fid);});
+  document.querySelectorAll('.favhead').forEach(h=>{h.hidden=!h.closest('table').querySelector('.favonly:not([hidden])');});
   document.querySelectorAll('.favbox').forEach(box=>{box.hidden=!box.querySelector('.favonly:not([hidden])');
     const hint=box.nextElementSibling;if(hint&&hint.classList.contains('favhint'))hint.hidden=!box.hidden;});
 };
