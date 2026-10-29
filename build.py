@@ -138,6 +138,17 @@ def trailhead(m):
     return m.get("trailhead") or f"{m['name']} 登山口 {m['prefs'][0]}"
 
 
+def trailhead_label(m):
+    """登山口ボタンの文字。検索語の頭の山名(「利尻山 鴛泊登山口」の「利尻山」)は外す。登録がなければ「登山口」"""
+    th = m.get("trailhead")
+    if not th:
+        return "登山口"
+    head, _, rest = th.partition(" ")
+    if rest in ("登山口", "駐車場"):     # 「雪彦山 登山口」のように山名を外すと場所が分からなくなるもの
+        return th
+    return rest if rest and (head in (m["name"], m.get("yomi")) or head.endswith(("山", "岳", "峰", "嶽"))) else th
+
+
 def sitelink(url, label, icon=""):
     """外部サイトへのボタン(新しいタブで開く)。icon は public/ に置いた画像のファイル名"""
     img = f"<img src='{icon}' alt='' width='14' height='14'>" if icon else ""
@@ -324,7 +335,7 @@ def mt_detail(m, with_map=True):
             rows += (f"<tr class='hr' hidden><td class='dt'>{when}</td><td>{wx(x['code'])[0]} {wx(x['code'])[1]}</td>"
                      f"<td>{round(x['temp'])}℃</td><td colspan='2'>{x['wind']:.0f}m/s</td>"
                      f"<td>{x['rain']:.1f}mm</td><td colspan='{rest}'></td></tr>")
-    link = routelinks(m) + maplink(trailhead(m), '登山口の地図: ' + trailhead(m)) if with_map else ""
+    link = routelinks(m) + maplink(trailhead(m), trailhead_label(m)) if with_map else ""
     sun = (f"<p class='muted'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</p>"
            if m.get("sun") else "")
     return (f"{link}{sun}<div class='scroll'><table class='sub'>"
