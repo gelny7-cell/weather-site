@@ -1275,8 +1275,8 @@ def index_page(mts, ski, spots):
     # お気に入り(☆で登録)の山: 全部の山を隠して入れておき、登録されたものだけ表示する(時間ごとの予報は省いて軽くする)
     fav_mt = "".join(mt_row({**m, "days": [{**d, "hours": []} for d in m["days"]]},
                             f" class='favonly' data-fid='{e(fid('m', m))}' hidden") for m in mts)
-    fav_mt_box = (f"<div class='favbox' hidden><h3>★お気に入りの山</h3><div class='scroll'><table class='sub'>"
-                  f"<tr><th>山</th>{we_head}<th></th></tr>{fav_mt}</table></div></div>")
+    fav_mt_box = (f"<div class='favbox' hidden><div class='scroll'><table class='sub'>"
+                  f"<tr><th>★お気に入りの山</th>{we_head}<th></th></tr>{fav_mt}</table></div></div>")
     # スノー: よく行くスキー場(data/favorites.json)を常に表示する
     upto = we[-1]
     fav_rows = ""
