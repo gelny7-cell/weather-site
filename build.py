@@ -834,7 +834,8 @@ def index_page(mts, ski, spots):
         s = by_name.get(n)
         if not s:
             continue
-        cells = "".join(f"<td>{wx(d['code'])[0]} {d['snow']:.0f}cm</td>"
+        cells = "".join(f"<td>{wx(d['code'])[0]} <small class='muted'>新雪</small>{d['snow']:.0f}cm"
+                        f" <small class='muted'>積雪</small>{d['depth']:.0f}cm</td>"
                         for d in s["days"] if d["date"] in we)
         until = sum(d["snow"] for d in s["days"] if d["date"] <= upto)
         fav_rows += expand_row(f"<b>{e(n)}</b><br><small class='muted'>週末まで {until:.0f}cm</small>",
