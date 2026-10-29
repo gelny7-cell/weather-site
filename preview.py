@@ -18,8 +18,8 @@ class Handler(BaseHTTPRequestHandler):
             return
         body = path.read_bytes()
         self.send_response(200)
-        self.send_header("Content-Type", "text/html; charset=utf-8" if path.suffix == ".html"
-                         else "application/octet-stream")
+        types = {".html": "text/html; charset=utf-8", ".png": "image/png", ".ico": "image/x-icon"}
+        self.send_header("Content-Type", types.get(path.suffix, "application/octet-stream"))
         if "gzip" in self.headers.get("Accept-Encoding", ""):
             body = gzip.compress(body)
             self.send_header("Content-Encoding", "gzip")

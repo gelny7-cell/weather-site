@@ -138,18 +138,19 @@ def trailhead(m):
     return m.get("trailhead") or f"{m['name']} 登山口 {m['prefs'][0]}"
 
 
-def sitelink(url, label):
-    """外部サイトへのボタン(新しいタブで開く)"""
-    return f"<a class='mapbtn' href='{e(url)}' target='_blank' rel='noopener'>{e(label)}</a>"
+def sitelink(url, label, icon=""):
+    """外部サイトへのボタン(新しいタブで開く)。icon は public/ に置いた画像のファイル名"""
+    img = f"<img src='{icon}' alt='' width='14' height='14'>" if icon else ""
+    return f"<a class='mapbtn' href='{e(url)}' target='_blank' rel='noopener'>{img}{e(label)}</a>"
 
 
 def routelinks(m):
-    """ヤマレコ・YAMAP の山のページ(モデルコースの一覧)へのボタン。番号が分からない山は出さない"""
+    """ヤマレコ・YAMAP の山のページへのボタン。番号が分からない山は出さない"""
     out = ""
     if m.get("yamareco"):
-        out += " " + sitelink(f"https://www.yamareco.com/modules/yamainfo/ptinfo.php?ptid={m['yamareco']}", "ヤマレコのモデルコース")
+        out += sitelink(f"https://www.yamareco.com/modules/yamainfo/ptinfo.php?ptid={m['yamareco']}", "ヤマレコ", "yamareco.png") + " "
     if m.get("yamap"):
-        out += " " + sitelink(f"https://yamap.com/mountains/{m['yamap']}#mountains-id-model-course", "YAMAPのモデルコース")
+        out += sitelink(f"https://yamap.com/mountains/{m['yamap']}", "YAMAP", "yamap.ico") + " "
     return out
 
 
@@ -323,7 +324,7 @@ def mt_detail(m, with_map=True):
             rows += (f"<tr class='hr' hidden><td class='dt'>{when}</td><td>{wx(x['code'])[0]} {wx(x['code'])[1]}</td>"
                      f"<td>{round(x['temp'])}℃</td><td colspan='2'>{x['wind']:.0f}m/s</td>"
                      f"<td>{x['rain']:.1f}mm</td><td colspan='{rest}'></td></tr>")
-    link = maplink(trailhead(m), '登山口の地図: ' + trailhead(m)) + routelinks(m) if with_map else ""
+    link = routelinks(m) + maplink(trailhead(m), '登山口の地図: ' + trailhead(m)) if with_map else ""
     sun = (f"<p class='muted'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</p>"
            if m.get("sun") else "")
     return (f"{link}{sun}<div class='scroll'><table class='sub'>"
@@ -579,8 +580,33 @@ def ski_page(ski):
 
 
 # ---------------------------------------------------------------- サーフィン
+def wind_kind(wdeg, facing):
+    diff = ang_diff(wdeg, facing)     # 0に近いほど海から吹く
+    return "オンショア" if diff <= 45 else ("オフショア" if diff >= 135 else "クロス")
+
+
+def surf_hours(s, wh, fh, d, today):
+    """日付を押すと開く時間ごとの予報(6〜16時): 今日・明日は1時間ごと、明後日は3時間ごと。値の欠けた時刻は出さない"""
+    lead = (date.fromisoformat(d) - today).days
+    if not 0 <= lead <= 2:
+        return []
+    rows = []
+    for hr in range(6, 17, 1 if lead <= 1 else 3):
+        v = {k: hours_of(src, k, d, [hr]) for src, keys in (
+            (wh, ("wave_height", "swell_wave_height", "swell_wave_period", "wave_direction")),
+            (fh, ("wind_speed_10m", "wind_direction_10m", "weather_code"))) for k in keys}
+        if all(v.values()):
+            v = {k: x[0] for k, x in v.items()}
+            rows.append({"hour": hr, "height": v["wave_height"], "swell": v["swell_wave_height"],
+                         "period": v["swell_wave_period"], "wave_dir": v["wave_direction"],
+                         "wind": v["wind_speed_10m"], "wind_dir": v["wind_direction_10m"],
+                         "kind": wind_kind(v["wind_direction_10m"], s["facing"]), "code": v["weather_code"]})
+    return rows
+
+
 def build_surf():
     spots = json.loads((ROOT / "data/surf.json").read_text(encoding="utf-8"))
+    today = datetime.now(JST).date()
     waves = marine([(s["sea_lat"], s["sea_lon"]) for s in spots], hourly=",".join([
         "wave_height", "wave_period", "wave_direction", "swell_wave_height", "swell_wave_period"]))
     winds = forecast([(s["lat"], s["lon"], 0) for s in spots],
@@ -605,8 +631,7 @@ def build_surf():
                     continue
                 h_, p_, w_ = sum(hgt) / len(hgt), sum(per) / len(per), sum(ws) / len(ws)
                 wdeg = mean_dir(wd, ws)
-                diff = ang_diff(wdeg, s["facing"])     # 0に近いほど海から吹く
-                kind = "オンショア" if diff <= 45 else ("オフショア" if diff >= 135 else "クロス")
+                kind = wind_kind(wdeg, s["facing"])
                 if h_ < 0.3:
                     score = 0
                 elif h_ > 3.0:
@@ -627,7 +652,7 @@ def build_surf():
                               "kind": kind, "score": score,
                               "code": max(codes)})
             if len(slots) == 2:         # 朝・昼の両方がそろった日だけ表示する
-                s["days"].append({"date": d, "slots": slots})
+                s["days"].append({"date": d, "slots": slots, "hours": surf_hours(s, w["hourly"], f["hourly"], d, today)})
     return align(spots, "サーフィン")
 
 
@@ -637,13 +662,21 @@ def surf_table(s):
     for d in s["days"]:
         for i, sl in enumerate(d["slots"]):
             mark, cls = RATE[sl["score"]]
-            date_cell = (f"<td rowspan='{len(d['slots'])}' class='dt'>{day_label(d['date'])}</td>" if i == 0 else "")
+            label = (f"<button type='button' class='hbtn' aria-expanded='false'>{day_label(d['date'])}</button>"
+                     if d.get("hours") else day_label(d["date"]))
+            date_cell = (f"<td rowspan='{len(d['slots'])}' class='dt'>{label}</td>" if i == 0 else "")
             rows += (f"<tr>{date_cell}<td>{sl['slot']}</td><td class='{cls}'><b>{mark}</b></td>"
                      f"<td>{sl['height']:.1f}m <small>{_size(sl['height'])}</small></td>"
                      f"<td>{sl['swell']:.1f}m</td><td>{sl['period']:.1f}秒</td>"
                      f"<td>{dir_name(sl['wave_dir'])}</td>"
                      f"<td>{dir_name(sl['wind_dir'])} {sl['wind']:.1f}m/s <small>{sl['kind']}</small></td>"
                      f"<td>{wx(sl['code'])[0]}</td></tr>")
+        for x in d.get("hours", []):
+            rows += (f"<tr class='hr' hidden><td class='dt'>{x['hour']}時</td><td colspan='2'></td>"
+                     f"<td>{x['height']:.1f}m</td><td>{x['swell']:.1f}m</td><td>{x['period']:.1f}秒</td>"
+                     f"<td>{dir_name(x['wave_dir'])}</td>"
+                     f"<td>{dir_name(x['wind_dir'])} {x['wind']:.1f}m/s <small>{x['kind']}</small></td>"
+                     f"<td>{wx(x['code'])[0]}</td></tr>")
     return ("<div class='scroll'><table class='sub'>"
             "<tr><th class='dt'>日付</th><th></th><th>判定</th><th>波の高さ</th><th>うねり</th><th>うねりの周期</th><th>波の向き</th>"
             f"<th>風</th><th>天気</th></tr>{rows}</table></div>")
@@ -664,7 +697,8 @@ def surf_page(spots):
 <li><b class='r1'>△</b> うねりの周期5秒未満、5m/s以上のオンショア、2mを超える大きな波(上級者向け)で一段下げる</li>
 <li><b class='r0'>×</b> 0.3m未満(フラット)、または3mを超える荒れた海</li>
 <li>オフショア=陸から海へ吹く風(波の面が整いやすい)、オンショア=海から陸へ吹く風</li>
-<li>波の高さ=風波とうねりを合わせた高さ。うねり=遠くから届く波だけの高さと周期(周期が長いほど力のある波)</li></ul>
+<li>波の高さ=風波とうねりを合わせた高さ。うねり=遠くから届く波だけの高さと周期(周期が長いほど力のある波)</li>
+<li>今日〜明後日の日付を押すと、6〜16時の時間ごとの予報が開きます(今日・明日は1時間ごと、明後日は3時間ごと。その時刻の値)</li></ul>
 <h2>このページについて</h2>
 <p>朝(6〜11時)と昼(12〜17時)の平均です。波の高さは沖合の予報で、浜では地形や向きにより小さくなることが多いです。</p></div>
 """
@@ -821,7 +855,7 @@ a{color:var(--accent)}
 .sub td.l{white-space:normal;min-width:120px}
 .mapbtn{display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;border:1px solid var(--line);
 background:var(--card);color:var(--accent);text-decoration:none;white-space:nowrap}
-.mapbtn:hover{border-color:var(--accent)}
+.mapbtn:hover{border-color:var(--accent)}.mapbtn img{vertical-align:-2px;margin-right:4px;border-radius:3px}
 tr.detail .mapbtn{margin:0 0 8px}
 .xbtn{all:unset;cursor:pointer;display:block}.xbtn b{color:var(--accent);text-decoration:underline;
 text-decoration-thickness:1px;text-underline-offset:3px}.xbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -880,7 +914,7 @@ if(q){
 }
 document.querySelectorAll('.hbtn').forEach(btn=>btn.addEventListener('click',()=>{
   const open=btn.getAttribute('aria-expanded')!=='true';
-  for(let r=btn.closest('tr').nextElementSibling;r&&r.classList.contains('hr');r=r.nextElementSibling)r.hidden=!open;
+  for(let r=btn.closest('tr').nextElementSibling;r&&!r.querySelector('.hbtn');r=r.nextElementSibling)if(r.classList.contains('hr'))r.hidden=!open;
   btn.setAttribute('aria-expanded',String(open));}));
 document.querySelectorAll('.nm button, .xbtn').forEach(btn=>btn.addEventListener('click',()=>{
   const d=btn.closest('tbody').querySelector('tr.detail');d.hidden=!d.hidden;
@@ -918,6 +952,8 @@ def main():
               "surf.html": ("サーフィン", surf_page(spots))}
     for f, (title, body) in bodies.items():
         (OUT / f).write_text(layout(f, title, body, updated), encoding="utf-8")
+    for icon in (ROOT / "data/icons").iterdir():     # ボタンのアイコン
+        (OUT / icon.name).write_bytes(icon.read_bytes())
     print("書き出し:", ", ".join(bodies), "→", OUT)
 
 
