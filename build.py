@@ -224,6 +224,22 @@ def mt_day(h, d, elev, strict):
             "tmin": min(temps), "tmax": max(temps), "code": max(codes)}
 
 
+def mt_hours(h, d, elev, step):
+    """その日の時間ごとの山頂の天気(0〜23時)。step 時間ごとにまとめ、雨はその間の合計、風は最大、天気は最も悪いもの。
+    値の欠けた時間は出さない"""
+    near = [lv for lv, _ in sorted(LEVELS, key=lambda x: abs(x[1] - elev))]
+    rows = []
+    for start in range(0, 24, step):
+        hrs = range(start, start + step)
+        rains = hours_of(h, "precipitation", d, hrs)
+        temps = hours_of(h, "temperature_2m", d, [start])
+        codes = hours_of(h, "weather_code", d, hrs)
+        winds = next((w for lv in near if len(w := hours_of(h, f"wind_speed_{lv}hPa", d, hrs)) == step), None)
+        if len(rains) == step and len(codes) == step and temps and winds:
+            rows.append({"hour": start, "code": max(codes), "temp": temps[0], "wind": max(winds), "rain": sum(rains)})
+    return rows
+
+
 def build_mountains():
     mts = json.loads((ROOT / "data/mountains.json").read_text(encoding="utf-8"))
     points = [(m["lat"], m["lon"], m["elev"]) for m in mts]
@@ -248,11 +264,16 @@ def build_mountains():
             day = None
             for (_, _, use), ex in zip(MT_MODELS, extra):
                 if lead in use and ex[i] is not None and (day := mt_day(ex[i]["hourly"], d, m["elev"], True)):
+                    src = ex[i]["hourly"]
                     break
             if not day:
                 day = mt_day(r["hourly"], d, m["elev"], False)
                 if not day:
                     continue            # 値のない日は表示しない
+                src = r["hourly"]
+            # 日付を押すと開く時間ごとの予報: 今日は1時間ごと、明日・明後日は3時間ごと
+            day["step"] = 1 if lead <= 0 else 3
+            day["hours"] = mt_hours(src, d, m["elev"], day["step"]) if lead <= 2 else []
             rain, wind = day["rain"], day["wind"]
             thunder = prob.get(d)       # 雷の確率(%)。取得できなかった日は None
             if rain >= 10 or wind >= 17 or (thunder or 0) >= 50:
@@ -272,12 +293,21 @@ def build_mountains():
 def mt_detail(m, with_map=True):
     """山の日ごとの詳細(登山口の地図ボタン付き)"""
     has_t = all(d["thunder"] is not None for d in m["days"])   # 雷の確率がない日があれば列ごと出さない
-    rows = "".join(
-        f"<tr><td class='dt'>{day_label(d['date'])}</td><td>{wx(d['code'])[0]} {wx(d['code'])[1]}</td>"
-        f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td><td>{d['wind_avg']:.0f}m/s</td><td>{d['wind']:.0f}m/s</td>"
-        f"<td>{d['rain']:.1f}mm</td>" + (f"<td>{d['thunder']}%</td>" if has_t else "")
-        + f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b></td></tr>"
-        for d in m["days"])
+    rest = 2 if has_t else 1                                    # 時間ごとの行で、雷・判定の列は空ける
+    rows = ""
+    for d in m["days"]:
+        hours = d.get("hours")
+        label = (f"<button type='button' class='hbtn' aria-expanded='false'>{day_label(d['date'])}</button>"
+                 if hours else day_label(d["date"]))
+        rows += (f"<tr><td class='dt'>{label}</td><td>{wx(d['code'])[0]} {wx(d['code'])[1]}</td>"
+                 f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td><td>{d['wind_avg']:.0f}m/s</td><td>{d['wind']:.0f}m/s</td>"
+                 f"<td>{d['rain']:.1f}mm</td>" + (f"<td>{d['thunder']}%</td>" if has_t else "")
+                 + f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b></td></tr>")
+        for x in hours or []:
+            when = f"{x['hour']}時" if d["step"] == 1 else f"{x['hour']}〜{x['hour'] + 3}時"
+            rows += (f"<tr class='hr' hidden><td class='dt'>{when}</td><td>{wx(x['code'])[0]} {wx(x['code'])[1]}</td>"
+                     f"<td>{round(x['temp'])}℃</td><td colspan='2'>{x['wind']:.0f}m/s</td>"
+                     f"<td>{x['rain']:.1f}mm</td><td colspan='{rest}'></td></tr>")
     link = maplink(trailhead(m), '登山口の地図: ' + trailhead(m)) if with_map else ""
     sun = (f"<p class='muted'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</p>"
            if m.get("sun") else "")
@@ -325,6 +355,7 @@ def mountains_page(mts):
 <h2>このページについて</h2>
 <p>日本百名山と<span class='tag'>関西百名山</span>(山と溪谷社『関西百名山』)の予報です。両方に入る伊吹山・大台ヶ原山・大峰山は1つにまとめています。
 山頂の標高での予報(6〜15時)から、登山に向いた天気かを判定しています。表は7日間で、山名を押すと最大16日間の詳細が開きます。
+詳細で今日・明日・明後日の日付を押すと、時間ごとの予報(今日は1時間ごと、明日・明後日は3時間ごと。3時間ごとの行の風速・降水量はその3時間の最大・合計)が開きます。
 日の出・日の入りは本日の時刻で、平地の地平線を基準にしています(山頂ではもう少し早く昇り、遅く沈みます)。</p></div>
 """
 
@@ -780,6 +811,10 @@ text-decoration-thickness:1px;text-underline-offset:3px}.xbtn:focus-visible{outl
 .sub .dt,.sub td.l,.grid .nm{position:sticky;left:0;z-index:1;background:var(--card)}
 tr.detail .sub .dt{background:var(--hl)}
 tr.detail td>*{position:sticky;left:8px;max-width:calc(100vw - 72px)}.sub .dt{box-shadow:1px 0 0 var(--line)}
+.hbtn{all:unset;cursor:pointer;color:var(--accent);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+.hbtn[aria-expanded='false']::after{content:' ▼';font-size:10px}.hbtn[aria-expanded='true']::after{content:' ▲';font-size:10px}
+.hbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+tr.hr td{font-size:12px;color:var(--sub);padding-top:3px;padding-bottom:3px}
 .obs{margin:6px 0}.obs b{display:inline!important}  /* 表の中の b{display:block} に負けないように */
 .comment{background:var(--hl);border-radius:8px;padding:8px 12px;margin:0 0 8px;font-size:14px}
 .sub.mini td,.sub.mini th{text-align:center;padding:4px 6px}.sub.mini td b{display:block}
@@ -825,6 +860,10 @@ if(q){
     document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===c));
     region=c.dataset.r;apply();}));
 }
+document.querySelectorAll('.hbtn').forEach(btn=>btn.addEventListener('click',()=>{
+  const open=btn.getAttribute('aria-expanded')!=='true';
+  for(let r=btn.closest('tr').nextElementSibling;r&&r.classList.contains('hr');r=r.nextElementSibling)r.hidden=!open;
+  btn.setAttribute('aria-expanded',String(open));}));
 document.querySelectorAll('.nm button, .xbtn').forEach(btn=>btn.addEventListener('click',()=>{
   const d=btn.closest('tbody').querySelector('tr.detail');d.hidden=!d.hidden;
   btn.setAttribute('aria-expanded',String(!d.hidden));}));
