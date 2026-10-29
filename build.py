@@ -1276,7 +1276,7 @@ def index_page(mts, ski, spots):
     fav_mt = "".join(mt_row({**m, "days": [{**d, "hours": []} for d in m["days"]]},
                             f" class='favonly' data-fid='{e(fid('m', m))}' hidden") for m in mts)
     fav_mt_box = (f"<div class='favbox' hidden><div class='scroll'><table class='sub'>"
-                  f"<tr><th>★お気に入りの山</th>{we_head}<th></th></tr>{fav_mt}</table></div></div>")
+                  f"<tr><th><a href='mountains.html#fav'>★お気に入りの山</a></th>{we_head}<th></th></tr>{fav_mt}</table></div></div>")
     # スノー: よく行くスキー場(data/favorites.json)を常に表示する
     upto = we[-1]
     fav_rows = ""
@@ -1452,6 +1452,9 @@ document.querySelectorAll('.nm button:not(.star), .xbtn').forEach(btn=>btn.addEv
   btn.setAttribute('aria-expanded',String(!d.hidden));}));
 document.addEventListener('click',ev=>{        // 「飲食店」の一覧は、外を押したら閉じる
   document.querySelectorAll('details.menu[open]').forEach(m=>{if(!m.contains(ev.target))m.open=false;});});
+// #fav で来たときは「★お気に入り」の絞り込みを選んだ状態にする(トップページの「★お気に入りの山」から)
+const favChip=location.hash==='#fav'&&document.querySelector(".chip[data-r='fav']");
+if(favChip)favChip.click();
 const target=location.hash&&document.getElementById(location.hash.slice(1));
 if(target){
   const d=target.querySelector('tr.detail'),b=target.querySelector('.nm button:not(.star)');
