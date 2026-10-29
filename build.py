@@ -235,13 +235,25 @@ def local_food(lat, lon, pref):
     return PREF_FOOD.get(pref)
 
 
-def foodlink(lat, lon, pref):
-    """その地点の周りで、ご当地の名物の店を Google マップで検索するボタン"""
+# 「近くのお店」のジャンル(表示名, 検索する言葉)。ページごとに、よく使いそうなものを上に置く
+SHOP_GENRES = {
+    "mountain": [("定食・食堂", "定食"), ("ラーメン", "ラーメン"), ("カフェ", "カフェ"), ("焼肉", "焼肉"), ("ファミレス", "ファミレス")],
+    "ski": [("ラーメン", "ラーメン"), ("焼肉", "焼肉"), ("ファミレス", "ファミレス"), ("定食・食堂", "定食"), ("カフェ", "カフェ")],
+    "surf": [("カフェ", "カフェ"), ("定食・食堂", "定食"), ("ラーメン", "ラーメン"), ("焼肉", "焼肉"), ("ファミレス", "ファミレス")],
+}
+
+
+def foodlink(lat, lon, pref, page):
+    """「近くのお店」ボタン。押すとジャンル(先頭はご当地の名物)の一覧が開き、選ぶと Google マップでその地点の周りを探す"""
+    genres = SHOP_GENRES[page]
     food = local_food(lat, lon, pref)
-    if not food:
-        return ""
-    url = f"https://www.google.com/maps/search/{urllib.parse.quote(food)}/@{lat},{lon},13z"
-    return f" <a class='mapbtn' href='{e(url)}' target='_blank' rel='noopener'>🍜 ご当地：{e(food)}</a>"
+    if food:
+        genres = [(f"ご当地：{food}", food)] + genres
+    items = "".join(
+        f"<a href='{e(f'https://www.google.com/maps/search/{urllib.parse.quote(q)}/@{lat},{lon},13z')}' "
+        f"target='_blank' rel='noopener'>{e(label)}</a>" for label, q in genres)
+    return (f" <details class='menu'><summary class='mapbtn'>🍴 近くのお店</summary>"
+            f"<div class='menu-list'>{items}</div></details>")
 
 
 def michilink(lat, lon):
@@ -445,7 +457,7 @@ def mt_detail(m, with_map=True, compact=False):
         place = maplink(f"{a['lat']},{a['lon']}", label)
     near = m.get("access") or m            # 温泉は駐車場・登山口の位置(分からなければ山頂)の周りで探す
     link = (routelinks(m) + place + " " + onsenlink(near["lat"], near["lon"])
-            + foodlink(near["lat"], near["lon"], m["prefs"][0]) + michilink(near["lat"], near["lon"])
+            + foodlink(near["lat"], near["lon"], m["prefs"][0], "mountain") + michilink(near["lat"], near["lon"])
             + conbilink(near["lat"], near["lon"])) if with_map else ""
     sun = (f"<p class='muted'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</p>"
            if m.get("sun") else "")
@@ -679,7 +691,7 @@ def ski_detail(s, with_map=True, simple=False):
     if with_map:                # 公式ページ・ゲレンデマップ(分かるスキー場だけ)・駐車場の地図
         link = ((sitelink(s["site"], "🏠 公式ページ") + " " if s.get("site") else "")
                 + (sitelink(s["map"], "🗺️ ゲレンデマップ") + " " if s.get("map") else "")
-                + maplink(s['name'] + ' 第1駐車場', '駐車場の地図') + " " + onsenlink(s["lat"], s["lon"]) + foodlink(s["lat"], s["lon"], s["pref"]) + michilink(s["lat"], s["lon"]) + conbilink(s["lat"], s["lon"]) + " ")
+                + maplink(s['name'] + ' 第1駐車場', '駐車場の地図') + " " + onsenlink(s["lat"], s["lon"]) + foodlink(s["lat"], s["lon"], s["pref"], "ski") + michilink(s["lat"], s["lon"]) + conbilink(s["lat"], s["lon"]) + " ")
     am = s.get("amedas")
     obs = ""
     if am:
@@ -867,7 +879,7 @@ def surf_page(spots):
     cards = ""
     for s in spots:
         cards += (f"<section class='card' id='{s['key']}'><h3>{e(s['name'])} <small>{e(s['pref'])} · "
-                  f"浜の向き {dir_name(s['facing'])}</small> {maplink(s['parking'], '駐車場の地図')} {onsenlink(s['lat'], s['lon'])}{foodlink(s['lat'], s['lon'], s['pref'][:s['pref'].index('県') + 1] if '県' in s['pref'] else s['pref'][:3])}{michilink(s['lat'], s['lon'])}{conbilink(s['lat'], s['lon'])}</h3>"
+                  f"浜の向き {dir_name(s['facing'])}</small> {maplink(s['parking'], '駐車場の地図')} {onsenlink(s['lat'], s['lon'])}{foodlink(s['lat'], s['lon'], s['pref'][:s['pref'].index('県') + 1] if '県' in s['pref'] else s['pref'][:3], "surf")}{michilink(s['lat'], s['lon'])}{conbilink(s['lat'], s['lon'])}</h3>"
                   f"{surf_table(s)}"
                   f"<p class='muted'>波は沖合({s['grid'][0]:.2f}, {s['grid'][1]:.2f})の予報</p></section>")
     return f"""
@@ -1036,7 +1048,14 @@ a{color:var(--accent)}
 .sub td.l{white-space:normal;min-width:120px}
 .mapbtn{display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;border:1px solid var(--line);
 background:var(--card);color:var(--accent);text-decoration:none;white-space:nowrap}
-.mapbtn:hover{border-color:var(--accent)}.mapbtn img{vertical-align:-2px;margin-right:4px;border-radius:3px}
+.mapbtn:hover{border-color:var(--accent)}
+.menu{display:inline-block;position:relative;vertical-align:top}
+.menu>summary{list-style:none;cursor:pointer}.menu>summary::-webkit-details-marker{display:none}
+.menu>summary::after{content:' ▼';font-size:10px}.menu[open]>summary::after{content:' ▲'}
+.menu-list{position:absolute;z-index:20;top:calc(100% + 4px);left:0;min-width:170px;padding:4px 0;background:var(--card);
+border:1px solid var(--line);border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.menu-list a{display:block;padding:7px 14px;font-size:13px;font-weight:400;color:var(--accent);text-decoration:none;white-space:nowrap}
+.menu-list a:hover{background:var(--hl)}.mapbtn img{vertical-align:-2px;margin-right:4px;border-radius:3px}
 tr.detail .mapbtn{margin:0 0 8px}
 .xbtn{all:unset;cursor:pointer;display:block}.xbtn b{color:var(--accent);text-decoration:underline;
 text-decoration-thickness:1px;text-underline-offset:3px}.xbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -1103,6 +1122,8 @@ document.querySelectorAll('.hbtn').forEach(btn=>btn.addEventListener('click',()=
 document.querySelectorAll('.nm button, .xbtn').forEach(btn=>btn.addEventListener('click',()=>{
   const d=btn.closest('tbody').querySelector('tr.detail');d.hidden=!d.hidden;
   btn.setAttribute('aria-expanded',String(!d.hidden));}));
+document.addEventListener('click',ev=>{        // 「近くのお店」の一覧は、外を押したら閉じる
+  document.querySelectorAll('details.menu[open]').forEach(m=>{if(!m.contains(ev.target))m.open=false;});});
 const target=location.hash&&document.getElementById(location.hash.slice(1));
 if(target){
   const d=target.querySelector('tr.detail'),b=target.querySelector('.nm button');
