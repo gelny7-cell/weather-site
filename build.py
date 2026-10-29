@@ -138,6 +138,21 @@ def trailhead(m):
     return m.get("trailhead") or f"{m['name']} 登山口 {m['prefs'][0]}"
 
 
+def sitelink(url, label):
+    """外部サイトへのボタン(新しいタブで開く)"""
+    return f"<a class='mapbtn' href='{e(url)}' target='_blank' rel='noopener'>{e(label)}</a>"
+
+
+def routelinks(m):
+    """ヤマレコ・YAMAP の山のページ(モデルコースの一覧)へのボタン。番号が分からない山は出さない"""
+    out = ""
+    if m.get("yamareco"):
+        out += " " + sitelink(f"https://www.yamareco.com/modules/yamainfo/ptinfo.php?ptid={m['yamareco']}", "ヤマレコのモデルコース")
+    if m.get("yamap"):
+        out += " " + sitelink(f"https://yamap.com/mountains/{m['yamap']}#mountains-id-model-course", "YAMAPのモデルコース")
+    return out
+
+
 def maplink(query, label):
     """Google マップの検索リンク(場所名で検索する。新しいタブで開く)"""
     url = "https://www.google.com/maps/search/?api=1&query=" + urllib.parse.quote(query)
@@ -308,7 +323,7 @@ def mt_detail(m, with_map=True):
             rows += (f"<tr class='hr' hidden><td class='dt'>{when}</td><td>{wx(x['code'])[0]} {wx(x['code'])[1]}</td>"
                      f"<td>{round(x['temp'])}℃</td><td colspan='2'>{x['wind']:.0f}m/s</td>"
                      f"<td>{x['rain']:.1f}mm</td><td colspan='{rest}'></td></tr>")
-    link = maplink(trailhead(m), '登山口の地図: ' + trailhead(m)) if with_map else ""
+    link = maplink(trailhead(m), '登山口の地図: ' + trailhead(m)) + routelinks(m) if with_map else ""
     sun = (f"<p class='muted'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</p>"
            if m.get("sun") else "")
     return (f"{link}{sun}<div class='scroll'><table class='sub'>"
