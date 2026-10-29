@@ -1276,7 +1276,7 @@ def index_page(mts, ski, spots):
     fav_mt = "".join(mt_row({**m, "days": [{**d, "hours": []} for d in m["days"]]},
                             f" class='favonly' data-fid='{e(fid('m', m))}' hidden") for m in mts)
     fav_mt_box = (f"<div class='favbox' hidden><div class='scroll'><table class='sub'>"
-                  f"<tr><th><a href='mountains.html#fav'>★お気に入りの山</a></th>{we_head}<th></th></tr>{fav_mt}</table></div></div>")
+                  f"<tr><th><a href='mountains.html#fav'><span class='favmark'>★</span>お気に入りの山</a></th>{we_head}<th></th></tr>{fav_mt}</table></div></div>")
     # スノー: よく行くスキー場(data/favorites.json)を常に表示する
     upto = we[-1]
     fav_rows = ""
@@ -1372,7 +1372,7 @@ tbody[id],section[id]{scroll-margin-top:56px}   /* 上に固定したメニュ�
 .alert{margin:6px 0;color:var(--r0);font-size:13px;font-weight:600}.alert small{font-weight:400;margin-left:4px}
 .tag.danger{background:var(--hyaku-bg);color:var(--r0);font-weight:600}
 .star{all:unset;cursor:pointer;float:left;font-size:18px;line-height:1;padding:2px 6px 2px 0;color:var(--muted)}
-.star[aria-pressed='true']{color:var(--fav)}
+.star[aria-pressed='true'],.favmark{color:var(--fav)}
 .star:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 h3 .star{float:none;margin-right:4px}
 .favbox h3{font-size:14px;margin:4px 0}
