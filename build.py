@@ -594,13 +594,14 @@ def build_surf():
             slots = []
             for name, hrs in (("朝", range(6, 12)), ("昼", range(12, 18))):
                 hgt = hours_of(w["hourly"], "wave_height", d, hrs)
-                per = hours_of(w["hourly"], "wave_period", d, hrs)
+                per = hours_of(w["hourly"], "swell_wave_period", d, hrs)     # 周期はうねりの周期(風波を含めない)
+                swh = hours_of(w["hourly"], "swell_wave_height", d, hrs)
                 wdir = hours_of(w["hourly"], "wave_direction", d, hrs)
                 ws = hours_of(f["hourly"], "wind_speed_10m", d, hrs)
                 wd = hours_of(f["hourly"], "wind_direction_10m", d, hrs)
                 codes = hours_of(f["hourly"], "weather_code", d, hrs)
                 # 時間帯の半分以上の時刻に値がなければ、その時間帯は表示しない
-                if min(len(hgt), len(per), len(wdir), len(ws), len(wd), len(codes)) < len(hrs) / 2:
+                if min(len(hgt), len(per), len(swh), len(wdir), len(ws), len(wd), len(codes)) < len(hrs) / 2:
                     continue
                 h_, p_, w_ = sum(hgt) / len(hgt), sum(per) / len(per), sum(ws) / len(ws)
                 wdeg = mean_dir(wd, ws)
@@ -621,7 +622,7 @@ def build_surf():
                     if h_ > 2.0:
                         score = min(score, 1)
                     score = max(score, 0)
-                slots.append({"slot": name, "height": h_, "period": p_,
+                slots.append({"slot": name, "height": h_, "period": p_, "swell": sum(swh) / len(swh),
                               "wave_dir": mean_dir(wdir), "wind": w_, "wind_dir": wdeg,
                               "kind": kind, "score": score,
                               "code": max(codes)})
@@ -638,12 +639,13 @@ def surf_table(s):
             mark, cls = RATE[sl["score"]]
             date_cell = (f"<td rowspan='{len(d['slots'])}' class='dt'>{day_label(d['date'])}</td>" if i == 0 else "")
             rows += (f"<tr>{date_cell}<td>{sl['slot']}</td><td class='{cls}'><b>{mark}</b></td>"
-                     f"<td>{sl['height']:.1f}m <small>{_size(sl['height'])}</small></td><td>{sl['period']:.1f}秒</td>"
+                     f"<td>{sl['height']:.1f}m <small>{_size(sl['height'])}</small></td>"
+                     f"<td>{sl['swell']:.1f}m</td><td>{sl['period']:.1f}秒</td>"
                      f"<td>{dir_name(sl['wave_dir'])}</td>"
                      f"<td>{dir_name(sl['wind_dir'])} {sl['wind']:.1f}m/s <small>{sl['kind']}</small></td>"
                      f"<td>{wx(sl['code'])[0]}</td></tr>")
     return ("<div class='scroll'><table class='sub'>"
-            "<tr><th class='dt'>日付</th><th></th><th>判定</th><th>波の高さ</th><th>周期</th><th>波の向き</th>"
+            "<tr><th class='dt'>日付</th><th></th><th>判定</th><th>波の高さ</th><th>うねり</th><th>うねりの周期</th><th>波の向き</th>"
             f"<th>風</th><th>天気</th></tr>{rows}</table></div>")
 
 
@@ -658,10 +660,11 @@ def surf_page(spots):
 <h1>サーフィン 波と風</h1>
 {cards}
 <div class='note'><h2>判定の基準</h2><ul>
-<li><b class='r3'>◎</b> 波0.6〜2.0mで周期7秒以上(オフショアの弱い風なら一段上げる)</li>
-<li><b class='r1'>△</b> 周期5秒未満の風波、5m/s以上のオンショア、2mを超える大きな波(上級者向け)で一段下げる</li>
+<li><b class='r3'>◎</b> 波0.6〜2.0mでうねりの周期7秒以上(オフショアの弱い風なら一段上げる)</li>
+<li><b class='r1'>△</b> うねりの周期5秒未満、5m/s以上のオンショア、2mを超える大きな波(上級者向け)で一段下げる</li>
 <li><b class='r0'>×</b> 0.3m未満(フラット)、または3mを超える荒れた海</li>
-<li>オフショア=陸から海へ吹く風(波の面が整いやすい)、オンショア=海から陸へ吹く風</li></ul>
+<li>オフショア=陸から海へ吹く風(波の面が整いやすい)、オンショア=海から陸へ吹く風</li>
+<li>波の高さ=風波とうねりを合わせた高さ。うねり=遠くから届く波だけの高さと周期(周期が長いほど力のある波)</li></ul>
 <h2>このページについて</h2>
 <p>朝(6〜11時)と昼(12〜17時)の平均です。波の高さは沖合の予報で、浜では地形や向きにより小さくなることが多いです。</p></div>
 """
@@ -693,7 +696,7 @@ def surf_comments(spots, we):
                     "サーフィンには厳しそうです。")
         else:
             text = (f"{when}の{s['name']}が{RATE[sl['score']][0]}。{_size(sl['height'])}({sl['height']:.1f}m)の"
-                    f"{dir_name(sl['wave_dir'])}からの{_swell(sl['period'])}(周期{sl['period']:.1f}秒)に、"
+                    f"{dir_name(sl['wave_dir'])}からの{_swell(sl['period'])}(うねり{sl['swell']:.1f}m・周期{sl['period']:.1f}秒)に、"
                     f"{dir_name(sl['wind_dir'])}の風{sl['wind']:.1f}m/s({sl['kind']})の予報です。")
         # 土日の波の高さの変化
         if len(we) == 2:
@@ -772,7 +775,7 @@ def index_page(mts, ski, spots):
                 continue
             for sl in d["slots"]:
                 mark, cls = RATE[sl["score"]]
-                cells += (f"<td class='{cls}' title='{sl['height']:.1f}m {sl['period']:.1f}秒 {sl['kind']}'>"
+                cells += (f"<td class='{cls}' title='波{sl['height']:.1f}m うねり{sl['swell']:.1f}m 周期{sl['period']:.1f}秒 {sl['kind']}'>"
                           f"<b>{mark}</b><small class='muted'>{sl['height']:.1f}m</small></td>")
         surf_rows += expand_row(f"<b>{e(s['name'])}</b>",
                                 cells + f"<td>{maplink(s['parking'], '駐車場')}</td>", surf_table(s), 6)
