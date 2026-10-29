@@ -319,30 +319,35 @@ def build_mountains():
     return align(mts, "登山")
 
 
-def mt_detail(m, with_map=True):
-    """山の日ごとの詳細(登山口の地図ボタン付き)"""
-    has_t = all(d["thunder"] is not None for d in m["days"])   # 雷の確率がない日があれば列ごと出さない
-    rest = 2 if has_t else 1                                    # 時間ごとの行で、雷・判定の列は空ける
+def mt_detail(m, with_map=True, compact=False):
+    """山の日ごとの詳細(登山口の地図ボタン付き)。判定は日付のすぐ右。
+    compact=True はトップページ用で、最大風速と雷の確率を出さない"""
+    has_t = not compact and all(d["thunder"] is not None for d in m["days"])   # 雷の確率がない日があれば列ごと出さない
     rows = ""
     for d in m["days"]:
         hours = d.get("hours")
         label = (f"<button type='button' class='hbtn' aria-expanded='false'>{day_label(d['date'])}</button>"
                  if hours else day_label(d["date"]))
-        rows += (f"<tr><td class='dt'>{label}</td><td>{wx(d['code'])[0]} {wx(d['code'])[1]}</td>"
-                 f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td><td>{d['wind_avg']:.0f}m/s</td><td>{d['wind']:.0f}m/s</td>"
-                 f"<td>{d['rain']:.1f}mm</td>" + (f"<td>{d['thunder']}%</td>" if has_t else "")
-                 + f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b></td></tr>")
+        rows += (f"<tr><td class='dt'>{label}</td>"
+                 f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b></td>"
+                 f"<td>{wx(d['code'])[0]} {wx(d['code'])[1]}</td>"
+                 f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td><td>{d['wind_avg']:.0f}m/s</td>"
+                 + ("" if compact else f"<td>{d['wind']:.0f}m/s</td>")
+                 + f"<td>{d['rain']:.1f}mm</td>" + (f"<td>{d['thunder']}%</td>" if has_t else "") + "</tr>")
         for x in hours or []:
             when = f"{x['hour']}時" if d["step"] == 1 else f"{x['hour']}〜{x['hour'] + 3}時"
-            rows += (f"<tr class='hr' hidden><td class='dt'>{when}</td><td>{wx(x['code'])[0]} {wx(x['code'])[1]}</td>"
-                     f"<td>{round(x['temp'])}℃</td><td colspan='2'>{x['wind']:.0f}m/s</td>"
-                     f"<td>{x['rain']:.1f}mm</td><td colspan='{rest}'></td></tr>")
+            # 時間ごとの行: 判定・雷は空ける。風速は平均・最大の2列にまたがって出す
+            rows += (f"<tr class='hr' hidden><td class='dt'>{when}</td><td></td>"
+                     f"<td>{wx(x['code'])[0]} {wx(x['code'])[1]}</td><td>{round(x['temp'])}℃</td>"
+                     f"<td colspan='{1 if compact else 2}'>{x['wind']:.0f}m/s</td>"
+                     f"<td>{x['rain']:.1f}mm</td>" + ("<td></td>" if has_t else "") + "</tr>")
     link = routelinks(m) + maplink(trailhead(m), trailhead_label(m)) if with_map else ""
     sun = (f"<p class='muted'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</p>"
            if m.get("sun") else "")
     return (f"{link}{sun}<div class='scroll'><table class='sub'>"
-            "<tr><th class='dt'>日付</th><th>天気(6〜15時)</th><th>山頂付近の気温</th><th>平均風速</th><th>最大風速</th>"
-            f"<th>降水量</th>{'<th>雷の確率</th>' if has_t else ''}<th>判定</th></tr>{rows}</table></div>")
+            "<tr><th class='dt'>日付</th><th>判定</th><th>天気(6〜15時)</th><th>山頂付近の気温</th><th>平均風速</th>"
+            + ("" if compact else "<th>最大風速</th>")
+            + f"<th>降水量</th>{'<th>雷の確率</th>' if has_t else ''}</tr>{rows}</table></div>")
 
 
 def mountains_page(mts):
@@ -516,10 +521,10 @@ def ski_detail(s, with_map=True, simple=False):
             rain = f" <span class='tag warn'>雨{d['rain']:.0f}mm</span>" if d["rain"] >= 1 else ""
             rows += (f"<tr><td class='dt'>{day_label(d['date'])}</td><td>{icon} {label}{rain}</td>"
                      f"<td>{d['snow']:.0f}cm{powder}</td><td>{d['depth']:.0f}cm</td>"
-                     f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td><td>{d['fl']:,.0f}m</td>"
+                     f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td>"
                      f"<td>{d['gust']:.0f}m/s</td></tr>")
         return ("<div class='scroll'><table class='sub'><tr><th class='dt'>日付</th><th>天気</th><th>新雪</th>"
-                "<th>積雪</th><th>気温</th><th>0℃の高さ(日中)</th><th>最大瞬間風速</th></tr>"
+                "<th>積雪</th><th>気温</th><th>最大瞬間風速</th></tr>"
                 f"{rows}</table></div>")
     def weather(code, rain):
         icon, label = wx(code)
@@ -815,7 +820,7 @@ def index_page(mts, ski, spots):
         tag = tags(m)
         mt_rows += expand_row(f"<b>{e(m['name'])}</b>{tag}<br><small class='muted'>"
                               f"{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>",
-                              cells, mt_detail(m, with_map=False), 3)
+                              cells, mt_detail(m, with_map=False, compact=True), 3)
     we_head = "".join(f"<th>{day_label(d)}</th>" for d in we)
     mt_list = (f"<div class='scroll'><table class='sub'><tr><th>山</th>{we_head}</tr>"
                f"{mt_rows}</table></div>" if mt_rows else "<p>週末に条件の良い山は見当たりません</p>")
