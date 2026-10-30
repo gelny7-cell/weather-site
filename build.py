@@ -1015,6 +1015,15 @@ SKI_REGIONS = {
     "九州": ["福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県"],
 }
 PREF_SKI_REGION = {p: r for r, ps in SKI_REGIONS.items() for p in ps}
+# パウダー期待の基準(上部の新雪cm, 上部の最高気温℃)。地域ごとに変え、雪の少ない地域でも「その地域にしては良い雪」の日が分かるようにする。
+# 2023-24・2024-25年の冬の気象データで、どの地域でも1冬に数日ほどになる見当で決めた(過去データは山の雪を少なめに出すので目安)
+POWDER = {"北海道": (15, -5), "東北": (15, -3), "関東": (15, -3), "新潟": (15, -3), "長野": (15, -3),
+          "北陸": (10, -2), "東海": (10, -2), "近畿": (5, -1), "中国・四国": (5, -1), "九州": (5, -1)}
+
+
+def is_powder(s, d):
+    snow, tmax = POWDER[PREF_SKI_REGION[s["pref"]]]
+    return d["snow"] >= snow and d["tmax"] <= tmax
 
 
 def ski_hours_line(s):
@@ -1074,7 +1083,7 @@ def ski_detail(s, with_map=True, simple=False):
         rows = ""
         for d in s["days"]:
             icon, label = wx(d["code"])
-            powder = " <span class='tag'>パウダー期待</span>" if d["snow"] >= 10 and d["tmax"] <= -2 else ""
+            powder = " <span class='tag'>パウダー期待</span>" if is_powder(s, d) else ""
             rain = f" <span class='tag warn'>雨{d['rain']:.0f}mm</span>" if d["rain"] >= 1 else ""
             rows += (f"<tr><td class='dt'>{day_label(d['date'])}</td><td>{icon} {label}{rain}</td>"
                      f"<td>{d['snow']:.0f}cm{powder}</td><td>{d['depth']:.0f}cm</td>"
@@ -1096,7 +1105,7 @@ def ski_detail(s, with_map=True, simple=False):
         return f"{icon} {label}{tag}"
     rows = ""
     for d in s["days"]:
-        powder = " <span class='tag'>パウダー期待</span>" if d["snow"] >= 10 and d["tmax"] <= -2 else ""
+        powder = " <span class='tag'>パウダー期待</span>" if is_powder(s, d) else ""
         label = (f"<button type='button' class='hbtn' aria-expanded='false'>{day_label(d['date'])}</button>"
                  if d.get("hours") else day_label(d["date"]))
         rows += (f"<tr><td class='dt'>{label}</td>"
@@ -1155,14 +1164,16 @@ def ski_page(ski):
                 cells += (f"<td title='{e(label)} {round(d['tmin'])}〜{round(d['tmax'])}℃'>"
                           f"<b class='{snow_cls}'>{d['snow']:.0f}</b><small>{icon}</small></td>")
             total7 = sum(d["snow"] for d in s["days"][:TOP_DAYS])
+            powder7 = " data-powder='1'" if any(is_powder(s, d) for d in s["days"][:TOP_DAYS]) else ""
             rows += (
-                f"<tbody class='mt' id='{s['key']}' data-fid='{e(fid('s', s))}' data-region='{r}' data-name='{e(s['name'] + s.get('yomi', ''))}'>"
+                f"<tbody class='mt' id='{s['key']}' data-fid='{e(fid('s', s))}' data-region='{r}' data-name='{e(s['name'] + s.get('yomi', ''))}'{powder7}>"
                 f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
                 f"<span>{e(s['name'])}</span>{alert_tags(s)}<small>{e(s['pref'])} · 7日間 {total7:.0f}cm</small>"
                 f"</button></th>{cells}</tr>"
                 f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{ski_detail(s)}</td></tr></tbody>")
     chips = ("<button class='chip on' data-r=''>すべて</button>"
              + "<button class='chip' data-r='fav'>★お気に入り</button>"
+             + "<button class='chip' data-r='powder'>❄️パウダー期待</button>"
              + "".join(f"<button class='chip' data-r='{r}'>{r}</button>" for r in used))
     cards = f"""
 <div class='filters'><input id='q' type='search' placeholder='スキー場名で絞り込み' aria-label='スキー場名で絞り込み'>
@@ -1175,7 +1186,7 @@ def ski_page(ski):
 <li>新雪: 前日17時〜当日8時(ゲレンデが閉まってから開くまで)に降る雪の量の予報</li>
 <li>積雪: 朝9時に積もっている雪の深さの予報(気象モデルの推定。実際の積雪と大きく違うことがあります)</li>
 <li>ゲレンデ積雪: スキー場が報告した積雪深(平均)・前日比・雪質・ゲレンデ状況で、<a href='https://surfsnow.jp/'>SURF&amp;SNOW</a> の積雪情報から朝・昼に取得しています。報告がないスキー場・日は表示しません</li>
-<li><span class='tag'>パウダー期待</span> 上部の新雪が10cm以上で、上部の最高気温が-2℃以下</li>
+<li><span class='tag'>パウダー期待</span> 上部の新雪と最高気温が、地域ごとの基準を満たす日です(北海道 15cm以上・-5℃以下、東北・関東・新潟・長野 15cm以上・-3℃以下、北陸・東海 10cm以上・-2℃以下、近畿・中国・四国・九州 5cm以上・-1℃以下)。雪の少ない地域でも「その地域にしては良い雪」の日が分かるようにしています。「❄️パウダー期待」のボタンで、7日間のうちにパウダー期待の日があるスキー場だけに絞り込めます</li>
 <li>🧊 アイスバーン注意: 前日に上部で雨が降ったか0℃を超え、夜〜朝の上部の最低気温が-2℃以下で、新雪が3cm未満の日(湿った雪が凍って硬くなりやすい)</li>
 <li>体感温度: 上部の気温と風速から求めた、8〜16時で最も低い値。平均風速には風向(風が吹いてくる方角)も表示しています</li>
 <li>朝の路面: ふもと(ゲレンデ下部)の3〜8時の最低気温。<span class='tag danger'>凍結注意</span> 1℃以下。冬用タイヤ・チェーンの準備の目安です(実際の路面は除雪や日当たりで変わります)</li>
@@ -1636,7 +1647,7 @@ if(q){
   let region='';
   apply=()=>{const t=q.value.trim();
     document.querySelectorAll('tbody.mt').forEach(b=>{
-      const inRegion=!region||b.dataset.region===region||(region==='fav'&&b.dataset.fav)
+      const inRegion=!region||b.dataset.region===region||(region==='fav'&&b.dataset.fav)||(region==='powder'&&b.dataset.powder)
         ||(region.startsWith('pref:')&&(b.dataset.prefs||'').split(',').includes(region.slice(5)));
       b.hidden=!(inRegion&&(!t||b.dataset.name.includes(t)));});};
   q.addEventListener('input',apply);
