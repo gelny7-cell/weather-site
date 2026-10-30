@@ -900,13 +900,44 @@ PREF_SKI_REGION = {p: r for r, ps in SKI_REGIONS.items() for p in ps}
 
 
 def ski_hours_line(s):
-    """営業時間の行(ウェザーニュースの掲載情報。営業時間は年ごとにあまり変わらないので一度取って保存している)"""
+    """営業時間の文字(ウェザーニュースの掲載情報。営業時間は年ごとにあまり変わらないので一度取って保存している)"""
     h = s.get("hours")
     if not h:
         return ""
     time_ = h["day"] if h["day"] == h["holiday"] else f"平日 {h['day']} ／ 休日 {h['holiday']}"
     night = f" · ナイター {h['night']}" if h.get("night") else ""
-    return f"<p class='muted'>🕘 営業時間 {time_}{night}</p>"
+    return f"{time_}{night}"
+
+
+def ski_info(s):
+    """「スキー場詳細」ボタン。押すと営業時間・リフト券・コースのデータ・パークの有無が開く(分かる項目だけ)。
+    データは公式サイトに書いてあればその値、なければ SURF&SNOW の値(data の spec)"""
+    sp, rows = s.get("spec", {}), []
+    def row(label, value):
+        rows.append(f"<div><span class='muted'>{label}</span> {value}</div>")
+    if s.get("hours"):
+        row("🕘 営業時間", ski_hours_line(s))
+    t = s.get("ticket")
+    if t:
+        row("🎫 リフト1日券(大人)", f"{t['adult']:,}円 <small class='muted'>{t['season'][2:4]}-{t['season'][7:9]}シーズン</small>")
+    if sp.get("courses") or sp.get("lifts"):
+        row("🎿 コース・リフト", " ／ ".join(x for x in (f"{sp['courses']}コース" if sp.get("courses") else "",
+                                                        f"リフト{sp['lifts']}基" if sp.get("lifts") else "") if x))
+    if sp.get("longest") or sp.get("max_slope"):
+        row("📏 最長滑走・最大斜度", " ／ ".join(x for x in (f"{sp['longest']:,}m" if sp.get("longest") else "",
+                                                          f"{sp['max_slope']}度" if sp.get("max_slope") else "") if x))
+    if sp.get("vertical"):
+        row("⛰️ 標高差", f"{sp['vertical']:,}m" + (f" <small class='muted'>({sp['base']:,}〜{sp['peak']:,}m)</small>" if sp.get("peak") and sp.get("base") else ""))
+    if sp.get("level"):
+        row("📊 難易度", " ".join(f"{k}{v}%" for k, v in sp["level"].items()))
+    if sp.get("groom"):
+        row("❄️ 圧雪", " ".join(f"{k}{v}%" for k, v in sp["groom"].items()))
+    if s.get("park") is not None:
+        row("🛹 パーク", "あり" if s["park"] else "なし")
+    if not rows:
+        return ""
+    return (f"<details class='menu info'><summary class='mapbtn'>📋 スキー場詳細</summary>"
+            f"<div class='info-body'>{''.join(rows)}</div></details> ")
 
 
 def road(t):
@@ -975,8 +1006,8 @@ def ski_detail(s, with_map=True, simple=False):
         fresh = f"/24時間降雪:<b>{am['snow24h']}cm</b>" if am["snow24h"] is not None else ""
         obs = f"<p class='obs'>ベース積雪:<b>{am['snow']}cm</b>{fresh}</p>"
     # 文字(注意報・紹介・営業時間・標高・積雪の観測)をまとめて上に、ボタン(お気に入り登録が先頭)をその下の1か所に
-    buttons = f"<div class='btnrow'>{star('s', s)} {link}</div>" if with_map else ""
-    return (f"{alert_box(s)}{intro(s)}{ski_hours_line(s)}<p class='muted'>上部 {s['top']:,}m / 下部 {s['base']:,}m</p>{obs}"
+    buttons = f"<div class='btnrow'>{star('s', s)} {ski_info(s)}{link}</div>" if with_map else ""
+    return (f"{alert_box(s)}{intro(s)}<p class='muted'>上部 {s['top']:,}m / 下部 {s['base']:,}m</p>{obs}"
             f"{buttons}<div class='scroll'><table class='sub'>"
             "<tr><th rowspan='2' class='dt'>日付</th><th colspan='2'>天気</th><th colspan='2'>新雪</th><th rowspan='2'>積雪<br>(上部)</th>"
             "<th rowspan='2'>気温<br>(上部)</th><th rowspan='2'>体感温度<br>(上部)</th><th rowspan='2'>0℃の高さ<br>(8〜16時)</th><th rowspan='2'>平均風速<br>(上部)</th>"
@@ -1034,6 +1065,7 @@ def ski_page(ski):
 <li>上部・下部の標高: OpenStreetMap のリフトの位置と地形の標高から求めた値(一部は手作業で補正)。概算です</li>
 <li>スキー場の一覧・標高差: Wikipedia、Wikidata。リフトの位置: © OpenStreetMap contributors</li>
 <li>公式ページ・ゲレンデマップのボタンは、リンク先が確認できたスキー場だけに出しています</li>
+<li>スキー場詳細: コース数・リフト数・最長滑走距離・最大斜度・標高差は、公式サイトに書いてあればその値、なければ <a href='https://surfsnow.jp/'>SURF&amp;SNOW</a> の掲載値です。難易度・圧雪の割合とリフト1日券(大人・2026-27シーズン)、パークの有無も SURF&amp;SNOW などの掲載情報です。料金や施設は変わることがあるので、公式ページで確認してください</li>
 <li>営業時間: ウェザーニュースの掲載情報(2025-26シーズン)。今シーズンの営業日・時間は公式ページで確認してください</li></ul>
 <h2>このページについて</h2>
 <p>標高差の大きいスキー場100か所(営業を終えた芸北国際スキー場を除く)に、志賀高原 焼額山・キューピットバレイ・だいせんホワイトリゾート・スノーウェーブパーク白鳥高原を加えた一覧です。表の数字はゲレンデ上部の新雪(前日17時〜当日8時、閉場から開場までに積もる雪)の予報(cm)です。表は7日間で、スキー場名を押すと最大16日間の積雪・気温・0℃の高さ・風の詳細が開きます。</p></div>
@@ -1214,7 +1246,7 @@ def surf_page(spots):
     cards = ""
     for s in spots:
         cards += (f"<section class='card' id='{s['key']}'><h3>{e(s['name'])} <small>{e(s['pref'])} · "
-                  f"浜の向き {dir_name(s['facing'])}</small> {maplink(s['parking'], '駐車場の地図')} {onsenlink(s['lat'], s['lon'])}{foodlink(s['lat'], s['lon'], s['pref'][:s['pref'].index('県') + 1] if '県' in s['pref'] else s['pref'][:3], "surf")}{michilink(s['lat'], s['lon'])}{conbilink(s['lat'], s['lon'])}</h3>{intro(s)}{alert_box(s)}"
+                  f"浜の向き {dir_name(s['facing'])}</small> {maplink(s['parking'], '駐車場の地図')} {onsenlink(s['lat'], s['lon'])}{foodlink(s['lat'], s['lon'], s['pref'][:s['pref'].index('県') + 1] if '県' in s['pref'] else s['pref'][:3], "surf")}{michilink(s['lat'], s['lon'])}{conbilink(s['lat'], s['lon'])}</h3>{alert_box(s)}{intro(s)}"
                   f"{surf_table(s)}"
                   f"<p class='muted'>波は沖合({s['grid'][0]:.2f}, {s['grid'][1]:.2f})の予報</p></section>")
     return f"""
@@ -1397,6 +1429,7 @@ background:var(--card);color:var(--text);text-decoration:none;white-space:nowrap
 .menu>summary{list-style:none;cursor:pointer}.menu>summary::-webkit-details-marker{display:none}
 .menu>summary::after{content:' ▼';font-size:10px}.menu[open]>summary::after{content:' ▲'}
 .menu[open]>summary{background:var(--accent);border-color:var(--accent);color:#fff}
+.menu.info[open]{display:block}.info-body{margin:2px 0 10px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-size:13px;line-height:1.9;white-space:normal}.info-body .muted{display:inline-block;min-width:9.5em}
 .menu-list{display:inline;margin-left:4px}.menu-list .mapbtn{margin:0 4px 4px 0}.mapbtn img{vertical-align:-2px;margin-right:4px;border-radius:3px}
 tr.detail .mapbtn{margin:0 0 8px}
 .xlink{display:block;color:inherit;text-decoration:none}.xlink b{color:var(--accent);text-decoration:underline;
