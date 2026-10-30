@@ -969,8 +969,8 @@ def ski_detail(s, with_map=True, simple=False):
     am = s.get("amedas")
     obs = ""
     if am:
-        fresh = f" ／ 過去24時間の降雪 {am['snow24h']}cm" if am["snow24h"] is not None else ""
-        obs = (f"<p class='obs'>ベースの積雪(観測): <b>{am['snow']}cm</b>{fresh}"
+        fresh = f"/24時間降雪:<b>{am['snow24h']}cm</b>" if am["snow24h"] is not None else ""
+        obs = (f"<p class='obs'>ベース積雪:<b>{am['snow']}cm</b>{fresh}"
                f"<small class='muted'> · {am['time'].month}/{am['time'].day} {am['time'].hour}時 気象庁アメダス</small></p>")
     return (f"{star('s', s) if with_map else ''}{intro(s)}{link}{alert_box(s)}{obs}"
             f"<p class='muted'>上部 {s['top']:,}m / 下部 {s['base']:,}m</p>{ski_hours_line(s)}<div class='scroll'><table class='sub'>"
