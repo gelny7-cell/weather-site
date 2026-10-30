@@ -902,11 +902,7 @@ def ski_hours_line(s):
         return ""
     time_ = h["day"] if h["day"] == h["holiday"] else f"平日 {h['day']} ／ 休日 {h['holiday']}"
     night = f" · ナイター {h['night']}" if h.get("night") else ""
-    season = ""
-    if h.get("season"):
-        a, b = h["season"]
-        season = f" · 昨シーズン {int(a[5:7])}/{int(a[8:10])}〜{int(b[5:7])}/{int(b[8:10])}"
-    return f"<p class='muted'>🕘 営業時間 {time_}{night}{season}</p>"
+    return f"<p class='muted'>🕘 営業時間 {time_}{night}</p>"
 
 
 def road(t):
@@ -975,8 +971,7 @@ def ski_detail(s, with_map=True, simple=False):
     if am:
         fresh = f" ／ 過去24時間の降雪 {am['snow24h']}cm" if am["snow24h"] is not None else ""
         obs = (f"<p class='obs'>ベースの積雪(観測): <b>{am['snow']}cm</b>{fresh}"
-               f"<small class='muted'> · {e(am['name'])}(標高{am['alt']:,}m・{am['km']:.0f}km) "
-               f"{am['time'].month}/{am['time'].day} {am['time'].hour}時 気象庁アメダス</small></p>")
+               f"<small class='muted'> · {am['time'].month}/{am['time'].day} {am['time'].hour}時 気象庁アメダス</small></p>")
     return (f"{star('s', s) if with_map else ''}{intro(s)}{link}{alert_box(s)}{obs}"
             f"<p class='muted'>上部 {s['top']:,}m / 下部 {s['base']:,}m</p>{ski_hours_line(s)}<div class='scroll'><table class='sub'>"
             "<tr><th rowspan='2' class='dt'>日付</th><th colspan='2'>天気</th><th colspan='2'>新雪</th><th rowspan='2'>積雪<br>(上部)</th>"
@@ -1035,7 +1030,7 @@ def ski_page(ski):
 <li>上部・下部の標高: OpenStreetMap のリフトの位置と地形の標高から求めた値(一部は手作業で補正)。概算です</li>
 <li>スキー場の一覧・標高差: Wikipedia、Wikidata。リフトの位置: © OpenStreetMap contributors</li>
 <li>公式ページ・ゲレンデマップのボタンは、リンク先が確認できたスキー場だけに出しています</li>
-<li>営業時間・昨シーズンの営業期間: ウェザーニュースの掲載情報(2025-26シーズン)。今シーズンの営業日・時間は公式ページで確認してください</li></ul>
+<li>営業時間: ウェザーニュースの掲載情報(2025-26シーズン)。今シーズンの営業日・時間は公式ページで確認してください</li></ul>
 <h2>このページについて</h2>
 <p>標高差の大きいスキー場100か所(営業を終えた芸北国際スキー場を除く)に、志賀高原 焼額山・キューピットバレイ・だいせんホワイトリゾート・スノーウェーブパーク白鳥高原を加えた一覧です。表の数字はゲレンデ上部の新雪(前日17時〜当日8時、閉場から開場までに積もる雪)の予報(cm)です。表は7日間で、スキー場名を押すと最大16日間の積雪・気温・0℃の高さ・風の詳細が開きます。</p></div>
 """
