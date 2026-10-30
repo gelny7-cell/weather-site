@@ -828,7 +828,7 @@ def mountains_page(mts):
             + tags(m) + season_mark(m, days) + alert_tags(m)
             + f"<small>{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>"
             f"</button></th>{cells}</tr>"
-            f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{mt_detail(m)}</td></tr></tbody>")
+            f"<tr class='detail' hidden><td colspan='{len(days) + 1}'><template>{mt_detail(m)}</template></td></tr></tbody>")
     chips = ("<button class='chip on' data-r=''>すべて</button><button class='chip' data-r='fav'>★お気に入り</button>"
              + "".join(f"<button class='chip' data-r='{r}'>{r}</button>" for r in regions)
              + "".join(f"<button class='chip' data-r='pref:{p}'>{p.rstrip('県府')}</button>" for p in kinki)
@@ -1172,7 +1172,7 @@ def ski_page(ski):
                 f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
                 f"<span>{e(s['name'])}</span>{alert_tags(s)}<small>{e(s['pref'])} · 7日間 {total7:.0f}cm</small>"
                 f"</button></th>{cells}</tr>"
-                f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{ski_detail(s)}</td></tr></tbody>")
+                f"<tr class='detail' hidden><td colspan='{len(days) + 1}'><template>{ski_detail(s)}</template></td></tr></tbody>")
     chips = ("<button class='chip on' data-r=''>すべて</button>"
              + "<button class='chip' data-r='fav'>★お気に入り</button>"
              + "<button class='chip' data-r='powder'>❄️パウダー期待</button>"
@@ -1417,7 +1417,7 @@ def surf_page(spots):
                 f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
                 f"<span>{e(s['name'])}</span><small>{e(s['pref'])} · 浜の向き {dir_name(s['facing'])}</small>"
                 f"</button></th>{cells}</tr>"
-                f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{surf_detail(s)}</td></tr></tbody>")
+                f"<tr class='detail' hidden><td colspan='{len(days) + 1}'><template>{surf_detail(s)}</template></td></tr></tbody>")
     chips = ("<button class='chip on' data-r=''>すべて</button><button class='chip' data-r='fav'>★お気に入り</button>"
              + "".join(f"<button class='chip' data-r='{c}'>{c}</button>" for c in coasts if any(x.get("coast") == c for x in spots)))
     cards = f"""
@@ -1676,24 +1676,24 @@ if(!Array.isArray(favs))favs=DEFAULT_FAVS.slice();
 try{if(!localStorage.getItem(FKEY+'-surf')){if(!favs.some(f=>f.startsWith('w:')))favs=favs.concat(DEFAULT_FAVS.filter(f=>f.startsWith('w:')));
   localStorage.setItem(FKEY+'-surf','1');localStorage.setItem(FKEY,JSON.stringify(favs));}}catch(e){}
 const isFav=f=>favs.includes(f);
-let apply=()=>{};
+let apply=()=>{},region='';
+// 詳細は開くまで <template> に入れておき(ページを軽くするため)、初めて開いたときに組み立てる
+const paintStars=root=>root.querySelectorAll('.star').forEach(b=>{const on=isFav(b.dataset.fid);
+  b.innerHTML=on?"<span class='favmark'>★</span> お気に入り登録済み":'☆ お気に入り登録';b.setAttribute('aria-pressed',String(on));});
 const paintFavs=()=>{
-  document.querySelectorAll('.star').forEach(b=>{const on=isFav(b.dataset.fid);b.innerHTML=on?"<span class='favmark'>★</span> お気に入り登録済み":'☆ お気に入り登録';b.setAttribute('aria-pressed',String(on));});
+  paintStars(document);
   document.querySelectorAll('tbody.mt[data-fid]').forEach(b=>{b.dataset.fav=isFav(b.dataset.fid)?'1':'';});
   document.querySelectorAll('.favonly').forEach(b=>{b.hidden=!isFav(b.dataset.fid);});
   document.querySelectorAll('.favhead').forEach(h=>{h.hidden=!h.closest('table').querySelector('.favonly:not([hidden])');});
   document.querySelectorAll('.favbox').forEach(box=>{box.hidden=!box.querySelector('.favonly:not([hidden])');
     const hint=box.nextElementSibling;if(hint&&hint.classList.contains('favhint'))hint.hidden=!box.hidden;});
 };
-document.querySelectorAll('.star').forEach(b=>b.addEventListener('click',ev=>{
-  ev.stopPropagation();const f=b.dataset.fid;
-  favs=isFav(f)?favs.filter(x=>x!==f):favs.concat([f]);
-  try{localStorage.setItem(FKEY,JSON.stringify(favs));}catch(e){}
-  paintFavs();apply();}));
+const openDetail=(tb,open)=>{const d=tb.querySelector('tr.detail'),b=tb.querySelector('.nm button');if(!d)return;
+  const t=d.querySelector('template');if(t&&open){t.replaceWith(t.content.cloneNode(true));paintStars(d);}
+  d.hidden=!open;if(b)b.setAttribute('aria-expanded',String(open));};
 paintFavs();
 const q=document.getElementById('q');
 if(q){
-  let region='';
   apply=()=>{const t=q.value.trim();
     document.querySelectorAll('tbody.mt').forEach(b=>{
       const inRegion=!region||b.dataset.region===region||(region==='fav'&&b.dataset.fav)||(region==='powder'&&b.dataset.powder)
@@ -1704,24 +1704,30 @@ if(q){
     document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===c));
     region=c.dataset.r;apply();}));
 }
-document.querySelectorAll('.hbtn').forEach(btn=>btn.addEventListener('click',()=>{
-  const open=btn.getAttribute('aria-expanded')!=='true';
-  for(let r=btn.closest('tr').nextElementSibling;r&&!r.querySelector('.hbtn');r=r.nextElementSibling)if(r.classList.contains('hr'))r.hidden=!open;
-  btn.setAttribute('aria-expanded',String(open));}));
-document.querySelectorAll('.nm button').forEach(btn=>btn.addEventListener('click',()=>{
-  const d=btn.closest('tbody').querySelector('tr.detail');d.hidden=!d.hidden;
-  btn.setAttribute('aria-expanded',String(!d.hidden));}));
-document.addEventListener('click',ev=>{        // 「飲食店」の一覧は、外を押したら閉じる
-  document.querySelectorAll('details.menu[open]').forEach(m=>{if(!m.contains(ev.target))m.open=false;});});
+// ボタンの反応はページ全体で1か所で受ける(あとから組み立てた詳細の中のボタンにも効く)
+document.addEventListener('click',ev=>{
+  const star=ev.target.closest('.star');
+  if(star){const f=star.dataset.fid;
+    favs=isFav(f)?favs.filter(x=>x!==f):favs.concat([f]);
+    try{localStorage.setItem(FKEY,JSON.stringify(favs));}catch(e){}
+    paintStars(document);
+    document.querySelectorAll(`[data-fid="${CSS.escape(f)}"]`).forEach(b=>{if(b.matches('tbody.mt'))b.dataset.fav=isFav(f)?'1':'';});
+    if(region==='fav')apply();
+    return;}
+  const hb=ev.target.closest('.hbtn');
+  if(hb){const open=hb.getAttribute('aria-expanded')!=='true';
+    for(let r=hb.closest('tr').nextElementSibling;r&&!r.querySelector('.hbtn');r=r.nextElementSibling)if(r.classList.contains('hr'))r.hidden=!open;
+    hb.setAttribute('aria-expanded',String(open));return;}
+  const nb=ev.target.closest('.nm button');
+  if(nb){const tb=nb.closest('tbody');openDetail(tb,tb.querySelector('tr.detail').hidden);return;}
+  // 「飲食店」などの一覧は、外を押したら閉じる
+  document.querySelectorAll('details.menu[open]').forEach(m=>{if(!m.contains(ev.target))m.open=false;});
+});
 // #fav で来たときは「★お気に入り」の絞り込みを選んだ状態にする(トップページの「★お気に入りの山」から)
 const favChip=location.hash==='#fav'&&document.querySelector(".chip[data-r='fav']");
 if(favChip)favChip.click();
 const target=location.hash&&document.getElementById(location.hash.slice(1));
-if(target){
-  const d=target.querySelector('tr.detail'),b=target.querySelector('.nm button');
-  if(d){d.hidden=false;if(b)b.setAttribute('aria-expanded','true');}
-  target.scrollIntoView({block:'start'});
-}
+if(target){openDetail(target,true);target.scrollIntoView({block:'start'});}
 """
 
 PAGES = [("index.html", "週末"), ("mountains.html", "登山"), ("snow.html", "スノーボード"),
