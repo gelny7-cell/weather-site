@@ -693,7 +693,7 @@ def build_mountains():
     points = [(m["lat"], m["lon"], m["elev"]) for m in mts]
     hourly = ",".join(["temperature_2m", "precipitation", "weather_code", "cloud_cover"]
                       + [f"wind_speed_{p}hPa" for p, _ in LEVELS])
-    res = forecast(points, hourly=hourly, daily="sunrise,sunset")
+    res = forecast(points, hourly=hourly + ",snow_depth", daily="sunrise,sunset")   # 積雪はおまかせのモデルだけで見る
     extra = [forecast(points, hourly=hourly, models=model, forecast_days=n) for model, n, _ in MT_MODELS]
     probs = thunder_prob(mts)
     leaves, blossoms = koyo(mts), sakura(mts)
@@ -741,6 +741,9 @@ def build_mountains():
             wet = (sum(hours_of(r["hourly"], "precipitation", prev, range(12, 24)))
                    + sum(hours_of(r["hourly"], "precipitation", d, range(0, 16))))
             day["ice"] = day["tmin"] <= 0 and (wet >= 0.5 or day["tmin"] <= -3)
+            # 山頂付近の積雪: 6〜15時の積雪深の予報が5cm以上なら ❄️(格子が粗く山では実際とずれやすいので目安)
+            depth = hours_of(r["hourly"], "snow_depth", d, range(6, 16)) if "snow_depth" in r["hourly"] else []
+            day["snowy"] = bool(depth) and max(depth) >= 0.05
             m["days"].append({"date": d, "score": score, "thunder": thunder, "koyo": leaves[i].get(d), "sakura": blossoms[i].get(d), **day})
     return align(mts, "登山")
 
@@ -761,7 +764,8 @@ def mt_detail(m, with_map=True, compact=False):
                  f"<td>{wx(d['code'])[0]} {wx(d['code'])[1]}</td>"
                  + (f"<td class='{RATE[d['view']][1]}'>{VIEW[d['view']]}</td>" if has_v else "")
                  + f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃"
-                 + (" <span class='fac' title='凍結注意' role='img' aria-label='凍結注意'>🧊</span>" if d.get("ice") and not compact else "") + "</td>"
+                 + (" <span class='fac' title='凍結注意' role='img' aria-label='凍結注意'>🧊</span>" if d.get("ice") and not compact else "")
+                 + (" <span class='fac' title='積雪あり(山頂付近の予報で5cm以上)' role='img' aria-label='積雪あり'>❄️</span>" if d.get("snowy") and not compact else "") + "</td>"
                  + ("" if compact else f"<td>{round(d['feel'])}℃</td>")
                  + f"<td>{d['wind_avg']:.0f}m/s</td>"
                  + ("" if compact else f"<td>{d['wind']:.0f}m/s</td>")
@@ -846,6 +850,7 @@ def mountains_page(mts):
 <p>展望: 6〜12時の雲の量の平均で、◎20%未満・○50%未満・△80%未満・×それ以上(霧の時間があれば×)。眺めの目安です。</p>
 <p>🌸 桜(予想): 山頂付近(1,500mより高い山は標高1,500m付近)の気温から、2月1日からの最高気温の合計が600℃に達した日を開花とし、開花から4〜11日目を見ごろとしました(600℃の法則。吉野山・高尾山・六甲山・金剛山・弘前公園の2024・2025年の満開の時期と合わせた目安です)。麓は山頂付近より早く咲きます。</p>
 <p>🍁 紅葉(予想): 山頂付近(2,400mより高い山は標高2,400m付近)の最低気温の7日平均から予想しています。8℃を下回ると色づき始め、6℃を下回ってから3℃を下回るまで(長くても18日間)を見ごろとしました(2024・2025年の気温で、涸沢・大台ヶ原・金剛山・六甲山・高尾山など10か所の例年の見ごろと合わせた目安です)。中腹や麓の見ごろは山頂付近より遅くなります。</p>
+<p>❄️ 積雪あり: 山頂付近の積雪深の予報(6〜15時)が5cm以上の日。予報の格子が粗いため、稜線の吹き飛ばしや吹きだまりは表せません。雪がありそうかの目安です。</p>
 <p>🧊 凍結注意: 山頂付近の最低気温(6〜15時)が0℃以下で前日昼〜当日に雨・雪が0.5mm以上の日、または最低気温が-3℃以下の日。登山道が凍りやすいので、チェーンスパイクやアイゼンの目安に。</p>
 <p>体感温度: 山頂付近の気温と風速から求めた、6〜15時で最も低い値です(風が強いほど低くなります)。</p>
 <p>⚠️ 警報・注意報は、駐車場・登山口(分からない山は山頂)のある市町村に気象庁がいま出しているもののうち、登山に関係するものです(波浪・高潮・氾濫・乾燥・霜は除く)。🌋 は、山頂から10km以内の火山に噴火警戒レベル2以上などの噴火警報・予報が出ているときに付けています。</p>
