@@ -165,7 +165,7 @@ def attach_alerts(items, alerts, volcanoes, near_volcano, page):
 
 def fid(kind, x):
     """お気に入りの目印。場所の追加で並び順が変わっても崩れないよう名前で作る(同名の雲取山は県で区別)"""
-    return {"m": f"m:{x['name']}:{x['prefs'][0]}" if "prefs" in x else "", "s": f"s:{x['name']}", "w": f"w:{x['name']}"}[kind]
+    return {"m": f"m:{x['name']}:{x['prefs'][0]}" if "prefs" in x else "", "s": f"s:{x['name']}"}[kind]
 
 
 def star(kind, x):
@@ -681,10 +681,9 @@ def mt_detail(m, with_map=True, compact=False):
     link = (routelinks(m) + place + " " + onsenlink(near["lat"], near["lon"])
             + foodlink(near["lat"], near["lon"], m["prefs"][0], "mountain") + michilink(near["lat"], near["lon"])
             + conbilink(near["lat"], near["lon"]) + " " + hutlink(m)) if with_map else ""    # 山小屋は右端
-    sun = (f" <span class='muted sun'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</span>"
+    sun = (f"<p class='muted'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</p>"
            if m.get("sun") else "")
-    top = f"<div class='favrow'>{star('m', m)}{sun}</div>" if with_map else (f"<p>{sun}</p>" if sun else "")
-    return (f"{top}{intro(m)}{link}{alert_box(m)}<div class='scroll'><table class='sub'>"
+    return (f"{star('m', m) if with_map else ''}{intro(m)}{sun}{link}{alert_box(m)}<div class='scroll'><table class='sub'>"
             "<tr><th class='dt'>日付</th><th>判定</th><th>天気(6〜15時)</th>"
             + ("<th>展望</th>" if has_v else "") + "<th>山頂付近の気温</th>"
             + ("" if compact else "<th>体感温度</th>") + "<th>平均風速</th>"
@@ -906,10 +905,9 @@ def ski_hours_line(s):
 
 
 def road(t):
-    """朝の路面: ふもとの最低気温と凍結の印(-2℃以下=凍結注意、1℃以下=凍結のおそれ)"""
+    """朝の路面: ふもとの最低気温と凍結の印(1℃以下=凍結注意)"""
     t = round(t)                        # 表示する値で判定する(1.2℃が「1℃」なのに印がない、を防ぐ)
-    tag = (" <span class='tag danger'>凍結注意</span>" if t <= -2 else
-           " <span class='tag warn'>凍結のおそれ</span>" if t <= 1 else "")
+    tag = " <span class='tag danger'>凍結注意</span>" if t <= 1 else ""
     return f"{t}℃{tag}"
 
 
@@ -1021,7 +1019,7 @@ def ski_page(ski):
 <li><span class='tag'>パウダー期待</span> 上部の新雪が10cm以上で、上部の最高気温が-2℃以下</li>
 <li><span class='tag warn'>アイスバーン注意</span> 前日に上部で雨が降ったか0℃を超え、夜〜朝の上部の最低気温が-2℃以下で、新雪が3cm未満の日(湿った雪が凍って硬くなりやすい)</li>
 <li>体感温度: 上部の気温と風速から求めた、8〜16時で最も低い値。平均風速には風向(風が吹いてくる方角)も表示しています</li>
-<li>朝の路面: ふもと(ゲレンデ下部)の3〜8時の最低気温。<span class='tag danger'>凍結注意</span> -2℃以下、<span class='tag warn'>凍結のおそれ</span> 1℃以下。冬用タイヤ・チェーンの準備の目安です(実際の路面は除雪や日当たりで変わります)</li>
+<li>朝の路面: ふもと(ゲレンデ下部)の3〜8時の最低気温。<span class='tag danger'>凍結注意</span> 1℃以下。冬用タイヤ・チェーンの準備の目安です(実際の路面は除雪や日当たりで変わります)</li>
 <li><span class='tag warn'>運休注意</span> 上部の最大瞬間風速が20m/s以上(ゴンドラ・リフトが止まりやすい強さ)</li>
 <li>⚠️ 警報・注意報は、スキー場のある市町村に気象庁がいま出しているもの。🌋 は10km以内の火山に噴火警報・予報が出ているとき</li>
 <li>天気・雨・気温・0℃の高さ・平均風速・最大瞬間風速は、営業時間(8〜16時)の予報からまとめています(天気は最も悪いもの、0℃の高さは最も低いもの)</li>
@@ -1209,8 +1207,8 @@ def surf_table(s):
 def surf_page(spots):
     cards = ""
     for s in spots:
-        cards += (f"<section class='card' id='{s['key']}'><h3>{e(s['name'])}{alert_tags(s)} <small>{e(s['pref'])} · "
-                  f"浜の向き {dir_name(s['facing'])}</small> {maplink(s['parking'], '駐車場の地図')} {onsenlink(s['lat'], s['lon'])}{foodlink(s['lat'], s['lon'], s['pref'][:s['pref'].index('県') + 1] if '県' in s['pref'] else s['pref'][:3], "surf")}{michilink(s['lat'], s['lon'])}{conbilink(s['lat'], s['lon'])}</h3>{star('w', s)}{alert_box(s)}"
+        cards += (f"<section class='card' id='{s['key']}'><h3>{e(s['name'])} <small>{e(s['pref'])} · "
+                  f"浜の向き {dir_name(s['facing'])}</small> {maplink(s['parking'], '駐車場の地図')} {onsenlink(s['lat'], s['lon'])}{foodlink(s['lat'], s['lon'], s['pref'][:s['pref'].index('県') + 1] if '県' in s['pref'] else s['pref'][:3], "surf")}{michilink(s['lat'], s['lon'])}{conbilink(s['lat'], s['lon'])}</h3>{alert_box(s)}"
                   f"{surf_table(s)}"
                   f"<p class='muted'>波は沖合({s['grid'][0]:.2f}, {s['grid'][1]:.2f})の予報</p></section>")
     return f"""
@@ -1298,7 +1296,7 @@ def index_page(mts, ski, spots):
                 cells += (f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b> {icon}"
                           f"<br><small class='muted'>{round(d['tavg'])}℃ · "
                           f"風{d['wind']:.0f}m/s</small></td>")
-        return link_row(f"<b>{e(m['name'])}</b>{tags(m)}{alert_tags(m)}<br><small class='muted'>"
+        return link_row(f"<b>{e(m['name'])}</b>{tags(m)}<br><small class='muted'>"
                         f"{m['elev']:,}m · {e(m['prefs'][0])}</small>",
                         cells, f"mountains.html#{m['key']}", attrs)
     mt_rows = "".join(mt_row(m) for m in good[:10]) or (
@@ -1323,7 +1321,7 @@ def index_page(mts, ski, spots):
                         for d in s["days"] if d["date"] in we)
         until = sum(d["snow"] for d in s["days"] if d["date"] <= upto)
         more = f"<br><small class='muted'>週末まで {until:.0f}cm</small>" if round(until) else ""
-        fav_rows += link_row(f"<b>{e(n)}</b>{alert_tags(s)}{more}",
+        fav_rows += link_row(f"<b>{e(n)}</b>{more}",
                              cells, f"snow.html#{s['key']}", f" class='favonly' data-fid='{e(fid('s', s))}' hidden")
     fav = (f"<div class='favbox' hidden><div class='scroll'><table class='sub top'>{cols}<tr><th></th>"
            + "".join(f"<th>{day_label(d)}</th>" for d in we)
@@ -1345,7 +1343,7 @@ def index_page(mts, ski, spots):
                 mark, cls = RATE[sl["score"]]
                 cells += (f"<td class='{cls}' title='波{sl['height']:.1f}m うねり{sl['swell']:.1f}m 周期{sl['period']:.1f}秒 {sl['kind']}'>"
                           f"<b>{mark}</b><small class='muted'>{sl['height']:.1f}m</small></td>")
-        surf_rows += link_row(f"<b>{e(s['name'])}</b>{alert_tags(s)}", cells, f"surf.html#{s['key']}")
+        surf_rows += link_row(f"<b>{e(s['name'])}</b>", cells, f"surf.html#{s['key']}")
     surf_list = (f"{surf_comment}<div class='scroll'><table class='sub mini surf'>{heads}"
                  f"{surf_rows}</table></div>")
     return f"""
@@ -1358,6 +1356,7 @@ def index_page(mts, ski, spots):
 <section class='card'><h2><a href='surf.html'>🏄 サーフィン</a></h2>{surf_list}
 </section>
 <div class='note'><p>{label} の予報から、よさそうな場所をまとめました。</p>
+<p>警報・注意報・火山の印は、今出ているものなので各ページの詳細で表示しています。</p>
 <p>週末天気が良さそうな山: 週末の両日が○以上の山(上位10座、判定が良く風の弱い順)。気温は山頂付近の6〜15時の平均、風は同じ時間帯の最大。名前を押すと、各ページでその場所の予報が開きます。</p></div>
 """
 
@@ -1411,7 +1410,7 @@ border:1px solid var(--line);background:var(--card);color:var(--text);box-shadow
 .star[aria-pressed='true']{border-color:var(--fav);font-weight:600}
 .favmark{color:var(--fav)}
 .star:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.favrow{margin:0 0 8px}.favrow .star{margin:0 8px 0 0}h3+.star{margin-top:-2px}
+tr.detail .star{display:table}h3+.star{margin-top:-2px}
 .favbox h3{font-size:14px;margin:4px 0}
 .intro{margin:0 0 8px;font-size:14px;color:var(--text)}
 .fac{font-size:12px}
