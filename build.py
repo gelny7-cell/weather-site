@@ -166,7 +166,7 @@ def attach_alerts(items, alerts, volcanoes, near_volcano, page):
 
 def fid(kind, x):
     """お気に入りの目印。場所の追加で並び順が変わっても崩れないよう名前で作る(同名の雲取山は県で区別)"""
-    return {"m": f"m:{x['name']}:{x['prefs'][0]}" if "prefs" in x else "", "s": f"s:{x['name']}"}[kind]
+    return {"m": f"m:{x['name']}:{x['prefs'][0]}" if "prefs" in x else "", "s": f"s:{x['name']}", "w": f"w:{x['name']}"}[kind]
 
 
 def star(kind, x):
@@ -1377,13 +1377,40 @@ def surf_table(s):
             + f"<th>風</th><th>天気</th>{'<th>気温</th>' if has_air else ''}{'<th>水温</th>' if has_sea else ''}</tr>{rows}</table></div>")
 
 
+def surf_detail(s):
+    """サーフポイントの詳細(名前を押すと開く): 注意報・紹介・ボタン(お気に入り登録が先頭)・朝昼の表"""
+    pref = s["pref"][:s["pref"].index("県") + 1] if "県" in s["pref"] else s["pref"][:3]
+    buttons = (f"<div class='btnrow'>{star('w', s)} {maplink(s['parking'], '駐車場')} {onsenlink(s['lat'], s['lon'])}"
+               f"{foodlink(s['lat'], s['lon'], pref, 'surf')}{michilink(s['lat'], s['lon'])}{conbilink(s['lat'], s['lon'])}</div>")
+    return (f"{alert_box(s)}{intro(s)}{buttons}{surf_table(s)}"
+            + (f"<p class='muted'>波は沖合({s['grid'][0]:.2f}, {s['grid'][1]:.2f})の予報</p>" if s.get("grid") else ""))
+
+
 def surf_page(spots):
-    cards = ""
-    for s in spots:
-        cards += (f"<section class='card' id='{s['key']}'><h3>{e(s['name'])} <small>{e(s['pref'])} · "
-                  f"浜の向き {dir_name(s['facing'])}</small> {maplink(s['parking'], '駐車場')} {onsenlink(s['lat'], s['lon'])}{foodlink(s['lat'], s['lon'], s['pref'][:s['pref'].index('県') + 1] if '県' in s['pref'] else s['pref'][:3], "surf")}{michilink(s['lat'], s['lon'])}{conbilink(s['lat'], s['lon'])}</h3>{alert_box(s)}{intro(s)}"
-                  f"{surf_table(s)}"
-                  f"<p class='muted'>波は沖合({s['grid'][0]:.2f}, {s['grid'][1]:.2f})の予報</p></section>")
+    days = [d["date"] for d in spots[0]["days"][:TOP_DAYS]]   # 一覧は7日、詳細は全日数
+    head = "".join(f"<th>{day_label2(d, i == 0)}</th>" for i, d in enumerate(days))
+    coasts = ["太平洋側", "日本海側"]
+    rows = ""
+    for c in coasts:                            # 海側ごとに並べる
+        for s in [x for x in spots if x.get("coast") == c]:
+            cells = ""
+            for d in s["days"][:TOP_DAYS]:      # 一覧はその日の朝・昼のよいほうの判定と波の高さだけ
+                sl = max(d["slots"], key=lambda x: x["score"])
+                mark, cls = RATE[sl["score"]]
+                cells += (f"<td class='{cls}' title='{sl['slot']} 波{sl['height']:.1f}m うねり{sl['swell']:.1f}m "
+                          f"周期{sl['period']:.1f}秒 {sl['kind']}'><b>{mark}</b><small>{sl['height']:.1f}m</small></td>")
+            rows += (
+                f"<tbody class='mt' id='{s['key']}' data-fid='{e(fid('w', s))}' data-region='{c}' data-name='{e(s['name'] + s['pref'])}'>"
+                f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
+                f"<span>{e(s['name'])}</span><small>{e(s['pref'])} · 浜の向き {dir_name(s['facing'])}</small>"
+                f"</button></th>{cells}</tr>"
+                f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{surf_detail(s)}</td></tr></tbody>")
+    chips = ("<button class='chip on' data-r=''>すべて</button><button class='chip' data-r='fav'>★お気に入り</button>"
+             + "".join(f"<button class='chip' data-r='{c}'>{c}</button>" for c in coasts if any(x.get("coast") == c for x in spots)))
+    cards = f"""
+<div class='filters'><input id='q' type='search' placeholder='ポイント名・地名で絞り込み' aria-label='ポイント名・地名で絞り込み'>
+<div class='chips'>{chips}</div></div>
+<div class='scroll'><table class='grid'><thead><tr><th class='nm'>ポイント</th>{head}</tr></thead>{rows}</table></div>"""
     return f"""
 <h1>サーフィン 波と風</h1>
 {cards}
@@ -1396,6 +1423,7 @@ def surf_page(spots):
 <li>気温は浜付近、水温は沖合の海面水温の予報</li>
 <li>潮: その時間帯にある満潮・干潮の時刻。なければ上げ潮・下げ潮(沖合の潮位の予報から求めた目安で、港の潮汐表とは数十分ずれることがあります)</li>
 <li>⚠️ 警報・注意報は、浜のある市町村に気象庁がいま出しているもの</li>
+<li>一覧は7日間で、その日の朝・昼のよいほうの判定と波の高さです。ポイント名を押すと、朝・昼の詳しい予報(最大16日間)が開きます</li>
 <li>今日〜明後日の日付を押すと、6〜16時の時間ごとの予報が開きます(今日・明日は1時間ごと、明後日は3時間ごと。その時刻の値)</li></ul>
 <h2>このページについて</h2>
 <p>朝(6〜11時)と昼(12〜17時)の平均です。波の高さは沖合の予報で、浜では地形や向きにより小さくなることが多いです。</p></div>
@@ -1516,9 +1544,11 @@ def index_page(mts, ski, spots):
                 mark, cls = RATE[sl["score"]]
                 cells += (f"<td class='{cls}' title='波{sl['height']:.1f}m うねり{sl['swell']:.1f}m 周期{sl['period']:.1f}秒 {sl['kind']}'>"
                           f"<b>{mark}</b><small class='muted'>{sl['height']:.1f}m</small></td>")
-        surf_rows += link_row(f"<b>{e(s['name'])}</b>", cells, f"surf.html#{s['key']}")
-    surf_list = (f"{surf_comment}<div class='scroll'><table class='sub mini surf'>{heads}"
-                 f"{surf_rows}</table></div>")
+        surf_rows += link_row(f"<b>{e(s['name'])}</b>", cells, f"surf.html#{s['key']}",
+                              f" class='favonly' data-fid='{e(fid('w', s))}' hidden")
+    surf_list = (f"{surf_comment}<div class='favbox' hidden><div class='scroll'><table class='sub mini surf'>{heads}"
+                 f"{surf_rows}</table></div></div>"
+                 "<p class='favhint muted'>サーフィンのページでポイントの詳細を開き「☆ お気に入り登録」を押すと、ここに表示されます</p>")
     return f"""
 <h1>今週末の山と雪と波</h1>
 <section class='card big'><h2><a href='mountains.html'>⛰️ 登山</a></h2>
@@ -1628,6 +1658,8 @@ const FKEY='weather-site-favs';
 let favs=null;
 try{favs=JSON.parse(localStorage.getItem(FKEY));}catch(e){}
 if(!Array.isArray(favs))favs=DEFAULT_FAVS.slice();
+try{if(!localStorage.getItem(FKEY+'-surf')){if(!favs.some(f=>f.startsWith('w:')))favs=favs.concat(DEFAULT_FAVS.filter(f=>f.startsWith('w:')));
+  localStorage.setItem(FKEY+'-surf','1');localStorage.setItem(FKEY,JSON.stringify(favs));}}catch(e){}
 const isFav=f=>favs.includes(f);
 let apply=()=>{};
 const paintFavs=()=>{
@@ -1686,7 +1718,7 @@ def default_favs():
     favs = json.loads((ROOT / "data/favorites.json").read_text(encoding="utf-8"))
     mts = json.loads((ROOT / "data/mountains.json").read_text(encoding="utf-8"))
     return ([fid("m", m) for n in favs.get("mountain", []) for m in mts if m["name"] == n]
-            + [f"s:{n}" for n in favs.get("ski", [])])
+            + [f"s:{n}" for n in favs.get("ski", [])] + [f"w:{n}" for n in favs.get("surf", [])])
 
 
 def layout(file, title, body, updated):
