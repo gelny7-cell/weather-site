@@ -1152,7 +1152,7 @@ def ski_detail(s, with_map=True, simple=False):
     if with_map:                # 公式ページ・ゲレンデマップ(分かるスキー場だけ)・駐車場の地図
         link = ((sitelink(s["site"], "🏠 公式ページ") + " " if s.get("site") else "")
                 + (sitelink(s["map"], "🗺️ ゲレンデマップ") + " " if s.get("map") else "")
-                + maplink(s['name'] + ' 第1駐車場', '駐車場') + " " + onsenlink(s["lat"], s["lon"]) + foodlink(s["lat"], s["lon"], s["pref"], "ski") + michilink(s["lat"], s["lon"]) + conbilink(s["lat"], s["lon"]) + " ")
+                + camlink(s) + maplink(s['name'] + ' 第1駐車場', '駐車場') + " " + onsenlink(s["lat"], s["lon"]) + foodlink(s["lat"], s["lon"], s["pref"], "ski") + michilink(s["lat"], s["lon"]) + conbilink(s["lat"], s["lon"]) + " ")
     rp = s.get("report")
     obs = ""
     if rp:                      # スキー場が報告したゲレンデの積雪(SURF&SNOW)。報告のない日は出さない
@@ -1210,6 +1210,7 @@ def ski_page(ski):
 <div class='note'><ul>
 <li>新雪: 前日17時〜当日8時(ゲレンデが閉まってから開くまで)に降る雪の量の予報</li>
 <li>積雪: 朝9時に積もっている雪の深さの予報(気象モデルの推定。実際の積雪と大きく違うことがあります)</li>
+<li>📷 ライブカメラ: スキー場の公式サイトが載せているカメラです(公式にないスキー場はウェザーニュースのカメラ)</li>
 <li>ゲレンデ積雪: スキー場が報告した積雪深(平均)・前日比・雪質・ゲレンデ状況で、<a href='https://surfsnow.jp/'>SURF&amp;SNOW</a> の積雪情報から朝・昼に取得しています。報告がないスキー場・日は表示しません</li>
 <li><span class='tag'>パウダー期待</span> 上部の新雪と最高気温が、地域ごとの基準を満たす日です(北海道 15cm以上・-5℃以下、東北・関東・新潟・長野 15cm以上・-3℃以下、北陸・東海 10cm以上・-2℃以下、近畿・中国・四国・九州 5cm以上・-1℃以下)。雪の少ない地域でも「その地域にしては良い雪」の日が分かるようにしています。「❄️パウダー期待」のボタンで、7日間のうちにパウダー期待の日があるスキー場だけに絞り込めます</li>
 <li>🧊 アイスバーン注意: 前日に上部で雨が降ったか0℃を超え、夜〜朝の上部の最低気温が-2℃以下で、新雪が3cm未満の日(湿った雪が凍って硬くなりやすい)</li>
@@ -1413,7 +1414,8 @@ def facmarks(s):
 
 
 def camlink(s):
-    """ライブカメラのボタン(data の cams。サーファーズオーシャン・surfride.net に載っているカメラ)。
+    """ライブカメラのボタン(data の cams。サーフィンはサーファーズオーシャン・surfride.net、スキー場は公式サイト
+    (なければウェザーニュース)に載っているカメラ)。
     1つならそのまま開き、複数あれば押すと一覧が開く"""
     cams = s.get("cams") or []
     if len(cams) == 1:

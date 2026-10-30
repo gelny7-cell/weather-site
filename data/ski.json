@@ -70,7 +70,13 @@
     "16"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.princehotels.co.jp/ski/kagura/livecamera/"
+   }
+  ]
  },
  {
   "name": "妙高杉ノ原スキー場",
@@ -213,7 +219,13 @@
     "05"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://nozawaski.com/winter/course/livecam_map/"
+   }
+  ]
  },
  {
   "name": "竜王スキーパーク",
@@ -352,7 +364,13 @@
     "06"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.happo-one.jp/trekking/livecamera/"
+   }
+  ]
  },
  {
   "name": "ニセコHANAZONOリゾート",
@@ -416,7 +434,13 @@
     "11"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://hanazononiseko.com/en/winter/resort/live-camera"
+   }
+  ]
  },
  {
   "name": "ニセコ東急 グラン・ヒラフ",
@@ -488,7 +512,13 @@
     "06"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.grand-hirafu.jp/livecam/"
+   }
+  ]
  },
  {
   "name": "ロッテアライリゾート",
@@ -695,7 +725,13 @@
     "05"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.tsugaike.gr.jp/livecamera"
+   }
+  ]
  },
  {
   "name": "天元台高原",
@@ -864,7 +900,13 @@
     "05"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.niseko-village.com/ja/nisekovillage/webcam/"
+   }
+  ]
  },
  {
   "name": "苗場スキー場",
@@ -932,7 +974,13 @@
     "04"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.princehotels.co.jp/ski/naeba/livecamera/"
+   }
+  ]
  },
  {
   "name": "山形蔵王温泉スキー場",
@@ -997,7 +1045,13 @@
     "06"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://zaomountainresort.com/live-camera-ski/"
+   }
+  ]
  },
  {
   "name": "富良野スキー場",
@@ -1066,7 +1120,13 @@
     "06"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.princehotels.co.jp/ski/furano/livecamera/"
+   }
+  ]
  },
  {
   "name": "ガーラ湯沢スキー場",
@@ -1133,7 +1193,13 @@
     "06"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://gala.co.jp/livecam/"
+   }
+  ]
  },
  {
   "name": "上越国際スキー場",
@@ -1266,7 +1332,13 @@
     "22"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.princehotels.co.jp/ski/shizukuishi/livecamera/"
+   }
+  ]
  },
  {
   "name": "赤倉温泉スキー場",
@@ -1437,7 +1509,17 @@
     "04"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "山頂",
+    "url": "https://www.fujimipanorama.com/Livecam/sanchou.php"
+   },
+   {
+    "name": "山麓",
+    "url": "https://www.fujimipanorama.com/Livecam/sanroku.php"
+   }
+  ]
  },
  {
   "name": "野麦峠スキー場",
@@ -1565,7 +1647,13 @@
     "28"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://alpenblick-resort.com/livecam"
+   }
+  ]
  },
  {
   "name": "鹿島槍スキー場",
@@ -1625,7 +1713,13 @@
     "22"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.kashimayari.net/snow/fields/#cams"
+   }
+  ]
  },
  {
   "name": "スキージャム勝山",
@@ -2088,7 +2182,13 @@
     "05"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.oze-iwakura.co.jp/ski/slopeguide/live/"
+   }
+  ]
  },
  {
   "name": "安比高原スキー場",
@@ -2157,7 +2257,13 @@
     "06"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.appi.co.jp/live_camera/"
+   }
+  ]
  },
  {
   "name": "サッポロテイネ",
@@ -2223,7 +2329,13 @@
     "06"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://sapporo-teine.com/snow/lang/en/trailstatus"
+   }
+  ]
  },
  {
   "name": "石打丸山スキー場",
@@ -2291,7 +2403,13 @@
     "04"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://ishiuchi.or.jp/green/livecamera/"
+   }
+  ]
  },
  {
   "name": "阿仁スキー場",
@@ -2337,7 +2455,13 @@
    "src": "weathernews"
   },
   "about": "秋田県北秋田市の森吉山にあるスキー場。日本三大樹氷のひとつ「森吉山の樹氷」の間をゴンドラで上がり、約4kmのロングコースを滑れます。積雪が多く、パウダースノーも楽しめます。",
-  "gondola": true
+  "gondola": true,
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.youtube.com/channel/UCGUDBjnhvBPvK1YXT7K59oA/live"
+   }
+  ]
  },
  {
   "name": "ハチ北スキー場",
@@ -2407,7 +2531,13 @@
     "05"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.hachi-hachikita.co.jp/livecamera/"
+   }
+  ]
  },
  {
   "name": "舞子スノーリゾート",
@@ -2478,7 +2608,13 @@
     "28"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://skiday.app/46R2YtTNP53wSN7IOLg5/869223046913016/embed"
+   }
+  ]
  },
  {
   "name": "奥利根スノーパーク",
@@ -2602,7 +2738,13 @@
     "06"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.kiroro.co.jp/ja/livecamera"
+   }
+  ]
  },
  {
   "name": "サホロリゾート",
@@ -2728,7 +2870,13 @@
     "06"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.marunuma.jp/winter/live"
+   }
+  ]
  },
  {
   "name": "たざわ湖スキー場",
@@ -2789,7 +2937,17 @@
     "28"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "管理センター前",
+    "url": "http://122.249.124.12/viewer/live/index.html?lang=ja"
+   },
+   {
+    "name": "駒ケ岳八合目",
+    "url": "http://keitai.thr.mlit.go.jp/yuzawa/cctv/sabo/Now009.jpg"
+   }
+  ]
  },
  {
   "name": "カムイスキーリンクス",
@@ -2918,7 +3076,13 @@
     "25"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.takasu.gr.jp/condition/"
+   }
+  ]
  },
  {
   "name": "ルスツリゾート",
@@ -2986,7 +3150,13 @@
     "31"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://rusutsu.com/live-mountain-cams/"
+   }
+  ]
  },
  {
   "name": "星野リゾート アルツ磐梯",
@@ -3108,7 +3278,13 @@
     "22"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.inawashiro-ski.com/livecamera/"
+   }
+  ]
  },
  {
   "name": "グランデコスノーリゾート",
@@ -3237,7 +3413,13 @@
     "12"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.kawaba.co.jp/live-camera/"
+   }
+  ]
  },
  {
   "name": "水上宝台樹スキー場",
@@ -3304,7 +3486,13 @@
     "29"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://hodaigi.jp/live-camera/"
+   }
+  ]
  },
  {
   "name": "開田高原マイアスキー場",
@@ -3430,7 +3618,13 @@
     "11"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.okuibuki.co.jp/live_camera/"
+   }
+  ]
  },
  {
   "name": "戸隠スキー場",
@@ -3497,7 +3691,13 @@
     "31"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.togakusi.com/ski/livecamera/"
+   }
+  ]
  },
  {
   "name": "キューピットバレイ",
@@ -3561,7 +3761,13 @@
     "28"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.yukidaruma-kogen.com/summer/camera.html"
+   }
+  ]
  },
  {
   "name": "朝里川温泉スキー場",
@@ -3938,7 +4144,13 @@
     "28"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.tangram.jp/ski/livecamera/"
+   }
+  ]
  },
  {
   "name": "シャルマン火打スキー場",
@@ -4068,7 +4280,13 @@
     "下旬"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://osorakan.co.jp/winter/live-camera"
+   }
+  ]
  },
  {
   "name": "白馬乗鞍温泉スキー場",
@@ -4134,7 +4352,13 @@
     "29"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "http://www.vill.otari.nagano.jp/kanko/visual/"
+   }
+  ]
  },
  {
   "name": "白山一里野温泉スキー場",
@@ -4327,7 +4551,13 @@
     "05"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.hachi-hachikita.co.jp/livecamera/"
+   }
+  ]
  },
  {
   "name": "名寄ピヤシリスキー場",
@@ -4454,7 +4684,13 @@
     "22"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://winghills.net/snow/coursemap/#lnk1"
+   }
+  ]
  },
  {
   "name": "札幌国際スキー場",
@@ -4774,7 +5010,13 @@
     "04"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.dynaland.co.jp/condition/#livecamera"
+   }
+  ]
  },
  {
   "name": "鷲ヶ岳スキー場",
@@ -4840,7 +5082,13 @@
     "29"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://ski.washigatake.jp/condition/#livecamera"
+   }
+  ]
  },
  {
   "name": "斑尾高原スキー場",
@@ -4913,7 +5161,13 @@
     "28"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.madarao.jp/ski/live-camera"
+   }
+  ]
  },
  {
   "name": "夏油高原スキー場",
@@ -4981,7 +5235,13 @@
     "02"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.getokogen.com/livecam/live.jpg"
+   }
+  ]
  },
  {
   "name": "岩原スキー場",
@@ -5137,7 +5397,13 @@
    "season": "2025-2026",
    "src": "weathernews"
   },
-  "about": "関越道の水上ICから7kmと近い、みなかみ町のスキー場。土曜の午後は小学生以下のリフト券が無料になる日もあります。"
+  "about": "関越道の水上ICから7kmと近い、みなかみ町のスキー場。土曜の午後は小学生以下のリフト券が無料になる日もあります。",
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "http://157.112.102.76/detail/detail104.html"
+   }
+  ]
  },
  {
   "name": "車山高原スキー場",
@@ -5242,7 +5508,13 @@
     "15"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ(ウェザーニュース)",
+    "url": "https://weathernews.jp/ski/spot/31406/"
+   }
+  ]
  },
  {
   "name": "飛騨ほおのき平スキー場",
@@ -5426,7 +5698,13 @@
     "28"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.932-onsen.com/common/live/"
+   }
+  ]
  },
  {
   "name": "ぴっぷスキー場",
@@ -5556,7 +5834,13 @@
     "22"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://katashinakogen.co.jp/live"
+   }
+  ]
  },
  {
   "name": "牛岳温泉スキー場",
@@ -5753,7 +6037,13 @@
     "中旬"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.youtube.com/watch?v=BqedTBHMBkQ"
+   }
+  ]
  },
  {
   "name": "たんばらスキーパーク",
@@ -5883,7 +6173,13 @@
     "28"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://whitebirch.co.jp/live-camera/"
+   }
+  ]
  },
  {
   "name": "白樺湖ロイヤルヒルスキー場",
@@ -6514,7 +6810,13 @@
     "28"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ(ウェザーニュース)",
+    "url": "https://weathernews.jp/ski/spot/35220/"
+   }
+  ]
  },
  {
   "name": "平湯温泉スキー場",
@@ -6930,7 +7232,13 @@
     "22"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.kannabe.co.jp/live_camera"
+   }
+  ]
  },
  {
   "name": "若杉高原おおやスキー場",
@@ -7203,7 +7511,13 @@
     "17"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "http://webcam.wni.co.jp/RRX05102/loop.html"
+   }
+  ]
  },
  {
   "name": "峰山高原リゾート",
@@ -7391,7 +7705,13 @@
     "08"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://youtu.be/7AgLA41IWJo"
+   }
+  ]
  },
  {
   "name": "スカイバレイスキー場",
@@ -7446,7 +7766,13 @@
     "22"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "http://skyvalley-cam.town.mikata-kami.lg.jp/viewer/live/index.html?lang=ja"
+   }
+  ]
  },
  {
   "name": "御在所スキー場",
@@ -7490,7 +7816,13 @@
    "season": "2025-2026",
    "src": "weathernews"
   },
-  "about": "御在所岳の山頂付近にある、三重県で唯一のスキー場。御在所ロープウエイで上がり、名古屋市街から車で約1時間で行けます。"
+  "about": "御在所岳の山頂付近にある、三重県で唯一のスキー場。御在所ロープウエイで上がり、名古屋市街から車で約1時間で行けます。",
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.gozaisho.co.jp/livecamera/"
+   }
+  ]
  },
  {
   "name": "六甲山スノーパーク",
@@ -7605,7 +7937,13 @@
     "15"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://okukan.com/livecamera/"
+   }
+  ]
  },
  {
   "name": "氷ノ山国際スキー場",
@@ -7663,7 +8001,13 @@
     "14"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.youtube.com/@kokusaihyounosen9456/streams"
+   }
+  ]
  },
  {
   "name": "Ohana Resort",
@@ -7815,7 +8159,13 @@
    "src": "surfsnow:r0903",
    "lifts": 2
   },
-  "about": "天川村の洞川温泉にある、奈良県で唯一営業しているスキー場。紀伊半島ではとても珍しく、滑った後は温泉街で温まれます。"
+  "about": "天川村の洞川温泉にある、奈良県で唯一営業しているスキー場。紀伊半島ではとても珍しく、滑った後は温泉街で温まれます。",
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "http://5656chaya.aa0.netvolante.jp:50000/CgiStart?page=Single&Language=1"
+   }
+  ]
  },
  {
   "name": "マキノ高原マキノスキー場",
@@ -8071,7 +8421,13 @@
     "08"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "http://live.city.nanto.toyama.jp/livecam/index04.jsp"
+   }
+  ]
  },
  {
   "name": "九頭竜スキー場",
@@ -8175,7 +8531,17 @@
     "08"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "タカンボー①",
+    "url": "http://live.city.nanto.toyama.jp/livecam/index02.jsp"
+   },
+   {
+    "name": "タカンボー②",
+    "url": "http://live.city.nanto.toyama.jp/livecam/index07.jsp"
+   }
+  ]
  },
  {
   "name": "宇奈月温泉スキー場",
@@ -8323,7 +8689,13 @@
     "02"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://www.city.tonami.lg.jp/livecam/cam04/"
+   }
+  ]
  },
  {
   "name": "大倉岳高原スキー場",
@@ -8717,7 +9089,13 @@
     "05"
    ],
    "season": "2026-2027"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ",
+    "url": "https://skiday.app/gtfVvpbNWiUs9VUsNS6n/865036045485586/embed"
+   }
+  ]
  },
  {
   "name": "志賀高原 横手山・渋峠スキー場",
@@ -8763,7 +9141,13 @@
    "src": "weathernews"
   },
   "about": "日本一高い標高2,307mの横手山山頂から滑れるスキー場。標高が高く、雪質がよく、春遅くまで営業します。山頂からは北アルプスや富士山を望めます。",
-  "park": true
+  "park": true,
+  "cams": [
+   {
+    "name": "ライブカメラ(ウェザーニュース)",
+    "url": "https://weathernews.jp/ski/spot/34804/"
+   }
+  ]
  },
  {
   "name": "赤倉観光リゾートスキー場",
@@ -8892,7 +9276,13 @@
     "12"
    ],
    "season": "2025-2026"
-  }
+  },
+  "cams": [
+   {
+    "name": "ライブカメラ(ウェザーニュース)",
+    "url": "https://weathernews.jp/ski/spot/35437/"
+   }
+  ]
  },
  {
   "name": "YAMABOKUワイルドスノーパーク",
