@@ -946,7 +946,7 @@ def ski_detail(s, with_map=True, simple=False):
                  if d.get("hours") else day_label(d["date"]))
         rows += (f"<tr><td class='dt'>{label}</td>"
                  f"<td>{weather(d['code'], d['rain'])}</td><td>{weather(d['code_base'], d['rain_base'])}</td>"
-                 f"<td>{d['snow']:.0f}cm{powder}" + (" <span class='tag warn'>アイスバーン注意</span>" if d.get("ice") else "")
+                 f"<td>{d['snow']:.0f}cm{powder}" + (" <span class='fac' title='アイスバーン注意' role='img' aria-label='アイスバーン注意'>🧊</span>" if d.get("ice") else "")
                  + f"</td><td>{d['snow_base']:.0f}cm</td>"
                  f"<td>{d['depth']:.0f}cm</td>"
                  f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td><td>{round(d['feel'])}℃</td>"
@@ -1016,7 +1016,7 @@ def ski_page(ski):
 <li>積雪: 朝9時に積もっている雪の深さの予報(気象モデルの推定。実際の積雪と大きく違うことがあります)</li>
 <li>ベースの積雪(観測): 15km以内に気象庁アメダスの観測点があり、ゲレンデ下部との標高差が300m以内のスキー場だけ表示しています(圧雪・人工降雪は含みません)</li>
 <li><span class='tag'>パウダー期待</span> 上部の新雪が10cm以上で、上部の最高気温が-2℃以下</li>
-<li><span class='tag warn'>アイスバーン注意</span> 前日に上部で雨が降ったか0℃を超え、夜〜朝の上部の最低気温が-2℃以下で、新雪が3cm未満の日(湿った雪が凍って硬くなりやすい)</li>
+<li>🧊 アイスバーン注意: 前日に上部で雨が降ったか0℃を超え、夜〜朝の上部の最低気温が-2℃以下で、新雪が3cm未満の日(湿った雪が凍って硬くなりやすい)</li>
 <li>体感温度: 上部の気温と風速から求めた、8〜16時で最も低い値。平均風速には風向(風が吹いてくる方角)も表示しています</li>
 <li>朝の路面: ふもと(ゲレンデ下部)の3〜8時の最低気温。<span class='tag danger'>凍結注意</span> 1℃以下。冬用タイヤ・チェーンの準備の目安です(実際の路面は除雪や日当たりで変わります)</li>
 <li><span class='tag warn'>運休注意</span> 上部の最大瞬間風速が20m/s以上(ゴンドラ・リフトが止まりやすい強さ)</li>
