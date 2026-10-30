@@ -274,7 +274,7 @@ def tags(m):
     lists = m.get("lists", [])
     shown = ["日本百名山"] if "百名山" in lists else lists
     return "".join(f" <span class='mk{' hyaku' if t == '日本百名山' else ''}' title='{t}' role='img' aria-label='{t}'>"
-                   f"{'' if t == '日本百名山' else '関'}</span>" for t in shown)
+                   "</span>" for t in shown)
 
 
 def trailhead(m):
@@ -385,21 +385,14 @@ SHOP_GENRES = {
 
 
 def foodlink(lat, lon, pref, page):
-    """「ご当地」ボタン(その場所の名物の店)と「飲食店」ボタン(押すとジャンルの一覧が開き、選ぶと
-    Google マップでその地点の周りを探す)。登山では名物を「飲食店」の一覧の一番上に入れる"""
-    genres = SHOP_GENRES[page]
+    """「飲食店」ボタン(押すとジャンルの一覧が開き、選ぶと Google マップでその地点の周りを探す)。
+    その場所の名物(ご当地)があれば一覧の一番上に入れる"""
     food = local_food(lat, lon, pref)
-    local = ""
-    if food:
-        url = f"https://www.google.com/maps/search/{urllib.parse.quote(food)}/@{lat},{lon},13z"
-        local = f" <a class='mapbtn' href='{e(url)}' target='_blank' rel='noopener'>🍜 ご当地：{e(food)}</a>"
-    if food and page == "mountain":
-        genres = [(f"🍜 {food}", food)] + genres
-        local = ""
+    genres = ([(f"🍜 {food}", food)] if food else []) + SHOP_GENRES[page]
     items = "".join(
         f"<a href='{e(f'https://www.google.com/maps/search/{urllib.parse.quote(q)}/@{lat},{lon},13z')}' "
         f"class='mapbtn' target='_blank' rel='noopener'>{e(label)}</a>" for label, q in genres)
-    return (f"{local} <details class='menu'><summary class='mapbtn'>🍴 飲食店</summary>"
+    return (f" <details class='menu'><summary class='mapbtn'>🍴 飲食店</summary>"
             f"<div class='menu-list'>{items}</div></details>")
 
 
@@ -736,7 +729,7 @@ def mountains_page(mts):
 <p>風速は山頂の高さに最も近い上空(約760m・1,000m・1,500m・1,950m・3,000mのいずれか)の予報です。稜線の実際の風とは異なることがあり、突風はさらに強くなります。</p>
 <p>予報モデル: 今日〜2日後は気象庁MSM、3〜5日後は英国気象局UKMO、6〜10日後は気象庁GSM、それ以降は Open-Meteo のおまかせ(各国のモデルの組み合わせ)を使っています。</p>
 <h2>このページについて</h2>
-<p>日本百名山(<span class='mk hyaku'></span>)と関西百名山(<span class='mk'>関</span>、山と溪谷社『関西百名山』)の予報です。両方に入る伊吹山・大台ヶ原山・大峰山は1つにまとめ、日本百名山のバッジだけを付けています。
+<p>日本百名山(<span class='mk hyaku'></span>)と関西百名山(<span class='mk'></span>、山と溪谷社『関西百名山』)の予報です。両方に入る伊吹山・大台ヶ原山・大峰山は1つにまとめ、日本百名山のバッジだけを付けています。
 山頂の標高での予報(6〜15時)から、登山に向いた天気かを判定しています。表は7日間で、山名を押すと最大16日間の詳細が開きます。
 詳細で今日から5日後までの日付を押すと、時間ごとの予報(今日は1時間ごと、明日〜5日後は3時間ごと。3時間ごとの行の風速・降水量はその3時間の最大・合計)が開きます。
 日の出・日の入りは本日の時刻で、平地の地平線を基準にしています(山頂ではもう少し早く昇り、遅く沈みます)。</p></div>
@@ -1298,10 +1291,10 @@ def index_page(mts, ski, spots):
             if d["date"] in we:
                 icon, _ = wx(d["code"])
                 cells += (f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b> {icon}"
-                          f"<small class='muted'> {round(d['tavg'])}℃ · "
+                          f"<br><small class='muted'>{round(d['tavg'])}℃ · "
                           f"風{d['wind']:.0f}m/s</small></td>")
         return link_row(f"<b>{e(m['name'])}</b>{tags(m)}{alert_tags(m)}<br><small class='muted'>"
-                        f"{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>",
+                        f"{m['elev']:,}m · {e(m['prefs'][0])}</small>",
                         cells, f"mountains.html#{m['key']}", attrs)
     mt_rows = "".join(mt_row(m) for m in good[:10]) or (
         f"<tbody><tr><td colspan='3'>週末に条件の良い山は見当たりません</td></tr></tbody>")
@@ -1437,7 +1430,7 @@ small{font-size:12px}
 .r3{color:var(--r3)}.r2{color:var(--r2)}.r1{color:var(--r1)}.r0{color:var(--r0)}
 .big{font-weight:700;color:var(--r2)}.mid{font-weight:600}
 .tag{display:inline-block;font-size:11px;padding:0 6px;border-radius:99px;background:var(--hl);color:var(--accent)}
-.mk{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;font-size:11px;font-weight:700;line-height:1;vertical-align:1px;color:#fff;background:var(--accent)}.mk.hyaku{width:24px;height:24px;border-radius:0;vertical-align:-5px;font-size:0;background:url(hyaku.svg) center/contain no-repeat}
+.mk{display:inline-block;width:24px;height:24px;vertical-align:-5px;font-size:0;background:url(kansai.svg) center/contain no-repeat}.mk.hyaku{background-image:url(hyaku.svg)}
 .tag.warn{color:var(--r1)}
 .filters{display:flex;flex-direction:column;gap:8px;margin:8px 0 12px}
 #q{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text);max-width:320px}
