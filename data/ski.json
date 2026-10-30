@@ -6220,5 +6220,575 @@
     "上級": 0
    }
   }
+ },
+ {
+  "name": "福井和泉スキー場",
+  "pref": "福井県",
+  "lat": 35.93972324,
+  "lon": 136.6923178,
+  "drop": 301,
+  "base": 600,
+  "top": 901,
+  "site": "https://fukuiizumi.com/",
+  "muni": "18205",
+  "hours": {
+   "day": "8:30〜17:00",
+   "holiday": "8:00〜17:00",
+   "night": null,
+   "season": [
+    "2026-01-05",
+    "2026-03-18"
+   ],
+   "src": "福井和泉"
+  },
+  "intro": "大野市和泉の、九頭竜湖に近いゲレンデ",
+  "spec": {
+   "courses": 6,
+   "lifts": 3,
+   "lift_kinds": {
+    "1人用": 1,
+    "2人用": 1,
+    "3人用": 0,
+    "4人用": 1,
+    "ロープウェイ": 0,
+    "エスカレーター": 0,
+    "ゴンドラ": 0,
+    "トーイング": 0,
+    "その他": 0
+   },
+   "longest": 1500,
+   "max_slope": 24,
+   "level": {
+    "初級": 70,
+    "中級": 20,
+    "上級": 10
+   },
+   "groom": {
+    "非圧雪": 20,
+    "圧雪": 80
+   },
+   "vertical": 301,
+   "peak": 901,
+   "base": 600,
+   "src": "surfsnow:r0133"
+  },
+  "ticket": {
+   "adult": 5200,
+   "season": "2025-2026",
+   "src": "weathernews"
+  }
+ },
+ {
+  "name": "今庄365スキー場",
+  "pref": "福井県",
+  "lat": 35.72123967,
+  "lon": 136.1439183,
+  "drop": 330,
+  "base": 430,
+  "top": 760,
+  "site": "https://imajyo365.jp/",
+  "muni": "18404",
+  "hours": {
+   "day": "9:00〜16:00",
+   "holiday": "8:30〜16:00",
+   "night": null,
+   "season": [
+    "2026-01-05",
+    "2026-03-08"
+   ],
+   "src": "今庄365スキー場"
+  },
+  "intro": "南越前町の、北陸道今庄ICから近いゲレンデ",
+  "spec": {
+   "courses": 8,
+   "level": {
+    "初級": 30,
+    "中級": 50,
+    "上級": 20
+   },
+   "groom": {
+    "非圧雪": 20,
+    "圧雪": 80
+   },
+   "vertical": 330,
+   "peak": 760,
+   "base": 430,
+   "src": "surfsnow:r0232",
+   "lifts": 1
+  },
+  "ticket": {
+   "adult": 3000,
+   "season": "2025-2026",
+   "src": "weathernews"
+  }
+ },
+ {
+  "name": "七尾コロサスキー場",
+  "pref": "石川県",
+  "lat": 36.9751345,
+  "lon": 136.9605676,
+  "drop": 65,
+  "base": 326,
+  "top": 391,
+  "muni": "17202",
+  "hours": {
+   "day": "9:00〜16:00",
+   "holiday": "9:00〜16:00",
+   "night": null,
+   "season": [
+    "2026-01-15",
+    "2026-02-15"
+   ],
+   "src": "七尾コロサスキー場"
+  },
+  "intro": "能登半島・七尾の小さなゲレンデ",
+  "spec": {
+   "courses": 4,
+   "level": {
+    "初級": 50,
+    "中級": 30,
+    "上級": 20
+   },
+   "groom": {
+    "非圧雪": 20,
+    "圧雪": 80
+   },
+   "vertical": 65,
+   "peak": 391,
+   "base": 326,
+   "src": "surfsnow:r0831",
+   "lifts": 1
+  },
+  "ticket": {
+   "adult": 2000,
+   "season": "2025-2026",
+   "src": "weathernews"
+  }
+ },
+ {
+  "name": "IOX-AROSA",
+  "pref": "富山県",
+  "lat": 36.515210971930856,
+  "lon": 136.82118340994154,
+  "drop": 500,
+  "base": 350,
+  "top": 850,
+  "site": "http://www.iox-arosa.jp/",
+  "muni": "16210",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:00〜16:30",
+   "night": "17:30〜21:00(特定日)",
+   "season": [
+    "2026-01-03",
+    "2026-03-08"
+   ],
+   "src": "IOX-AROSA"
+  },
+  "intro": "南砺市の、標高差500mの北陸有数のゲレンデ",
+  "spec": {
+   "courses": 7,
+   "level": {
+    "初級": 40,
+    "中級": 50,
+    "上級": 10
+   },
+   "groom": {
+    "圧雪": 100
+   },
+   "vertical": 500,
+   "peak": 850,
+   "base": 350,
+   "src": "surfsnow:r0962",
+   "lifts": 6
+  },
+  "ticket": {
+   "adult": 5000,
+   "season": "2025-2026",
+   "src": "weathernews"
+  }
+ },
+ {
+  "name": "九頭竜スキー場",
+  "pref": "福井県",
+  "lat": 35.898446,
+  "lon": 136.653202,
+  "drop": 320,
+  "base": 408,
+  "top": 728,
+  "site": "https://www.kuzuryu-skiland.com/",
+  "muni": "18205",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:30〜16:30",
+   "night": null,
+   "season": [
+    "2026-01-14",
+    "2026-03-02"
+   ],
+   "src": "九頭竜スキー場"
+  },
+  "intro": "大野市・九頭竜の、家族向けのゲレンデ",
+  "spec": {
+   "courses": 8,
+   "level": {
+    "初級": 40,
+    "中級": 30,
+    "上級": 30
+   },
+   "groom": {
+    "非圧雪": 30,
+    "圧雪": 70
+   },
+   "src": "surfsnow:r0977",
+   "vertical": 320,
+   "peak": 728,
+   "base": 408,
+   "lifts": 4
+  },
+  "ticket": {
+   "adult": 4000,
+   "season": "2025-2026",
+   "src": "weathernews"
+  }
+ },
+ {
+  "name": "タカンボースキー場",
+  "pref": "富山県",
+  "lat": 36.3798056,
+  "lon": 136.8671117,
+  "drop": 420,
+  "base": 326,
+  "top": 746,
+  "site": "http://www.gokayama-kankou.com/contents2.html",
+  "muni": "16210",
+  "hours": {
+   "day": "8:00〜16:00",
+   "holiday": "8:00〜16:00",
+   "night": null,
+   "season": [
+    "2026-01-03",
+    "2026-03-08"
+   ],
+   "src": "タカンボースキー場"
+  },
+  "intro": "五箇山の山あいにある、こぢんまりしたゲレンデ",
+  "spec": {
+   "courses": 4,
+   "level": {
+    "初級": 40,
+    "中級": 40,
+    "上級": 20
+   },
+   "groom": {
+    "非圧雪": 20,
+    "圧雪": 80
+   },
+   "vertical": 420,
+   "peak": 746,
+   "base": 326,
+   "src": "surfsnow:r0816",
+   "lifts": 3
+  },
+  "ticket": {
+   "adult": 4000,
+   "season": "2025-2026",
+   "src": "weathernews"
+  }
+ },
+ {
+  "name": "宇奈月温泉スキー場",
+  "pref": "富山県",
+  "lat": 36.8122439,
+  "lon": 137.5845496,
+  "drop": 230,
+  "base": 320,
+  "top": 550,
+  "site": "https://www.unazuki-snowpark.com/",
+  "muni": "16207",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:30〜16:30",
+   "night": null,
+   "season": [
+    "2026-01-05",
+    "2026-03-01"
+   ],
+   "src": "宇奈月温泉スキー場"
+  },
+  "intro": "宇奈月温泉の街から近いゲレンデ",
+  "spec": {
+   "level": {
+    "初級": 20,
+    "中級": 60,
+    "上級": 20
+   },
+   "groom": {
+    "非圧雪": 10,
+    "圧雪": 80,
+    "コブ": 10
+   },
+   "src": "surfsnow:r0820",
+   "vertical": 230,
+   "peak": 550,
+   "base": 320,
+   "courses": 1,
+   "lifts": 2
+  }
+ },
+ {
+  "name": "金沢市営医王山スキー場",
+  "pref": "石川県",
+  "lat": 36.5261324,
+  "lon": 136.7495249,
+  "drop": 150,
+  "base": 390,
+  "top": 540,
+  "site": "http://www.kanazawa-sports.jp/",
+  "muni": "17201",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:30〜16:30",
+   "night": null,
+   "season": [
+    "2026-01-24",
+    "2026-02-22"
+   ],
+   "src": "金沢市営医王山スキー場"
+  },
+  "intro": "金沢市街から近い市営のゲレンデ",
+  "spec": {
+   "courses": 4,
+   "level": {
+    "初級": 40,
+    "中級": 30,
+    "上級": 30
+   },
+   "vertical": 150,
+   "peak": 540,
+   "base": 390,
+   "src": "surfsnow:r0830",
+   "lifts": 2
+  }
+ },
+ {
+  "name": "となみ夢の平スキー場",
+  "pref": "富山県",
+  "lat": 36.5861741,
+  "lon": 137.0222012,
+  "drop": 200,
+  "base": 310,
+  "top": 510,
+  "site": "https://ski.yumeno-taira.com/",
+  "muni": "16208",
+  "hours": {
+   "day": "8:30〜17:00",
+   "holiday": "8:30〜17:00",
+   "night": null,
+   "season": [
+    "2026-01-24",
+    "2026-02-25"
+   ],
+   "src": "となみ夢の平スキー場"
+  },
+  "intro": "砺波平野を見下ろす、市街から近いゲレンデ",
+  "spec": {
+   "courses": 3,
+   "level": {
+    "初級": 40,
+    "中級": 50,
+    "上級": 10
+   },
+   "groom": {
+    "非圧雪": 10,
+    "圧雪": 90
+   },
+   "vertical": 200,
+   "peak": 510,
+   "base": 310,
+   "src": "surfsnow:r0822",
+   "lifts": 1
+  },
+  "ticket": {
+   "adult": 3500,
+   "season": "2025-2026",
+   "src": "weathernews"
+  }
+ },
+ {
+  "name": "大倉岳高原スキー場",
+  "pref": "石川県",
+  "lat": 36.2837324,
+  "lon": 136.5380609,
+  "drop": 225,
+  "base": 275,
+  "top": 500,
+  "muni": "17203",
+  "hours": {
+   "day": "8:30〜21:00",
+   "holiday": "8:30〜17:00",
+   "night": "16:00〜21:00",
+   "season": [
+    "2026-01-15",
+    "2026-02-26"
+   ],
+   "src": "大倉岳高原"
+  },
+  "intro": "小松市の高原にある、ナイターも楽しめるゲレンデ",
+  "spec": {
+   "courses": 4,
+   "level": {
+    "初級": 40,
+    "中級": 30,
+    "上級": 30
+   },
+   "groom": {
+    "非圧雪": 5,
+    "圧雪": 90,
+    "コブ": 5
+   },
+   "vertical": 225,
+   "peak": 500,
+   "base": 275,
+   "src": "surfsnow:r0828",
+   "lifts": 3
+  },
+  "ticket": {
+   "adult": 4000,
+   "season": "2025-2026",
+   "src": "weathernews"
+  }
+ },
+ {
+  "name": "新保ファミリースキー場",
+  "pref": "福井県",
+  "lat": 35.8559459,
+  "lon": 136.3076253,
+  "drop": 45,
+  "base": 260,
+  "top": 305,
+  "site": "http://www.ski.ikeda-kibou.com/",
+  "muni": "18382",
+  "hours": {
+   "day": "9:00〜16:00(月・金のみ)",
+   "holiday": "9:00〜16:00",
+   "night": null,
+   "season": [
+    "2026-01-24",
+    "2026-03-01"
+   ],
+   "src": "新保ファミリースキー場"
+  },
+  "intro": "池田町の小さなファミリーゲレンデ",
+  "spec": {
+   "level": {
+    "初級": 80,
+    "中級": 20
+   },
+   "groom": {
+    "非圧雪": 5,
+    "圧雪": 95
+   },
+   "src": "surfsnow:r0834",
+   "vertical": 45,
+   "peak": 305,
+   "base": 260,
+   "courses": 1,
+   "lifts": 1
+  },
+  "ticket": {
+   "adult": 2500,
+   "season": "2025-2026",
+   "src": "weathernews"
+  }
+ },
+ {
+  "name": "たいらスキー場",
+  "pref": "富山県",
+  "lat": 36.4423858,
+  "lon": 136.9271999,
+  "drop": 303,
+  "base": 630,
+  "top": 933,
+  "site": "http://www1.tst.ne.jp/skitaira/",
+  "muni": "16210",
+  "hours": {
+   "day": "8:30〜16:00",
+   "holiday": "8:30〜16:00",
+   "night": null,
+   "season": [
+    "2025-12-28",
+    "2026-03-29"
+   ],
+   "src": "たいら"
+  },
+  "intro": "五箇山の、地元に親しまれるゲレンデ",
+  "spec": {
+   "courses": 5,
+   "level": {
+    "初級": 20,
+    "中級": 40,
+    "上級": 40
+   },
+   "groom": {
+    "非圧雪": 30,
+    "圧雪": 70
+   },
+   "vertical": 303,
+   "peak": 933,
+   "base": 630,
+   "src": "surfsnow:r0817",
+   "lifts": 3
+  },
+  "ticket": {
+   "adult": 3500,
+   "season": "2025-2026",
+   "src": "weathernews"
+  }
+ },
+ {
+  "name": "白山千丈温泉セイモアスキー場",
+  "pref": "石川県",
+  "lat": 36.34748415,
+  "lon": 136.6779442,
+  "drop": 730,
+  "base": 300,
+  "top": 1030,
+  "site": "http://sam-hakusan.com/",
+  "muni": "17210",
+  "hours": {
+   "day": "8:30〜16:30",
+   "holiday": "8:00〜16:30",
+   "night": null,
+   "season": [
+    "2026-01-03",
+    "2026-03-22"
+   ],
+   "src": "白山千丈温泉セイモアスキー場"
+  },
+  "intro": "白山市の、温泉の近くにある標高差700mのゲレンデ",
+  "spec": {
+   "courses": 9,
+   "level": {
+    "初級": 10,
+    "中級": 50,
+    "上級": 40
+   },
+   "groom": {
+    "非圧雪": 30,
+    "圧雪": 60,
+    "コブ": 10
+   },
+   "vertical": 730,
+   "peak": 1030,
+   "base": 300,
+   "src": "surfsnow:r0267",
+   "lifts": 4
+  },
+  "ticket": {
+   "adult": 4500,
+   "season": "2025-2026",
+   "src": "weathernews"
+  }
  }
 ]
