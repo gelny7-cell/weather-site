@@ -895,13 +895,13 @@ PREF_SKI_REGION = {p: r for r, ps in SKI_REGIONS.items() for p in ps}
 
 
 def ski_hours_line(s):
-    """営業時間の行(ウェザーニュースの掲載情報。営業時間は年ごとにあまり変わらないので一度取って保存している)"""
+    """営業時間の文字(標高の行の左に付ける。ウェザーニュースの掲載情報。営業時間は年ごとにあまり変わらないので一度取って保存している)"""
     h = s.get("hours")
     if not h:
         return ""
     time_ = h["day"] if h["day"] == h["holiday"] else f"平日 {h['day']} ／ 休日 {h['holiday']}"
     night = f" · ナイター {h['night']}" if h.get("night") else ""
-    return f"<p class='muted'>🕘 営業時間 {time_}{night}</p>"
+    return f"🕘 営業時間 {time_}{night} · "
 
 
 def road(t):
@@ -971,7 +971,7 @@ def ski_detail(s, with_map=True, simple=False):
         obs = (f"<p class='obs'>ベース積雪:<b>{am['snow']}cm</b>{fresh}"
                f"<small class='muted'> · {am['time'].month}/{am['time'].day} {am['time'].hour}時 気象庁アメダス</small></p>")
     return (f"{star('s', s) if with_map else ''}{intro(s)}{link}{alert_box(s)}{obs}"
-            f"<p class='muted'>上部 {s['top']:,}m / 下部 {s['base']:,}m</p>{ski_hours_line(s)}<div class='scroll'><table class='sub'>"
+            f"<p class='muted'>{ski_hours_line(s)}上部 {s['top']:,}m / 下部 {s['base']:,}m</p><div class='scroll'><table class='sub'>"
             "<tr><th rowspan='2' class='dt'>日付</th><th colspan='2'>天気</th><th colspan='2'>新雪</th><th rowspan='2'>積雪<br>(上部)</th>"
             "<th rowspan='2'>気温<br>(上部)</th><th rowspan='2'>体感温度<br>(上部)</th><th rowspan='2'>0℃の高さ<br>(8〜16時)</th><th rowspan='2'>平均風速<br>(上部)</th>"
             "<th rowspan='2'>最大瞬間風速<br>(上部)</th>"
