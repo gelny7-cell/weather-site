@@ -1305,11 +1305,16 @@ def build_surf():
         "sea_surface_temperature"]))
     tides = marine([(s["sea_lat"], s["sea_lon"]) for s in spots], minutely_15="sea_level_height_msl")
     winds = forecast([(s["lat"], s["lon"], 0) for s in spots],
-                     hourly="wind_speed_10m,wind_direction_10m,weather_code,temperature_2m")
+                     hourly="wind_speed_10m,wind_direction_10m,weather_code,temperature_2m", daily="sunrise,sunset")
     for s, w, f, tide in zip(spots, waves, winds, tides):
         s["days"] = []
         if w is None or f is None:
             continue
+        dl = f.get("daily", {})               # 本日の日の出・日の入り(登山と同じく平地の地平線での時刻)
+        if str(today) in dl.get("time", []):
+            k = dl["time"].index(str(today))
+            if dl["sunrise"][k] and dl["sunset"][k]:
+                s["sun"] = (dl["sunrise"][k][11:16], dl["sunset"][k][11:16])
         m15 = tide["minutely_15"] if tide else None
         events = tide_events(m15) if m15 else []
         s["grid"] = (w["latitude"], w["longitude"])
@@ -1432,7 +1437,8 @@ def surf_detail(s):
     seas = [sl["sea"] for d in s["days"][:1] for sl in d["slots"] if sl.get("sea") is not None]
     suit = (f"<p class='muted'>🩱 ウェットスーツの目安: <b>{wetsuit(sum(seas) / len(seas))}</b>"
             f"(今日の水温 {sum(seas) / len(seas):.0f}℃。風が強い日や朝夕は一段厚めに)</p>") if seas else ""
-    return (f"{alert_box(s)}{intro(s)}{suit}{buttons}{surf_table(s)}"
+    sun = (f"<p class='muted'>本日の日の出 {s['sun'][0].lstrip('0')} ／ 日の入り {s['sun'][1]}</p>" if s.get("sun") else "")
+    return (f"{alert_box(s)}{intro(s)}{sun}{suit}{buttons}{surf_table(s)}"
             + (f"<p class='muted'>波は沖合({s['grid'][0]:.2f}, {s['grid'][1]:.2f})の予報</p>" if s.get("grid") else ""))
 
 
