@@ -898,13 +898,13 @@ PREF_SKI_REGION = {p: r for r, ps in SKI_REGIONS.items() for p in ps}
 
 
 def ski_hours_line(s):
-    """営業時間の文字(標高の行の左に付ける。ウェザーニュースの掲載情報。営業時間は年ごとにあまり変わらないので一度取って保存している)"""
+    """営業時間の行(ウェザーニュースの掲載情報。営業時間は年ごとにあまり変わらないので一度取って保存している)"""
     h = s.get("hours")
     if not h:
         return ""
     time_ = h["day"] if h["day"] == h["holiday"] else f"平日 {h['day']} ／ 休日 {h['holiday']}"
     night = f" · ナイター {h['night']}" if h.get("night") else ""
-    return f"🕘 営業時間 {time_}{night} · "
+    return f"<p class='muted'>🕘 営業時間 {time_}{night}</p>"
 
 
 def road(t):
@@ -972,8 +972,10 @@ def ski_detail(s, with_map=True, simple=False):
     if am:
         fresh = f"/24時間降雪:<b>{am['snow24h']}cm</b>" if am["snow24h"] is not None else ""
         obs = f"<p class='obs'>ベース積雪:<b>{am['snow']}cm</b>{fresh}</p>"
-    return (f"{star('s', s) if with_map else ''}{alert_box(s)}{intro(s)}{link}{obs}"
-            f"<p class='muted'>{ski_hours_line(s)}上部 {s['top']:,}m / 下部 {s['base']:,}m</p><div class='scroll'><table class='sub'>"
+    # 文字(注意報・紹介・営業時間・標高・積雪の観測)をまとめて上に、ボタン(お気に入り登録が先頭)をその下の1か所に
+    buttons = f"<div class='btnrow'>{star('s', s)} {link}</div>" if with_map else ""
+    return (f"{alert_box(s)}{intro(s)}{ski_hours_line(s)}<p class='muted'>上部 {s['top']:,}m / 下部 {s['base']:,}m</p>{obs}"
+            f"{buttons}<div class='scroll'><table class='sub'>"
             "<tr><th rowspan='2' class='dt'>日付</th><th colspan='2'>天気</th><th colspan='2'>新雪</th><th rowspan='2'>積雪<br>(上部)</th>"
             "<th rowspan='2'>気温<br>(上部)</th><th rowspan='2'>体感温度<br>(上部)</th><th rowspan='2'>0℃の高さ<br>(8〜16時)</th><th rowspan='2'>平均風速<br>(上部)</th>"
             "<th rowspan='2'>最大瞬間風速<br>(上部)</th>"
@@ -1412,7 +1414,7 @@ border:1px solid var(--line);background:var(--card);color:var(--text);box-shadow
 .star[aria-pressed='true']{border-color:var(--fav);font-weight:600}
 .favmark{color:var(--fav)}
 .star:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-tr.detail .star{display:table}h3+.star{margin-top:-2px}
+tr.detail .star{display:table}tr.detail .btnrow .star{display:inline-block;vertical-align:top}h3+.star{margin-top:-2px}
 .favbox h3{font-size:14px;margin:4px 0}
 .intro{margin:0 0 8px;font-size:14px;color:var(--text)}
 .fac{font-size:12px}
