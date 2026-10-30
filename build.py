@@ -1029,6 +1029,18 @@ def is_powder(s, d):
     return d["snow"] >= snow and d["tmax"] <= tmax
 
 
+def hour_marks(s):
+    """一覧のスキー場名の横の印: 🌅 早朝営業(平日か休日の営業開始が7時台以前)、🌙 ナイター"""
+    h = s.get("hours") or {}
+    starts = [int(m.group(1)) for x in (h.get("day"), h.get("holiday")) if x for m in [re.search(r"(\d{1,2}):\d{2}", x)] if m]
+    out = ""
+    if starts and min(starts) <= 7:
+        out += " <span class='fac' title='早朝営業あり' role='img' aria-label='早朝営業あり'>🌅</span>"
+    if h.get("night"):
+        out += " <span class='fac' title='ナイターあり' role='img' aria-label='ナイターあり'>🌙</span>"
+    return out
+
+
 def ski_hours_line(s):
     """営業時間の文字(ウェザーニュースの掲載情報。営業時間は年ごとにあまり変わらないので一度取って保存している)"""
     h = s.get("hours")
@@ -1193,7 +1205,7 @@ def ski_page(ski):
             rows += (
                 f"<tbody class='mt' id='{s['key']}' data-fid='{e(fid('s', s))}' data-region='{r}' data-name='{e(s['name'] + s.get('yomi', ''))}'{powder7}>"
                 f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
-                f"<span>{e(s['name'])}</span>{alert_tags(s)}<small>{e(s['pref'])} · 7日間 {total7:.0f}cm</small>"
+                f"<span>{e(s['name'])}</span>{hour_marks(s)}{alert_tags(s)}<small>{e(s['pref'])} · 7日間 {total7:.0f}cm</small>"
                 f"</button></th>{cells}</tr>"
                 f"<tr class='detail' hidden><td colspan='{len(days) + 1}'><template>{ski_detail(s)}</template></td></tr></tbody>")
     chips = ("<button class='chip on' data-r=''>すべて</button>"
@@ -1210,6 +1222,7 @@ def ski_page(ski):
 <div class='note'><ul>
 <li>新雪: 前日17時〜当日8時(ゲレンデが閉まってから開くまで)に降る雪の量の予報</li>
 <li>積雪: 朝9時に積もっている雪の深さの予報(気象モデルの推定。実際の積雪と大きく違うことがあります)</li>
+<li>🌅 早朝営業: 平日か休日の営業開始が7時台以前のスキー場。🌙 ナイター: ナイター営業のあるスキー場(どちらもウェザーニュースの営業時間から。特定日だけのものも含みます)</li>
 <li>📷 ライブカメラ: スキー場の公式サイトが載せているカメラです(公式にないスキー場はウェザーニュースのカメラ)</li>
 <li>ゲレンデ積雪: スキー場が報告した積雪深(平均)・前日比・雪質・ゲレンデ状況で、<a href='https://surfsnow.jp/'>SURF&amp;SNOW</a> の積雪情報から朝・昼に取得しています。報告がないスキー場・日は表示しません</li>
 <li><span class='tag'>パウダー期待</span> 上部の新雪と最高気温が、地域ごとの基準を満たす日です(北海道 15cm以上・-5℃以下、東北・関東・新潟・長野 15cm以上・-3℃以下、北陸・東海 10cm以上・-2℃以下、近畿・中国・四国・九州 5cm以上・-1℃以下)。雪の少ない地域でも「その地域にしては良い雪」の日が分かるようにしています。「❄️パウダー期待」のボタンで、7日間のうちにパウダー期待の日があるスキー場だけに絞り込めます</li>
@@ -1380,6 +1393,10 @@ def surf_table(s):
     has_sea = all(x["sea"] is not None for x in every)
     has_tide = all(x.get("tide") for x in every)
 
+    def front(deg):             # うねりが浜の正面(向きの差30°以内)から入るなら 🎯
+        return (" <span class='fac' title='うねりが浜の正面から入る' role='img' aria-label='うねりが浜の正面から'>🎯</span>"
+                if deg is not None and ang_diff(deg, s["facing"]) <= 30 else "")
+
     def temps(x):
         return ((f"<td>{x['air']:.0f}℃</td>" if has_air else "")
                 + (f"<td>{x['sea']:.0f}℃</td>" if has_sea else ""))
@@ -1392,13 +1409,13 @@ def surf_table(s):
             rows += (f"<tr>{date_cell}<td>{sl['slot']}</td><td class='{cls}'><b>{mark}</b></td>"
                      f"<td>{sl['height']:.1f}m</td>"
                      f"<td>{sl['swell']:.1f}m</td><td>{sl['period']:.1f}秒</td>"
-                     f"<td>{dir_name(sl['wave_dir'])}</td>" + (f"<td>{sl['tide']}</td>" if has_tide else "")
+                     f"<td>{dir_name(sl['wave_dir'])}{front(sl['wave_dir'])}</td>" + (f"<td>{sl['tide']}</td>" if has_tide else "")
                      + f"<td>{dir_name(sl['wind_dir'])} {sl['wind']:.1f}m/s <small>{sl['kind']}</small></td>"
                      f"<td>{wx(sl['code'])[0]}</td>{temps(sl)}</tr>")
         for x in d.get("hours", []):
             rows += (f"<tr class='hr' hidden><td class='dt'>{x['hour']}時</td><td colspan='2'></td>"
                      f"<td>{x['height']:.1f}m</td><td>{x['swell']:.1f}m</td><td>{x['period']:.1f}秒</td>"
-                     f"<td>{dir_name(x['wave_dir'])}</td>" + (f"<td>{x['tide']}</td>" if has_tide else "")
+                     f"<td>{dir_name(x['wave_dir'])}{front(x['wave_dir'])}</td>" + (f"<td>{x['tide']}</td>" if has_tide else "")
                      + f"<td>{dir_name(x['wind_dir'])} {x['wind']:.1f}m/s <small>{x['kind']}</small></td>"
                      f"<td>{wx(x['code'])[0]}</td>{temps(x)}</tr>")
     return ("<div class='scroll'><table class='sub'>"
@@ -1488,6 +1505,7 @@ def surf_page(spots):
 <li>⚠️ 警報・注意報は、浜のある市町村に気象庁がいま出しているもの</li>
 <li>🚻 トイレ・🚿 シャワー: <a href='https://japan.surfride.net/'>surfride.net</a> の設備の情報で、あるポイントの名前の横に付けています(分からないポイントは付けていません)</li>
 <li>🏪 サーフショップ: surfride.net・サーファーズオーシャンに、近くにサーフショップ(スクール・レンタル)があると書かれているか、確認できたポイントに付けています</li>
+<li>🎯 波の向きが浜の向き(正面)から30°以内の時間帯。うねりがまっすぐ入り、波が立ちやすい目安です</li>
 <li>🩱 ウェットスーツの目安: 今日の水温の予報から、25℃以上 ボードショーツ・ラッシュガード、23℃以上 スプリング、20℃以上 シーガル、17℃以上 3/2mm フル、14℃以上 5/3mm フル、11℃以上 5/3mm セミドライ+ブーツ、それ未満 5mm セミドライ+ブーツ・グローブ・キャップ(一般的な目安です)</li>
 <li>📷 ライブカメラ: <a href='https://www.surfers-ocean.com/'>サーファーズオーシャン</a>・<a href='https://japan.surfride.net/'>surfride.net</a> に載っているカメラのうち、ポイントかそのすぐ近くを映すものです(停止中のものは除く)。提供元のサイトが開きます</li>
 <li>一覧は7日間で、その日の朝・昼のよいほうの判定とうねりの高さです。ポイント名を押すと、朝・昼の詳しい予報(最大16日間)が開きます</li>
@@ -1591,6 +1609,27 @@ def index_page(mts, ski, spots):
         more = f"<br><small class='muted'>週末まで {until:.0f}cm</small>" if round(until) else ""
         fav_rows += link_row(f"<b>{e(n)}</b>{more}",
                              cells, f"snow.html#{s['key']}", f" class='favonly' data-fid='{e(fid('s', s))}' hidden")
+    # 週末おすすめのスキー場: 週末の新雪(パウダー期待の日は加点)が多い順に、地方が重ならないよう5か所
+    def ski_score(s):
+        days = [d for d in s["days"] if d["date"] in we]
+        return sum(d["snow"] for d in days) + sum(10 for d in days if is_powder(s, d))
+    picks, used = [], set()
+    for s in sorted(ski, key=ski_score, reverse=True):
+        r = PREF_SKI_REGION[s["pref"]]
+        if ski_score(s) >= 1 and r not in used:
+            picks.append(s); used.add(r)
+        if len(picks) == 5:
+            break
+    rec_rows = ""
+    for s in picks:
+        cells = "".join(f"<td>{wx(d['code'])[0]}<br><small class='muted'>新雪</small>{d['snow']:.0f}cm"
+                        + (" <span class='tag'>パウダー</span>" if is_powder(s, d) else "")
+                        + f"<br><small class='muted'>積雪</small>{d['depth']:.0f}cm</td>" for d in s["days"] if d["date"] in we)
+        rec_rows += link_row(f"<b>{e(s['name'])}</b><br><small class='muted'>{PREF_SKI_REGION[s['pref']]} · {e(s['pref'])}</small>",
+                             cells, f"snow.html#{s['key']}")
+    rec = (f"<div class='scroll'><table class='sub top'>{cols}<tr><th>週末おすすめのスキー場</th>"
+           + "".join(f"<th>{day_label(d)}</th>" for d in we) + f"</tr>{rec_rows}</table></div>") if picks else (
+        "<p class='muted'>週末に新雪が見込めるスキー場は、いまのところ見当たりません</p>")
     fav = (f"<div class='favbox' hidden><div class='scroll'><table class='sub top'>{cols}<tr><th></th>"
            + "".join(f"<th>{day_label(d)}</th>" for d in we)
            + f"</tr>{fav_rows}</table></div></div>"
@@ -1621,12 +1660,13 @@ def index_page(mts, ski, spots):
 <section class='card big'><h2><a href='mountains.html'>⛰️ 登山</a></h2>
 {mt_list}
 </section>
-<section class='card'><h2><a href='snow.html'>🏂 スノーボード</a></h2>{fav}
+<section class='card'><h2><a href='snow.html'>🏂 スノーボード</a></h2>{rec}{fav}
 </section>
 <section class='card'><h2><a href='surf.html'>🏄 サーフィン</a></h2>{surf_list}
 </section>
 <div class='note'><p>{label} の予報から、よさそうな場所をまとめました。</p>
 <p>警報・注意報・火山の印は、今出ているものなので各ページの詳細で表示しています。</p>
+<p>週末おすすめのスキー場: 週末の新雪の合計(パウダー期待の日は10cm分を加点)が多い順に、北海道・東北・関東・新潟・長野・北陸・東海・近畿などの地方が重ならないよう最大5か所。</p>
 <p>週末おすすめの山: 週末の両日が○以上の山(上位10座、判定が良く風の弱い順)。気温は山頂付近の6〜15時の平均、風は同じ時間帯の最大。名前を押すと、各ページでその場所の予報が開きます。</p></div>
 """
 
