@@ -1294,7 +1294,7 @@ def index_page(mts, ski, spots):
                 icon, _ = wx(d["code"])
                 cells += (f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b> {icon}"
                           f"<br><small class='muted'>{round(d['tavg'])}℃ · "
-                          f"風{d['wind']:.0f}m/s</small></td>")
+                          f"{d['wind']:.0f}m/s</small></td>")
         return link_row(f"<b>{e(m['name'])}</b>{tags(m)}<br><small class='muted'>"
                         f"{m['elev']:,}m · {e(m['prefs'][0])}</small>",
                         cells, f"mountains.html#{m['key']}", attrs)
@@ -1309,7 +1309,7 @@ def index_page(mts, ski, spots):
     mt_list = (f"<div class='scroll'><table class='sub top'>{cols}"
                f"<tbody class='favhead' hidden><tr><th><a href='mountains.html#fav'><span class='favmark'>★</span>お気に入りの山</a></th>"
                f"{we_head}</tr></tbody>{fav_mt}"
-               f"<tbody><tr><th>週末天気が良さそうな山</th>{we_head}</tr></tbody>{mt_rows}</table></div>")
+               f"<tbody><tr><th>週末おすすめの山</th>{we_head}</tr></tbody>{mt_rows}</table></div>")
     # スノー: よく行くスキー場(data/favorites.json)を常に表示する
     upto = we[-1]
     fav_rows = ""
@@ -1356,7 +1356,7 @@ def index_page(mts, ski, spots):
 </section>
 <div class='note'><p>{label} の予報から、よさそうな場所をまとめました。</p>
 <p>警報・注意報・火山の印は、今出ているものなので各ページの詳細で表示しています。</p>
-<p>週末天気が良さそうな山: 週末の両日が○以上の山(上位10座、判定が良く風の弱い順)。気温は山頂付近の6〜15時の平均、風は同じ時間帯の最大。名前を押すと、各ページでその場所の予報が開きます。</p></div>
+<p>週末おすすめの山: 週末の両日が○以上の山(上位10座、判定が良く風の弱い順)。気温は山頂付近の6〜15時の平均、風は同じ時間帯の最大。名前を押すと、各ページでその場所の予報が開きます。</p></div>
 """
 
 
