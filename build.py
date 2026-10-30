@@ -1377,10 +1377,23 @@ def surf_table(s):
             + f"<th>風</th><th>天気</th>{'<th>気温</th>' if has_air else ''}{'<th>水温</th>' if has_sea else ''}</tr>{rows}</table></div>")
 
 
+def camlink(s):
+    """ライブカメラのボタン(data の cams。サーファーズオーシャン・surfride.net に載っているカメラ)。
+    1つならそのまま開き、複数あれば押すと一覧が開く"""
+    cams = s.get("cams") or []
+    if len(cams) == 1:
+        return sitelink(cams[0]["url"], "📷 ライブカメラ") + " "
+    if not cams:
+        return ""
+    items = "".join(sitelink(c["url"], c["name"]) for c in cams)
+    return (f"<details class='menu'><summary class='mapbtn'>📷 ライブカメラ</summary>"
+            f"<div class='menu-list'>{items}</div></details> ")
+
+
 def surf_detail(s):
     """サーフポイントの詳細(名前を押すと開く): 注意報・紹介・ボタン(お気に入り登録が先頭)・朝昼の表"""
     pref = s["pref"][:s["pref"].index("県") + 1] if "県" in s["pref"] else s["pref"][:3]
-    buttons = (f"<div class='btnrow'>{star('w', s)} {maplink(s['parking'], '駐車場')} {onsenlink(s['lat'], s['lon'])}"
+    buttons = (f"<div class='btnrow'>{star('w', s)} {maplink(s['parking'], '駐車場')} {camlink(s)}{onsenlink(s['lat'], s['lon'])}"
                f"{foodlink(s['lat'], s['lon'], pref, 'surf')}{michilink(s['lat'], s['lon'])}{conbilink(s['lat'], s['lon'])}</div>")
     return (f"{alert_box(s)}{intro(s)}{buttons}{surf_table(s)}"
             + (f"<p class='muted'>波は沖合({s['grid'][0]:.2f}, {s['grid'][1]:.2f})の予報</p>" if s.get("grid") else ""))
@@ -1398,7 +1411,7 @@ def surf_page(spots):
                 sl = max(d["slots"], key=lambda x: x["score"])
                 mark, cls = RATE[sl["score"]]
                 cells += (f"<td class='{cls}' title='{sl['slot']} 波{sl['height']:.1f}m うねり{sl['swell']:.1f}m "
-                          f"周期{sl['period']:.1f}秒 {sl['kind']}'><b>{mark}</b><small>うねり{sl['swell']:.1f}m</small></td>")
+                          f"周期{sl['period']:.1f}秒 {sl['kind']}'><b>{mark}</b><small>{sl['swell']:.1f}m</small></td>")
             rows += (
                 f"<tbody class='mt' id='{s['key']}' data-fid='{e(fid('w', s))}' data-region='{c}' data-name='{e(s['name'] + s['pref'])}'>"
                 f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
@@ -1423,6 +1436,7 @@ def surf_page(spots):
 <li>気温は浜付近、水温は沖合の海面水温の予報</li>
 <li>潮: その時間帯にある満潮・干潮の時刻。なければ上げ潮・下げ潮(沖合の潮位の予報から求めた目安で、港の潮汐表とは数十分ずれることがあります)</li>
 <li>⚠️ 警報・注意報は、浜のある市町村に気象庁がいま出しているもの</li>
+<li>📷 ライブカメラ: <a href='https://www.surfers-ocean.com/'>サーファーズオーシャン</a>・<a href='https://japan.surfride.net/'>surfride.net</a> に載っているカメラのうち、ポイントかそのすぐ近くを映すものです(停止中のものは除く)。提供元のサイトが開きます</li>
 <li>一覧は7日間で、その日の朝・昼のよいほうの判定とうねりの高さです。ポイント名を押すと、朝・昼の詳しい予報(最大16日間)が開きます</li>
 <li>今日〜明後日の日付を押すと、6〜16時の時間ごとの予報が開きます(今日・明日は1時間ごと、明後日は3時間ごと。その時刻の値)</li></ul>
 <h2>このページについて</h2>
