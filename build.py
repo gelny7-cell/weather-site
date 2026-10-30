@@ -268,9 +268,8 @@ RATE = {3: ("◎", "r3"), 2: ("○", "r2"), 1: ("△", "r1"), 0: ("×", "r0")}
 
 
 def tags(m):
-    """入っている一覧の印(丸いアイコン)。日本百名山にも入る山は日本百名山だけにする"""
-    lists = m.get("lists", [])
-    shown = ["日本百名山"] if "百名山" in lists else lists
+    """入っている一覧の印(バッジ)。日本百名山と関西百名山の両方に入る山は両方付ける"""
+    shown = ["日本百名山" if t == "百名山" else t for t in m.get("lists", [])]
     return "".join(f" <span class='mk{' hyaku' if t == '日本百名山' else ''}' title='{t}' role='img' aria-label='{t}'>"
                    "</span>" for t in shown)
 
@@ -386,7 +385,7 @@ def foodlink(lat, lon, pref, page):
     """「飲食店」ボタン(押すとジャンルの一覧が開き、選ぶと Google マップでその地点の周りを探す)。
     その場所の名物(ご当地)があれば一覧の一番上に入れる"""
     food = local_food(lat, lon, pref)
-    genres = ([(f"🍜 {food}", food)] if food else []) + SHOP_GENRES[page]
+    genres = ([(food, food)] if food else []) + SHOP_GENRES[page]
     items = "".join(
         f"<a href='{e(f'https://www.google.com/maps/search/{urllib.parse.quote(q)}/@{lat},{lon},13z')}' "
         f"class='mapbtn' target='_blank' rel='noopener'>{e(label)}</a>" for label, q in genres)
@@ -674,13 +673,18 @@ def mt_detail(m, with_map=True, compact=False):
         label = (trailhead_label(m) if m.get("trailhead") else
                  a["name"] if a["name"] not in ("駐車場", "有料駐車場", "登山者駐車場") else f"{m['name']} {a['name']}")
         place = maplink(f"{a['lat']},{a['lon']}", label)
+    if m.get("accesses"):       # YAMAP に登山口が複数あれば、飲食店と同じく押すと一覧が開く(各登山口の近くの駐車場の位置)
+        items = "".join(maplink(f"{x['lat']},{x['lon']}", x["name"]) for x in m["accesses"])
+        place = (f"<details class='menu'><summary class='mapbtn'>📍 登山口</summary>"
+                 f"<div class='menu-list'>{items}</div></details>")
     near = m.get("access") or m            # 温泉は駐車場・登山口の位置(分からなければ山頂)の周りで探す
     link = (routelinks(m) + place + " " + onsenlink(near["lat"], near["lon"])
             + foodlink(near["lat"], near["lon"], m["prefs"][0], "mountain") + michilink(near["lat"], near["lon"])
             + conbilink(near["lat"], near["lon"]) + " " + hutlink(m)) if with_map else ""    # 山小屋は右端
-    sun = (f"<p class='muted'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</p>"
+    sun = (f" <span class='muted sun'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</span>"
            if m.get("sun") else "")
-    return (f"{star('m', m) if with_map else ''}{intro(m)}{link}{alert_box(m)}{sun}<div class='scroll'><table class='sub'>"
+    top = f"<div class='favrow'>{star('m', m)}{sun}</div>" if with_map else (f"<p>{sun}</p>" if sun else "")
+    return (f"{top}{intro(m)}{link}{alert_box(m)}<div class='scroll'><table class='sub'>"
             "<tr><th class='dt'>日付</th><th>判定</th><th>天気(6〜15時)</th>"
             + ("<th>展望</th>" if has_v else "") + "<th>山頂付近の気温</th>"
             + ("" if compact else "<th>体感温度</th>") + "<th>平均風速</th>"
@@ -735,7 +739,7 @@ def mountains_page(mts):
 <p>風速は山頂の高さに最も近い上空(約760m・1,000m・1,500m・1,950m・3,000mのいずれか)の予報です。稜線の実際の風とは異なることがあり、突風はさらに強くなります。</p>
 <p>予報モデル: 今日〜2日後は気象庁MSM、3〜5日後は英国気象局UKMO、6〜10日後は気象庁GSM、それ以降は Open-Meteo のおまかせ(各国のモデルの組み合わせ)を使っています。</p>
 <h2>このページについて</h2>
-<p>日本百名山(<span class='mk hyaku'></span>)と関西百名山(<span class='mk'></span>、山と溪谷社『関西百名山』)の予報です。両方に入る伊吹山・大台ヶ原山・大峰山は1つにまとめ、日本百名山のバッジだけを付けています。
+<p>日本百名山(<span class='mk hyaku'></span>)と関西百名山(<span class='mk'></span>、山と溪谷社『関西百名山』)の予報です。両方に入る伊吹山・大台ヶ原山・大峰山は1つにまとめ、両方のバッジを付けています。
 山頂の標高での予報(6〜15時)から、登山に向いた天気かを判定しています。表は7日間で、山名を押すと最大16日間の詳細が開きます。
 詳細で今日から5日後までの日付を押すと、時間ごとの予報(今日は1時間ごと、明日〜5日後は3時間ごと。3時間ごとの行の風速・降水量はその3時間の最大・合計)が開きます。
 日の出・日の入りは本日の時刻で、平地の地平線を基準にしています(山頂ではもう少し早く昇り、遅く沈みます)。</p></div>
@@ -1412,7 +1416,7 @@ border:1px solid var(--line);background:var(--card);color:var(--text);box-shadow
 .star[aria-pressed='true']{border-color:var(--fav);font-weight:600}
 .favmark{color:var(--fav)}
 .star:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-tr.detail .star{display:table}h3+.star{margin-top:-2px}
+.favrow{margin:0 0 8px}.favrow .star{margin:0 8px 0 0}h3+.star{margin-top:-2px}
 .favbox h3{font-size:14px;margin:4px 0}
 .intro{margin:0 0 8px;font-size:14px;color:var(--text)}
 .fac{font-size:12px}
