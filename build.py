@@ -834,7 +834,7 @@ def mountains_page(mts):
              + "".join(f"<button class='chip' data-r='pref:{p}'>{p.rstrip('県府')}</button>" for p in kinki)
              + "".join(f"<button class='chip' data-r='{r}'>{r}</button>" for r in after))
     return f"""
-<h1>日本百名山＋関西百名山 登山天気</h1>
+<h1>登山天気</h1>
 <div class='filters'><input id='q' type='search' placeholder='山名で絞り込み(例: 槍、ふじ)' aria-label='山名で絞り込み'>
 <div class='chips'>{chips}</div></div>
 <div class='scroll'><table class='grid' id='mt'><thead><tr><th class='nm'>山名</th>{head}</tr></thead>{rows}</table></div>
