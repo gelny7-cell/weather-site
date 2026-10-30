@@ -1034,6 +1034,18 @@ def ski_hours_line(s):
     return f"{time_}{night}"
 
 
+def plan_text(s):
+    """営業予定(SURF&SNOW のオープン予定日・クローズ予定日)。今季が未発表なら昨季の期間に注釈を付ける"""
+    pl = s.get("plan")
+    if not pl:
+        return ""
+    md = lambda x: f"{int(x[1])}/{int(x[2])}" if x[2].isdigit() else f"{int(x[1])}月{x[2]}"
+    text = f"{md(pl['open'])}〜{md(pl['close'])}"
+    if pl["season"] == "2026-2027":
+        return f"{text} <small class='muted'>26-27シーズン・積雪による</small>"
+    return f"{text} <small class='muted'>昨シーズンの期間・今季は未発表</small>"
+
+
 def ski_info(s):
     """「スキー場詳細」ボタン。押すと営業時間・リフト券・コースのデータが開く(分かる項目だけ)。
     データは公式サイトに書いてあればその値、なければ SURF&SNOW の値(data の spec)"""
@@ -1042,6 +1054,8 @@ def ski_info(s):
         rows.append(f"<div><span class='muted'>{label}</span> {value}</div>")
     if s.get("about"):         # 詳しい紹介(公式サイト・Wikipedia・SURF&SNOW の情報をもとに書いたもの)
         rows.append(f"<p class='about'>{e(s['about'])}</p>")
+    if s.get("plan"):
+        row("📅 営業期間", plan_text(s))
     if s.get("hours"):
         row("🕘 営業時間", ski_hours_line(s))
     t = s.get("ticket")
@@ -1204,7 +1218,7 @@ def ski_page(ski):
 <li>上部・下部の標高: OpenStreetMap のリフトの位置と地形の標高から求めた値(一部は手作業で補正)。概算です</li>
 <li>スキー場の一覧・標高差: Wikipedia、Wikidata。リフトの位置: © OpenStreetMap contributors</li>
 <li>公式ページ・ゲレンデマップのボタンは、リンク先が確認できたスキー場だけに出しています</li>
-<li>スキー場詳細: コース数・リフト数・最長滑走距離・最大斜度・標高差は、公式サイトに書いてあればその値、なければ <a href='https://surfsnow.jp/'>SURF&amp;SNOW</a>、それもなければウェザーニュースの掲載値です。難易度・圧雪の割合は SURF&amp;SNOW、大人1日リフト券は公式サイトで確かめられたものはその料金(休日・通常料金)、ほかは SURF&amp;SNOW、ウェザーニュースの掲載料金です(2026-27シーズン。未発表のスキー場は2025-26シーズン)。🏂 は、キッカー・ハーフパイプ・ジブなどのパークがあるスキー場です(ウェザーニュースの掲載情報。キッズパークは含みません)。🚠 は、ゲレンデで使うゴンドラ・ロープウェイがあるスキー場です(びわ湖バレイのように、スキー場へ上がるためだけのものは除く)。ツリーラン・サイドカントリー(ゲートなどから管理区域外へ出られる仕組み)は、公式サイト・SURF&amp;SNOW・Wikipedia・<a href='https://steep.jp/'>STEEP</a> に記載があったスキー場だけ表示しています。サイドカントリーは自己責任の山岳エリアなので、装備と各スキー場のルールを必ず確認してください。料金や施設は変わることがあるので、公式ページで確認してください</li>
+<li>スキー場詳細: コース数・リフト数・最長滑走距離・最大斜度・標高差は、公式サイトに書いてあればその値、なければ <a href='https://surfsnow.jp/'>SURF&amp;SNOW</a>、それもなければウェザーニュースの掲載値です。難易度・圧雪の割合は SURF&amp;SNOW、大人1日リフト券は公式サイトで確かめられたものはその料金(休日・通常料金)、ほかは SURF&amp;SNOW、ウェザーニュースの掲載料金です(2026-27シーズン。未発表のスキー場は2025-26シーズン)。営業期間は SURF&amp;SNOW のオープン予定日・クローズ予定日です(26-27シーズンが未発表のスキー場は昨シーズンの期間)。🏂 は、キッカー・ハーフパイプ・ジブなどのパークがあるスキー場です(ウェザーニュースの掲載情報。キッズパークは含みません)。🚠 は、ゲレンデで使うゴンドラ・ロープウェイがあるスキー場です(びわ湖バレイのように、スキー場へ上がるためだけのものは除く)。ツリーラン・サイドカントリー(ゲートなどから管理区域外へ出られる仕組み)は、公式サイト・SURF&amp;SNOW・Wikipedia・<a href='https://steep.jp/'>STEEP</a> に記載があったスキー場だけ表示しています。サイドカントリーは自己責任の山岳エリアなので、装備と各スキー場のルールを必ず確認してください。料金や施設は変わることがあるので、公式ページで確認してください</li>
 <li>営業時間: ウェザーニュースの掲載情報(2025-26シーズン)。今シーズンの営業日・時間は公式ページで確認してください</li></ul>
 <h2>このページについて</h2>
 <p>標高差の大きいスキー場100か所(営業を終えた芸北国際スキー場を除く)に、志賀高原 焼額山・キューピットバレイ・だいせんホワイトリゾート・スノーウェーブパーク白鳥高原と、SURF&amp;SNOW の中京・北陸・関西のスキー場を加えた一覧です。表の数字はゲレンデ上部の新雪(前日17時〜当日8時、閉場から開場までに積もる雪)の予報(cm)です。表は7日間で、スキー場名を押すと最大16日間の積雪・気温・0℃の高さ・風の詳細が開きます。</p></div>
@@ -1401,12 +1415,24 @@ def camlink(s):
             f"<div class='menu-list'>{items}</div></details> ")
 
 
+def wetsuit(t):
+    """水温(℃)からウェットスーツの目安(一般的な目安。風が強い日・朝夕は一段厚めに)"""
+    for lo, text in ((25, "ボードショーツ・ラッシュガード"), (23, "スプリング(半袖・半ズボン)"), (20, "シーガル(半袖・長ズボン)"),
+                     (17, "3/2mm フルスーツ"), (14, "5/3mm フルスーツ"), (11, "5/3mm セミドライ+ブーツ")):
+        if t >= lo:
+            return text
+    return "5mm セミドライ+ブーツ・グローブ・キャップ"
+
+
 def surf_detail(s):
     """サーフポイントの詳細(名前を押すと開く): 注意報・紹介・ボタン(お気に入り登録が先頭)・朝昼の表"""
     pref = s["pref"][:s["pref"].index("県") + 1] if "県" in s["pref"] else s["pref"][:3]
     buttons = (f"<div class='btnrow'>{star('w', s)} {camlink(s)}{maplink(s['parking'], '駐車場')} {onsenlink(s['lat'], s['lon'])}"
                f"{foodlink(s['lat'], s['lon'], pref, 'surf')}{michilink(s['lat'], s['lon'])}{conbilink(s['lat'], s['lon'])}</div>")
-    return (f"{alert_box(s)}{intro(s)}{buttons}{surf_table(s)}"
+    seas = [sl["sea"] for d in s["days"][:1] for sl in d["slots"] if sl.get("sea") is not None]
+    suit = (f"<p class='muted'>🩱 ウェットスーツの目安: <b>{wetsuit(sum(seas) / len(seas))}</b>"
+            f"(今日の水温 {sum(seas) / len(seas):.0f}℃。風が強い日や朝夕は一段厚めに)</p>") if seas else ""
+    return (f"{alert_box(s)}{intro(s)}{suit}{buttons}{surf_table(s)}"
             + (f"<p class='muted'>波は沖合({s['grid'][0]:.2f}, {s['grid'][1]:.2f})の予報</p>" if s.get("grid") else ""))
 
 
@@ -1449,6 +1475,7 @@ def surf_page(spots):
 <li>⚠️ 警報・注意報は、浜のある市町村に気象庁がいま出しているもの</li>
 <li>🚻 トイレ・🚿 シャワー: <a href='https://japan.surfride.net/'>surfride.net</a> の設備の情報で、あるポイントの名前の横に付けています(分からないポイントは付けていません)</li>
 <li>🏪 サーフショップ: surfride.net・サーファーズオーシャンに、近くにサーフショップ(スクール・レンタル)があると書かれているか、確認できたポイントに付けています</li>
+<li>🩱 ウェットスーツの目安: 今日の水温の予報から、25℃以上 ボードショーツ・ラッシュガード、23℃以上 スプリング、20℃以上 シーガル、17℃以上 3/2mm フル、14℃以上 5/3mm フル、11℃以上 5/3mm セミドライ+ブーツ、それ未満 5mm セミドライ+ブーツ・グローブ・キャップ(一般的な目安です)</li>
 <li>📷 ライブカメラ: <a href='https://www.surfers-ocean.com/'>サーファーズオーシャン</a>・<a href='https://japan.surfride.net/'>surfride.net</a> に載っているカメラのうち、ポイントかそのすぐ近くを映すものです(停止中のものは除く)。提供元のサイトが開きます</li>
 <li>一覧は7日間で、その日の朝・昼のよいほうの判定とうねりの高さです。ポイント名を押すと、朝・昼の詳しい予報(最大16日間)が開きます</li>
 <li>今日〜明後日の日付を押すと、6〜16時の時間ごとの予報が開きます(今日・明日は1時間ごと、明後日は3時間ごと。その時刻の値)</li></ul>
