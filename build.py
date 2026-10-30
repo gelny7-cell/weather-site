@@ -1092,7 +1092,7 @@ def ski_detail(s, with_map=True, simple=False):
                      f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td>"
                      f"<td>{d['gust']:.0f}m/s" + (" <span class='tag warn'>運休注意</span>" if d["gust"] >= 20 else "")
                      + "</td>" + (f"<td>{road(d['road'])}</td>" if has_road else "") + "</tr>")
-        return (intro(s) + alert_box(s) + "<div class='scroll'><table class='sub'><tr><th class='dt'>日付</th><th>天気</th><th>新雪</th>"
+        return (alert_box(s) + "<div class='scroll'><table class='sub'><tr><th class='dt'>日付</th><th>天気</th><th>新雪</th>"
                 "<th>積雪</th><th>気温</th><th>最大瞬間風速</th>" + ("<th>朝の路面</th>" if has_road else "") + "</tr>"
                 f"{rows}</table></div>")
     def gust(g):                # 突風が強い日はゴンドラ・リフトが止まりやすい
@@ -1140,7 +1140,7 @@ def ski_detail(s, with_map=True, simple=False):
                + f" <small class='muted'>{when.month}/{when.day}時点</small></p>")
     # 文字(注意報・紹介・営業時間・標高・積雪の観測)をまとめて上に、ボタン(お気に入り登録が先頭)をその下の1か所に
     buttons = f"<div class='btnrow'>{star('s', s)} {ski_info(s)}{link}</div>" if with_map else ""
-    return (f"{alert_box(s)}{intro(s)}{obs}"
+    return (f"{alert_box(s)}{obs}"
             f"{buttons}<div class='scroll'><table class='sub'>"
             "<tr><th rowspan='2' class='dt'>日付</th><th colspan='2'>天気</th><th colspan='2'>新雪</th><th rowspan='2'>積雪<br>(上部)</th>"
             "<th rowspan='2'>気温<br>(上部)</th><th rowspan='2'>体感温度<br>(上部)</th><th rowspan='2'>0℃の高さ<br>(8〜16時)</th><th rowspan='2'>平均風速<br>(上部)</th>"
