@@ -1042,6 +1042,8 @@ def ski_info(s):
     sp, rows = s.get("spec", {}), []
     def row(label, value):
         rows.append(f"<div><span class='muted'>{label}</span> {value}</div>")
+    if s.get("about"):         # 詳しい紹介(公式サイト・Wikipedia・SURF&SNOW の情報をもとに書いたもの)
+        rows.append(f"<p class='about'>{e(s['about'])}</p>")
     if s.get("hours"):
         row("🕘 営業時間", ski_hours_line(s))
     t = s.get("ticket")
@@ -1562,7 +1564,7 @@ background:var(--card);color:var(--text);text-decoration:none;white-space:nowrap
 .menu>summary{list-style:none;cursor:pointer}.menu>summary::-webkit-details-marker{display:none}
 .menu>summary::after{content:' ▼';font-size:10px}.menu[open]>summary::after{content:' ▲'}
 .menu[open]>summary{background:var(--accent);border-color:var(--accent);color:#fff}
-.menu.info[open]{display:block}.info-body{margin:2px 0 10px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-size:13px;line-height:1.9;white-space:normal}.info-body .muted{display:inline-block;min-width:9.5em}
+.menu.info[open]{display:block}.info-body{margin:2px 0 10px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-size:13px;line-height:1.9;white-space:normal}.info-body .muted{display:inline-block;min-width:9.5em}.info-body .about{margin:0 0 6px;line-height:1.7}
 .menu-list{display:inline;margin-left:4px}.menu-list .mapbtn{margin:0 4px 4px 0}.mapbtn img{vertical-align:-2px;margin-right:4px;border-radius:3px}
 tr.detail .mapbtn{margin:0 0 8px}
 .xlink{display:block;color:inherit;text-decoration:none}.xlink b{color:var(--accent);text-decoration:underline;
