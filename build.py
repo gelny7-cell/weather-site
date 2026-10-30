@@ -1393,7 +1393,7 @@ def camlink(s):
 def surf_detail(s):
     """サーフポイントの詳細(名前を押すと開く): 注意報・紹介・ボタン(お気に入り登録が先頭)・朝昼の表"""
     pref = s["pref"][:s["pref"].index("県") + 1] if "県" in s["pref"] else s["pref"][:3]
-    buttons = (f"<div class='btnrow'>{star('w', s)} {maplink(s['parking'], '駐車場')} {camlink(s)}{onsenlink(s['lat'], s['lon'])}"
+    buttons = (f"<div class='btnrow'>{star('w', s)} {camlink(s)}{maplink(s['parking'], '駐車場')} {onsenlink(s['lat'], s['lon'])}"
                f"{foodlink(s['lat'], s['lon'], pref, 'surf')}{michilink(s['lat'], s['lon'])}{conbilink(s['lat'], s['lon'])}</div>")
     return (f"{alert_box(s)}{intro(s)}{buttons}{surf_table(s)}"
             + (f"<p class='muted'>波は沖合({s['grid'][0]:.2f}, {s['grid'][1]:.2f})の予報</p>" if s.get("grid") else ""))
