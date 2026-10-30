@@ -379,15 +379,15 @@ def local_food(lat, lon, pref):
 
 # 「飲食店」のジャンル(表示名, 検索する言葉)。ページごとに、よく使いそうなものを上に置く
 # 飲食店のジャンル(どのページも同じ並び。ご当地はこの前に入る)
-SHOP_GENRES = [("定食・食堂", "定食"), ("ラーメン", "ラーメン"), ("焼肉", "焼肉"), ("ファミレス", "ファミレス"),
-               ("カフェ", "カフェ"), ("スイーツ", "スイーツ")]
+SHOP_GENRES = [("定食・食堂", "定食"), ("🍜 ラーメン", "ラーメン"), ("🍲 うどん・そば", "うどん そば"), ("🍣 海鮮", "海鮮"),
+               ("🥩 焼肉", "焼肉"), ("🍽️ ファミレス", "ファミレス"), ("☕ カフェ", "カフェ"), ("🍰 スイーツ", "スイーツ")]
 
 
 def foodlink(lat, lon, pref, page):
     """「飲食店」ボタン(押すとジャンルの一覧が開き、選ぶと Google マップでその地点の周りを探す)。
     その場所の名物(ご当地)があれば一覧の一番上に入れる"""
     food = local_food(lat, lon, pref)
-    genres = ([(food, food)] if food else []) + SHOP_GENRES
+    genres = ([(f"🏷️ {food}", food)] if food else []) + SHOP_GENRES
     items = "".join(
         f"<a href='{e(f'https://www.google.com/maps/search/{urllib.parse.quote(q)}/@{lat},{lon},13z')}' "
         f"class='mapbtn' target='_blank' rel='noopener'>{e(label)}</a>" for label, q in genres)
