@@ -169,9 +169,9 @@ def fid(kind, x):
 
 
 def star(kind, x):
-    """お気に入りの☆ボタン(押すと★。登録は見ている人のブラウザに保存する)"""
+    """詳細の一番上に出す「☆ お気に入り登録」ボタン(押すと登録済みに。登録は見ている人のブラウザに保存する)"""
     return (f"<button type='button' class='star' data-fid='{e(fid(kind, x))}' aria-pressed='false' "
-            f"aria-label='{e(x['name'])}をお気に入りに登録'>☆</button>")
+            f"aria-label='{e(x['name'])}をお気に入りに登録'>☆ お気に入り登録</button>")
 
 
 def hut_tags(m):
@@ -684,7 +684,7 @@ def mt_detail(m, with_map=True, compact=False):
             + conbilink(near["lat"], near["lon"]) + " " + hutlink(m)) if with_map else ""    # 山小屋は右端
     sun = (f"<p class='muted'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</p>"
            if m.get("sun") else "")
-    return (f"{intro(m)}{link}{alert_box(m)}{hut_line(m) if with_map else ''}{sun}<div class='scroll'><table class='sub'>"
+    return (f"{star('m', m) if with_map else ''}{intro(m)}{link}{alert_box(m)}{hut_line(m) if with_map else ''}{sun}<div class='scroll'><table class='sub'>"
             "<tr><th class='dt'>日付</th><th>判定</th><th>天気(6〜15時)</th>"
             + ("<th>展望</th>" if has_v else "") + "<th>山頂付近の気温</th>"
             + ("" if compact else "<th>体感温度</th>") + "<th>平均風速</th>"
@@ -710,7 +710,7 @@ def mountains_page(mts):
         rows += (
             f"<tbody class='mt' id='{m['key']}' data-fid='{e(fid('m', m))}' data-region='{e(m['region'])}' data-name='{e(m['name'] + m['yomi'])}'"
             + (f" data-prefs='{e(','.join(m['prefs']))}'" if m["region"] == "近畿" else "") + ">"
-            f"<tr class='main'><th class='nm'>{star('m', m)}<button type='button' aria-expanded='false'>"
+            f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
             f"<span>{e(m['name'])}</span>"
             + tags(m) + alert_tags(m) + hut_tags(m)
             + f"<small>{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>"
@@ -977,7 +977,7 @@ def ski_detail(s, with_map=True, simple=False):
         obs = (f"<p class='obs'>ベースの積雪(観測): <b>{am['snow']}cm</b>{fresh}"
                f"<small class='muted'> · {e(am['name'])}(標高{am['alt']:,}m・{am['km']:.0f}km) "
                f"{am['time'].month}/{am['time'].day} {am['time'].hour}時 気象庁アメダス</small></p>")
-    return (f"{intro(s)}{link}{alert_box(s)}{obs}"
+    return (f"{star('s', s) if with_map else ''}{intro(s)}{link}{alert_box(s)}{obs}"
             f"<p class='muted'>上部 {s['top']:,}m / 下部 {s['base']:,}m</p>{ski_hours_line(s)}<div class='scroll'><table class='sub'>"
             "<tr><th rowspan='2' class='dt'>日付</th><th colspan='2'>天気</th><th colspan='2'>新雪</th><th rowspan='2'>積雪<br>(上部)</th>"
             "<th rowspan='2'>気温<br>(上部)</th><th rowspan='2'>体感温度<br>(上部)</th><th rowspan='2'>0℃の高さ<br>(8〜16時)</th><th rowspan='2'>平均風速<br>(上部)</th>"
@@ -1005,7 +1005,7 @@ def ski_page(ski):
             total7 = sum(d["snow"] for d in s["days"][:TOP_DAYS])
             rows += (
                 f"<tbody class='mt' id='{s['key']}' data-fid='{e(fid('s', s))}' data-region='{r}' data-name='{e(s['name'] + s.get('yomi', ''))}'>"
-                f"<tr class='main'><th class='nm'>{star('s', s)}<button type='button' aria-expanded='false'>"
+                f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
                 f"<span>{e(s['name'])}</span>{alert_tags(s)}<small>{e(s['pref'])} · 7日間 {total7:.0f}cm</small>"
                 f"</button></th>{cells}</tr>"
                 f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{ski_detail(s)}</td></tr></tbody>")
@@ -1214,8 +1214,8 @@ def surf_table(s):
 def surf_page(spots):
     cards = ""
     for s in spots:
-        cards += (f"<section class='card' id='{s['key']}'><h3>{star('w', s)}{e(s['name'])}{alert_tags(s)} <small>{e(s['pref'])} · "
-                  f"浜の向き {dir_name(s['facing'])}</small> {maplink(s['parking'], '駐車場の地図')} {onsenlink(s['lat'], s['lon'])}{foodlink(s['lat'], s['lon'], s['pref'][:s['pref'].index('県') + 1] if '県' in s['pref'] else s['pref'][:3], "surf")}{michilink(s['lat'], s['lon'])}{conbilink(s['lat'], s['lon'])}</h3>{alert_box(s)}"
+        cards += (f"<section class='card' id='{s['key']}'><h3>{e(s['name'])}{alert_tags(s)} <small>{e(s['pref'])} · "
+                  f"浜の向き {dir_name(s['facing'])}</small> {maplink(s['parking'], '駐車場の地図')} {onsenlink(s['lat'], s['lon'])}{foodlink(s['lat'], s['lon'], s['pref'][:s['pref'].index('県') + 1] if '県' in s['pref'] else s['pref'][:3], "surf")}{michilink(s['lat'], s['lon'])}{conbilink(s['lat'], s['lon'])}</h3>{star('w', s)}{alert_box(s)}"
                   f"{surf_table(s)}"
                   f"<p class='muted'>波は沖合({s['grid'][0]:.2f}, {s['grid'][1]:.2f})の予報</p></section>")
     return f"""
@@ -1331,7 +1331,7 @@ def index_page(mts, ski, spots):
     fav = (f"<div class='favbox' hidden><div class='scroll'><table class='sub'><tr><th></th>"
            + "".join(f"<th>{day_label(d)}</th>" for d in we)
            + f"</tr>{fav_rows}</table></div></div>"
-           + "<p class='favhint muted'>スノーボードのページでスキー場の☆を押すと、ここに表示されます</p>")
+           + "<p class='favhint muted'>スノーボードのページでスキー場の詳細を開き「☆ お気に入り登録」を押すと、ここに表示されます</p>")
     # サーフ: 予報コメント + 週末4枠(土朝・土昼・日朝・日昼)の判定表
     surf_comment = "".join(f"<p class='comment'><b>{c}</b> {e(t)}</p>"
                            for c, t in surf_comments(spots, we))
@@ -1409,10 +1409,12 @@ tr.hr td{font-size:12px;color:var(--sub);padding-top:3px;padding-bottom:3px}
 tbody[id],section[id]{scroll-margin-top:56px}   /* 上に固定したメニューに隠れないように */
 .alert{margin:6px 0;color:var(--r0);font-size:13px;font-weight:600}.alert small{font-weight:400;margin-left:4px}
 .tag.danger{background:var(--hyaku-bg);color:var(--r0);font-weight:600}
-.star{all:unset;cursor:pointer;float:left;font-size:18px;line-height:1;padding:2px 6px 2px 0;color:var(--muted)}
-.star[aria-pressed='true'],.favmark{color:var(--fav)}
+.star{all:unset;cursor:pointer;display:inline-block;font-size:13px;padding:3px 12px;margin:0 0 8px;border-radius:99px;
+border:1px solid var(--line);background:var(--card);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.star[aria-pressed='true']{border-color:var(--fav);font-weight:600}
+.favmark{color:var(--fav)}
 .star:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-h3 .star{float:none;margin-right:4px}
+tr.detail .star{display:table}h3+.star{margin-top:-2px}
 .favbox h3{font-size:14px;margin:4px 0}
 .intro{margin:0 0 8px;font-size:14px;color:var(--text)}
 .fac{font-size:12px}
@@ -1458,7 +1460,7 @@ if(!Array.isArray(favs))favs=DEFAULT_FAVS.slice();
 const isFav=f=>favs.includes(f);
 let apply=()=>{};
 const paintFavs=()=>{
-  document.querySelectorAll('.star').forEach(b=>{const on=isFav(b.dataset.fid);b.textContent=on?'★':'☆';b.setAttribute('aria-pressed',String(on));});
+  document.querySelectorAll('.star').forEach(b=>{const on=isFav(b.dataset.fid);b.innerHTML=on?"<span class='favmark'>★</span> お気に入り登録済み":'☆ お気に入り登録';b.setAttribute('aria-pressed',String(on));});
   document.querySelectorAll('tbody.mt[data-fid]').forEach(b=>{b.dataset.fav=isFav(b.dataset.fid)?'1':'';});
   document.querySelectorAll('.favonly').forEach(b=>{b.hidden=!isFav(b.dataset.fid);});
   document.querySelectorAll('.favhead').forEach(h=>{h.hidden=!h.closest('table').querySelector('.favonly:not([hidden])');});
@@ -1488,7 +1490,7 @@ document.querySelectorAll('.hbtn').forEach(btn=>btn.addEventListener('click',()=
   const open=btn.getAttribute('aria-expanded')!=='true';
   for(let r=btn.closest('tr').nextElementSibling;r&&!r.querySelector('.hbtn');r=r.nextElementSibling)if(r.classList.contains('hr'))r.hidden=!open;
   btn.setAttribute('aria-expanded',String(open));}));
-document.querySelectorAll('.nm button:not(.star)').forEach(btn=>btn.addEventListener('click',()=>{
+document.querySelectorAll('.nm button').forEach(btn=>btn.addEventListener('click',()=>{
   const d=btn.closest('tbody').querySelector('tr.detail');d.hidden=!d.hidden;
   btn.setAttribute('aria-expanded',String(!d.hidden));}));
 document.addEventListener('click',ev=>{        // 「飲食店」の一覧は、外を押したら閉じる
@@ -1498,7 +1500,7 @@ const favChip=location.hash==='#fav'&&document.querySelector(".chip[data-r='fav'
 if(favChip)favChip.click();
 const target=location.hash&&document.getElementById(location.hash.slice(1));
 if(target){
-  const d=target.querySelector('tr.detail'),b=target.querySelector('.nm button:not(.star)');
+  const d=target.querySelector('tr.detail'),b=target.querySelector('.nm button');
   if(d){d.hidden=false;if(b)b.setAttribute('aria-expanded','true');}
   target.scrollIntoView({block:'start'});
 }
