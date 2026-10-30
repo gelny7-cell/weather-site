@@ -276,10 +276,11 @@ RATE = {3: ("◎", "r3"), 2: ("○", "r2"), 1: ("△", "r1"), 0: ("×", "r0")}
 
 
 def tags(m):
-    """入っている一覧の印。日本百名山にも入る山は日本百名山だけにする"""
+    """入っている一覧の印(丸いアイコン)。日本百名山にも入る山は日本百名山だけにする"""
     lists = m.get("lists", [])
     shown = ["日本百名山"] if "百名山" in lists else lists
-    return "".join(f" <span class='tag{' hyaku' if t == '日本百名山' else ''}'>{t}</span>" for t in shown)
+    return "".join(f" <span class='mk{' hyaku' if t == '日本百名山' else ''}' title='{t}' role='img' aria-label='{t}'>"
+                   f"{'百' if t == '日本百名山' else '関'}</span>" for t in shown)
 
 
 def trailhead(m):
@@ -561,7 +562,7 @@ def mt_day(h, d, elev, strict):
     th, wh = by_hour(h, "temperature_2m", d, hours), by_hour(h, f"wind_speed_{lv}hPa", d, hours)
     feels = [wind_chill(th[k], wh[k]) for k in th if k in wh]
     return {"rain": sum(rains), "wind": max(winds), "wind_avg": sum(winds) / len(winds),
-            "tmin": min(temps), "tmax": max(temps), "code": max(codes), "view": view_rate(h, d),
+            "tmin": min(temps), "tmax": max(temps), "tavg": sum(temps) / len(temps), "code": max(codes), "view": view_rate(h, d),
             "feel": min(feels) if feels else min(temps)}
 
 
@@ -738,7 +739,7 @@ def mountains_page(mts):
 <p>風速は山頂の高さに最も近い上空(約760m・1,000m・1,500m・1,950m・3,000mのいずれか)の予報です。稜線の実際の風とは異なることがあり、突風はさらに強くなります。</p>
 <p>予報モデル: 今日〜2日後は気象庁MSM、3〜5日後は英国気象局UKMO、6〜10日後は気象庁GSM、それ以降は Open-Meteo のおまかせ(各国のモデルの組み合わせ)を使っています。</p>
 <h2>このページについて</h2>
-<p>日本百名山と<span class='tag'>関西百名山</span>(山と溪谷社『関西百名山』)の予報です。両方に入る伊吹山・大台ヶ原山・大峰山は1つにまとめています。
+<p>日本百名山(<span class='mk hyaku'>百</span>)と関西百名山(<span class='mk'>関</span>、山と溪谷社『関西百名山』)の予報です。両方に入る伊吹山・大台ヶ原山・大峰山は1つにまとめ、<span class='mk hyaku'>百</span>だけを付けています。
 山頂の標高での予報(6〜15時)から、登山に向いた天気かを判定しています。表は7日間で、山名を押すと最大16日間の詳細が開きます。
 詳細で今日から5日後までの日付を押すと、時間ごとの予報(今日は1時間ごと、明日〜5日後は3時間ごと。3時間ごとの行の風速・降水量はその3時間の最大・合計)が開きます。
 日の出・日の入りは本日の時刻で、平地の地平線を基準にしています(山頂ではもう少し早く昇り、遅く沈みます)。</p></div>
@@ -1278,12 +1279,10 @@ def surf_comments(spots, we):
     return out
 
 
-def expand_row(name_html, cells_html, detail_html, ncols, page="", attrs=""):
-    """名前を押すと、下に日ごとの詳細が開く行(トップページ用)。page があれば右端に、そのページで予報を開くボタン"""
-    more = f"<td><a class='mapbtn' href='{page}'>詳細</a></td>" if page else ""
-    return (f"<tbody{attrs}><tr><td class='l'><button type='button' class='xbtn' aria-expanded='false'>"
-            f"{name_html}</button></td>{cells_html}{more}</tr>"
-            f"<tr class='detail' hidden><td colspan='{ncols}'>{detail_html}</td></tr></tbody>")
+def link_row(name_html, cells_html, page, attrs=""):
+    """トップページの1行(週末だけ)。名前を押すと、各ページでその予報を開いた状態で表示する"""
+    return (f"<tbody{attrs}><tr><td class='l'><a class='xlink' href='{page}'>{name_html}</a></td>"
+            f"{cells_html}</tr></tbody>")
 
 
 # ---------------------------------------------------------------- トップ
@@ -1302,37 +1301,36 @@ def index_page(mts, ski, spots):
             if d["date"] in we:
                 icon, _ = wx(d["code"])
                 cells += (f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b> {icon}"
-                          f"<small class='muted'> {round(d['tmin'])}〜{round(d['tmax'])}℃ · "
+                          f"<small class='muted'> {round(d['tavg'])}℃ · "
                           f"風{d['wind']:.0f}m/s</small></td>")
-        return expand_row(f"<b>{e(m['name'])}</b>{tags(m)}{alert_tags(m)}<br><small class='muted'>"
-                          f"{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>",
-                          cells, mt_detail(m, with_map=False, compact=True), 4, f"mountains.html#{m['key']}", attrs)
+        return link_row(f"<b>{e(m['name'])}</b>{tags(m)}{alert_tags(m)}<br><small class='muted'>"
+                        f"{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>",
+                        cells, f"mountains.html#{m['key']}", attrs)
     mt_rows = "".join(mt_row(m) for m in good[:10]) or (
-        f"<tbody><tr><td colspan='4'>週末に条件の良い山は見当たりません</td></tr></tbody>")
+        f"<tbody><tr><td colspan='3'>週末に条件の良い山は見当たりません</td></tr></tbody>")
     we_head = "".join(f"<th>{day_label(d)}</th>" for d in we)
-    # お気に入り(☆で登録)の山: 全部の山を隠して入れておき、登録されたものだけ表示する(時間ごとの予報は省いて軽くする)
-    fav_mt = "".join(mt_row({**m, "days": [{**d, "hours": []} for d in m["days"]]},
-                            f" class='favonly' data-fid='{e(fid('m', m))}' hidden") for m in mts)
+    # お気に入り(☆で登録)の山: 全部の山を隠して入れておき、登録されたものだけ表示する
+    fav_mt = "".join(mt_row(m, f" class='favonly' data-fid='{e(fid('m', m))}' hidden") for m in mts)
     # お気に入りと天気が良さそうな山は、列の幅がそろうよう1つの表にして、見出しの行を間に挟む
     mt_list = (f"<div class='scroll'><table class='sub'>"
                f"<tbody class='favhead' hidden><tr><th><a href='mountains.html#fav'><span class='favmark'>★</span>お気に入りの山</a></th>"
-               f"{we_head}<th></th></tr></tbody>{fav_mt}"
-               f"<tbody><tr><th>週末天気が良さそうな山</th>{we_head}<th></th></tr></tbody>{mt_rows}</table></div>")
+               f"{we_head}</tr></tbody>{fav_mt}"
+               f"<tbody><tr><th>週末天気が良さそうな山</th>{we_head}</tr></tbody>{mt_rows}</table></div>")
     # スノー: よく行くスキー場(data/favorites.json)を常に表示する
     upto = we[-1]
     fav_rows = ""
     for s in ski:
         n = s["name"]
-        cells = "".join(f"<td>{wx(d['code'])[0]} <small class='muted'>新雪</small>{d['snow']:.0f}cm"
-                        f" <small class='muted'>積雪</small>{d['depth']:.0f}cm</td>"
+        cells = "".join(f"<td>{wx(d['code'])[0]}<br><small class='muted'>新雪</small>{d['snow']:.0f}cm"
+                        f"<br><small class='muted'>積雪</small>{d['depth']:.0f}cm</td>"
                         for d in s["days"] if d["date"] in we)
         until = sum(d["snow"] for d in s["days"] if d["date"] <= upto)
-        fav_rows += expand_row(f"<b>{e(n)}</b>{alert_tags(s)}<br><small class='muted'>週末まで {until:.0f}cm</small>",
-                               cells, ski_detail(s, with_map=False, simple=True), 4, f"snow.html#{s['key']}",
-                               f" class='favonly' data-fid='{e(fid('s', s))}' hidden")
+        more = f"<br><small class='muted'>週末まで {until:.0f}cm</small>" if round(until) else ""
+        fav_rows += link_row(f"<b>{e(n)}</b>{alert_tags(s)}{more}",
+                             cells, f"snow.html#{s['key']}", f" class='favonly' data-fid='{e(fid('s', s))}' hidden")
     fav = (f"<div class='favbox' hidden><div class='scroll'><table class='sub'><tr><th></th>"
            + "".join(f"<th>{day_label(d)}</th>" for d in we)
-           + f"<th></th></tr>{fav_rows}</table></div></div>"
+           + f"</tr>{fav_rows}</table></div></div>"
            + "<p class='favhint muted'>スノーボードのページでスキー場の☆を押すと、ここに表示されます</p>")
     # サーフ: 予報コメント + 週末4枠(土朝・土昼・日朝・日昼)の判定表
     surf_comment = "".join(f"<p class='comment'><b>{c}</b> {e(t)}</p>"
@@ -1348,9 +1346,8 @@ def index_page(mts, ski, spots):
                 mark, cls = RATE[sl["score"]]
                 cells += (f"<td class='{cls}' title='波{sl['height']:.1f}m うねり{sl['swell']:.1f}m 周期{sl['period']:.1f}秒 {sl['kind']}'>"
                           f"<b>{mark}</b><small class='muted'>{sl['height']:.1f}m</small></td>")
-        surf_rows += expand_row(f"<b>{e(s['name'])}</b>{alert_tags(s)}",
-                                cells, surf_table(s), 6, f"surf.html#{s['key']}")
-    surf_list = (f"{surf_comment}<div class='scroll'><table class='sub mini'><tr><th></th>{heads}<th></th></tr>"
+        surf_rows += link_row(f"<b>{e(s['name'])}</b>{alert_tags(s)}", cells, f"surf.html#{s['key']}")
+    surf_list = (f"{surf_comment}<div class='scroll'><table class='sub mini'><tr><th></th>{heads}</tr>"
                  f"{surf_rows}</table></div>")
     return f"""
 <h1>今週末の山と雪と波</h1>
@@ -1362,7 +1359,7 @@ def index_page(mts, ski, spots):
 <section class='card'><h2><a href='surf.html'>🏄 サーフィン</a></h2>{surf_list}
 </section>
 <div class='note'><p>{label} の予報から、よさそうな場所をまとめました。</p>
-<p>週末天気が良さそうな山: 週末の両日が○以上の山(上位10座、判定が良く風の弱い順)。気温・風は山頂付近の6〜15時。山名を押すと7日間の予報が開きます。</p></div>
+<p>週末天気が良さそうな山: 週末の両日が○以上の山(上位10座、判定が良く風の弱い順)。気温は山頂付近の6〜15時の平均、風は同じ時間帯の最大。名前を押すと、各ページでその場所の予報が開きます。</p></div>
 """
 
 
@@ -1398,9 +1395,8 @@ background:var(--card);color:var(--text);text-decoration:none;white-space:nowrap
 .menu[open]>summary{background:var(--accent);border-color:var(--accent);color:#fff}
 .menu-list{display:inline;margin-left:4px}.menu-list .mapbtn{margin:0 4px 4px 0}.mapbtn img{vertical-align:-2px;margin-right:4px;border-radius:3px}
 tr.detail .mapbtn{margin:0 0 8px}
-.xbtn{all:unset;cursor:pointer;display:block}.xbtn b{color:var(--accent);text-decoration:underline;
-text-decoration-thickness:1px;text-underline-offset:3px}.xbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.xbtn[aria-expanded='true'] b::after{content:' ▲';font-size:10px}.xbtn[aria-expanded='false'] b::after{content:' ▼';font-size:10px}
+.xlink{display:block;color:inherit;text-decoration:none}.xlink b{color:var(--accent);text-decoration:underline;
+text-decoration-thickness:1px;text-underline-offset:3px}.xlink b::after{content:' ›';text-decoration:none;display:inline-block;margin-left:2px}
 .sub .dt,.sub td.l,.grid .nm{position:sticky;left:0;z-index:1;background:var(--card)}
 tr.detail .sub .dt{background:var(--hl)}
 tr.detail td>*{position:sticky;left:8px;max-width:calc(100vw - 72px)}.sub .dt{box-shadow:1px 0 0 var(--line)}
@@ -1440,7 +1436,7 @@ small{font-size:12px}
 .r3{color:var(--r3)}.r2{color:var(--r2)}.r1{color:var(--r1)}.r0{color:var(--r0)}
 .big{font-weight:700;color:var(--r2)}.mid{font-weight:600}
 .tag{display:inline-block;font-size:11px;padding:0 6px;border-radius:99px;background:var(--hl);color:var(--accent)}
-.tag.hyaku{background:var(--hyaku-bg);color:var(--hyaku)}
+.mk{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;font-size:11px;font-weight:700;line-height:1;vertical-align:1px;color:#fff;background:var(--accent)}.mk.hyaku{background:var(--hyaku)}
 .tag.warn{color:var(--r1)}
 .filters{display:flex;flex-direction:column;gap:8px;margin:8px 0 12px}
 #q{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text);max-width:320px}
@@ -1490,7 +1486,7 @@ document.querySelectorAll('.hbtn').forEach(btn=>btn.addEventListener('click',()=
   const open=btn.getAttribute('aria-expanded')!=='true';
   for(let r=btn.closest('tr').nextElementSibling;r&&!r.querySelector('.hbtn');r=r.nextElementSibling)if(r.classList.contains('hr'))r.hidden=!open;
   btn.setAttribute('aria-expanded',String(open));}));
-document.querySelectorAll('.nm button:not(.star), .xbtn').forEach(btn=>btn.addEventListener('click',()=>{
+document.querySelectorAll('.nm button:not(.star)').forEach(btn=>btn.addEventListener('click',()=>{
   const d=btn.closest('tbody').querySelector('tr.detail');d.hidden=!d.hidden;
   btn.setAttribute('aria-expanded',String(!d.hidden));}));
 document.addEventListener('click',ev=>{        // 「飲食店」の一覧は、外を押したら閉じる
