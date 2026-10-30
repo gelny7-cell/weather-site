@@ -24,7 +24,9 @@
     "name": "ラスタ前(YouTube)",
     "url": "https://m.youtube.com/@machispodev/streams"
    }
-  ]
+  ],
+  "toilet": true,
+  "shower": true
  },
  {
   "name": "難波江",
@@ -37,7 +39,9 @@
   "parking": "難波江海水浴場 駐車場",
   "coast": "日本海側",
   "muni": "18481",
-  "intro": "若狭湾に面した北向きのポイント。冬の季節風や日本海の低気圧で北寄りのうねりが入ったときが狙い目で、夏はフラットの日が多い。南寄りの風がオフショア。関西から比較的近い日本海側の波乗り場。"
+  "intro": "若狭湾に面した北向きのポイント。冬の季節風や日本海の低気圧で北寄りのうねりが入ったときが狙い目で、夏はフラットの日が多い。南寄りの風がオフショア。関西から比較的近い日本海側の波乗り場。",
+  "toilet": true,
+  "shower": true
  },
  {
   "name": "八丁浜",
@@ -56,7 +60,8 @@
     "name": "八丁浜(京丹後市)",
     "url": "http://webcam11.city.kyotango.lg.jp/viewer/live/"
    }
-  ]
+  ],
+  "toilet": true
  },
  {
   "name": "小松海岸",
@@ -79,7 +84,9 @@
     "name": "小松海岸(夏季のみ)",
     "url": "http://www.tpg-livecam.net/"
    }
-  ]
+  ],
+  "toilet": true,
+  "shower": true
  },
  {
   "name": "磯ノ浦",
@@ -102,7 +109,9 @@
     "name": "磯ノ浦(なみある？)",
     "url": "https://namiaru.com/"
    }
-  ]
+  ],
+  "toilet": true,
+  "shower": true
  },
  {
   "name": "市後浜",
@@ -121,7 +130,9 @@
     "name": "国府白浜(志摩ケーブルテレビ)",
     "url": "https://webcam.mctv.jp/shima/cam-s08.html"
    }
-  ]
+  ],
+  "toilet": true,
+  "shower": true
  },
  {
   "name": "南張",
@@ -140,7 +151,9 @@
     "name": "浜島・黒崎海岸(志摩ケーブルテレビ)",
     "url": "https://webcam.mctv.jp/shima/cam-s01.html"
    }
-  ]
+  ],
+  "toilet": true,
+  "shower": true
  },
  {
   "name": "ロングビーチ",
@@ -153,7 +166,9 @@
   "parking": "太平洋ロングビーチ 駐車場",
   "coast": "太平洋側",
   "muni": "23231",
-  "intro": "渥美半島を代表するポイント(大石海岸)。南南東向きの広いビーチで、ボトムは砂と岩。左側の岩場から速くホローなグーフィーの波が割れ、南〜南東うねりでサイズが上がるとチューブも。北〜北北西の風がオフショア。世界的な大会も開かれる人気ポイントで、週末は駐車場が満車になりやすい。"
+  "intro": "渥美半島を代表するポイント(大石海岸)。南南東向きの広いビーチで、ボトムは砂と岩。左側の岩場から速くホローなグーフィーの波が割れ、南〜南東うねりでサイズが上がるとチューブも。北〜北北西の風がオフショア。世界的な大会も開かれる人気ポイントで、週末は駐車場が満車になりやすい。",
+  "toilet": true,
+  "shower": true
  },
  {
   "name": "鳴門",
@@ -195,7 +210,9 @@
     "name": "生見・向きを変えられる(東洋町)",
     "url": "http://webcam.town.toyo.kochi.jp/viewer/live/index.html"
    }
-  ]
+  ],
+  "toilet": true,
+  "shower": true
  },
  {
   "name": "入野松原",
@@ -214,7 +231,9 @@
     "name": "大方浮鞭(黒潮町)",
     "url": "https://www.town.kuroshio.lg.jp/pb/cont/livecamera/22909"
    }
-  ]
+  ],
+  "toilet": true,
+  "shower": true
  },
  {
   "name": "若狭和田",
@@ -252,7 +271,9 @@
     "name": "水晶浜(みち情報ネットふくい)",
     "url": "https://www.hozen.pref.fukui.lg.jp/hozen/yuki/assets/images/camera/574.jpg"
    }
-  ]
+  ],
+  "toilet": true,
+  "shower": true
  },
  {
   "name": "東浜",

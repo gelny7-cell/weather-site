@@ -194,6 +194,9 @@ def intro(x):
     (範囲と出典はページ下部の説明に)"""
     fac = "".join(f" <span class='fac' title='{label}'>{icon}{len(x[k])}</span>"
                   for k, icon, label in (("huts", "🏠", "山小屋"), ("tents", "⛺", "テント場")) if x.get(k))
+    # サーフポイントは、トイレ・シャワーがあれば印だけ(surfride.net の設備欄)
+    fac += "".join(f" <span class='fac' title='{label}' role='img' aria-label='{label}'>{icon}</span>"
+                   for k, icon, label in (("toilet", "🚻", "トイレあり"), ("shower", "🚿", "シャワーあり")) if x.get(k) is True)
     text = e(x.get("intro", ""))
     return f"<p class='intro'>{text}{fac}</p>" if text or fac else ""
 
@@ -1436,6 +1439,7 @@ def surf_page(spots):
 <li>気温は浜付近、水温は沖合の海面水温の予報</li>
 <li>潮: その時間帯にある満潮・干潮の時刻。なければ上げ潮・下げ潮(沖合の潮位の予報から求めた目安で、港の潮汐表とは数十分ずれることがあります)</li>
 <li>⚠️ 警報・注意報は、浜のある市町村に気象庁がいま出しているもの</li>
+<li>🚻 トイレ・🚿 シャワー: <a href='https://japan.surfride.net/'>surfride.net</a> の設備の情報で、あるポイントの紹介の最後に付けています(分からないポイントは付けていません)</li>
 <li>📷 ライブカメラ: <a href='https://www.surfers-ocean.com/'>サーファーズオーシャン</a>・<a href='https://japan.surfride.net/'>surfride.net</a> に載っているカメラのうち、ポイントかそのすぐ近くを映すものです(停止中のものは除く)。提供元のサイトが開きます</li>
 <li>一覧は7日間で、その日の朝・昼のよいほうの判定とうねりの高さです。ポイント名を押すと、朝・昼の詳しい予報(最大16日間)が開きます</li>
 <li>今日〜明後日の日付を押すと、6〜16時の時間ごとの予報が開きます(今日・明日は1時間ごと、明後日は3時間ごと。その時刻の値)</li></ul>
