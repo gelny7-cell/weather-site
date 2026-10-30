@@ -1073,7 +1073,7 @@ def ski_info(s):
 def road(t):
     """朝の路面: ふもとの最低気温と凍結の印(1℃以下=凍結注意)"""
     t = round(t)                        # 表示する値で判定する(1.2℃が「1℃」なのに印がない、を防ぐ)
-    tag = " <span class='tag danger'>凍結注意</span>" if t <= 1 else ""
+    tag = " <span class='frz' title='路面凍結注意' role='img' aria-label='路面凍結注意'>凍</span>" if t <= 1 else ""
     return f"{t}℃{tag}"
 
 
@@ -1191,7 +1191,7 @@ def ski_page(ski):
 <li><span class='tag'>パウダー期待</span> 上部の新雪と最高気温が、地域ごとの基準を満たす日です(北海道 15cm以上・-5℃以下、東北・関東・新潟・長野 15cm以上・-3℃以下、北陸・東海 10cm以上・-2℃以下、近畿・中国・四国・九州 5cm以上・-1℃以下)。雪の少ない地域でも「その地域にしては良い雪」の日が分かるようにしています。「❄️パウダー期待」のボタンで、7日間のうちにパウダー期待の日があるスキー場だけに絞り込めます</li>
 <li>🧊 アイスバーン注意: 前日に上部で雨が降ったか0℃を超え、夜〜朝の上部の最低気温が-2℃以下で、新雪が3cm未満の日(湿った雪が凍って硬くなりやすい)</li>
 <li>体感温度: 上部の気温と風速から求めた、8〜16時で最も低い値。平均風速には風向(風が吹いてくる方角)も表示しています</li>
-<li>朝の路面: ふもと(ゲレンデ下部)の3〜8時の最低気温。<span class='tag danger'>凍結注意</span> 1℃以下。冬用タイヤ・チェーンの準備の目安です(実際の路面は除雪や日当たりで変わります)</li>
+<li>朝の路面: ふもと(ゲレンデ下部)の3〜8時の最低気温。<span class='frz' title='路面凍結注意' role='img' aria-label='路面凍結注意'>凍</span> 路面凍結注意(1℃以下)。冬用タイヤ・チェーンの準備の目安です(実際の路面は除雪や日当たりで変わります)</li>
 <li><span class='tag warn'>運休注意</span> 上部の最大瞬間風速が20m/s以上(ゴンドラ・リフトが止まりやすい強さ)</li>
 <li>⚠️ 警報・注意報は、スキー場のある市町村に気象庁がいま出しているもの。🌋 は10km以内の火山に噴火警報・予報が出ているとき</li>
 <li>天気・雨・気温・0℃の高さ・平均風速・最大瞬間風速は、営業時間(8〜16時)の予報からまとめています(天気は最も悪いもの、0℃の高さは最も低いもの)</li>
@@ -1632,6 +1632,7 @@ tr.detail .star{display:table}tr.detail .btnrow .star{display:inline-block;verti
 .favbox h3{font-size:14px;margin:4px 0}
 .intro{margin:0 0 8px;font-size:14px;color:var(--text)}
 .fac{font-size:12px}
+.frz{display:inline-block;width:17px;height:17px;border-radius:50%;background:var(--r2);color:#fff;font-size:10.5px;line-height:17px;text-align:center;font-weight:700;vertical-align:1px}
 .obs{margin:6px 0}.obs b{display:inline!important}  /* 表の中の b{display:block} に負けないように */
 .comment{background:var(--hl);border-radius:8px;padding:8px 12px;margin:0 0 8px;font-size:14px}
 .sub.mini td,.sub.mini th{text-align:center;padding:4px 6px}.sub.mini td b{display:block}
