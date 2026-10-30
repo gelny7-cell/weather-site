@@ -450,6 +450,14 @@
     "lat": 42.770319,
     "lon": 142.587058
    }
+  ],
+  "tent_booking": [
+   {
+    "name": "新冠ポロシリ山荘",
+    "url": "https://poroshiri.info/",
+    "site": "公式HP",
+    "km": 3.3
+   }
   ]
  },
  {
@@ -1077,6 +1085,14 @@
     "lat": 37.851355,
     "lon": 139.780676
    }
+  ],
+  "tent_booking": [
+   {
+    "name": "切合小屋",
+    "url": "https://www.yamatan.net/hut/kiriawasegoya",
+    "site": "Yamatan",
+    "km": 2.8
+   }
   ]
  },
  {
@@ -1339,6 +1355,14 @@
     "lat": 37.165131,
     "lon": 139.944349
    }
+  ],
+  "tent_booking": [
+   {
+    "name": "三斗小屋温泉　煙草屋旅館",
+    "url": "https://www.yamatan.net/hut/tabakoyaryokan",
+    "site": "Yamatan",
+    "km": 2.3
+   }
   ]
  },
  {
@@ -1591,6 +1615,14 @@
     "name": "一ノ瀬バス停",
     "lat": 36.902033,
     "lon": 139.296113
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "燧小屋",
+    "url": "https://ozehiuchigoya.com/",
+    "site": "公式HP",
+    "km": 3.3
    }
   ]
  },
@@ -1917,6 +1949,14 @@
     "lat": 36.868671,
     "lon": 138.07859
    }
+  ],
+  "tent_booking": [
+   {
+    "name": "高谷池ヒュッテ",
+    "url": "https://booking.montbell.jp/lodging/facility.php?facility_id=16",
+    "site": "モンベル",
+    "km": 3.3
+   }
   ]
  },
  {
@@ -1984,7 +2024,15 @@
     "km": 6.1
    }
   ],
-  "intro": "高谷池や天狗の庭の湿原が美しい、頸城山塊の最高峰"
+  "intro": "高谷池や天狗の庭の湿原が美しい、頸城山塊の最高峰",
+  "tent_booking": [
+   {
+    "name": "高谷池ヒュッテ",
+    "url": "https://booking.montbell.jp/lodging/facility.php?facility_id=16",
+    "site": "モンベル",
+    "km": 2.1
+   }
+  ]
  },
  {
   "no": 35,
@@ -2532,6 +2580,20 @@
     "lat": 36.773438,
     "lon": 137.821503
    }
+  ],
+  "tent_booking": [
+   {
+    "name": "村営白馬岳頂上宿舎",
+    "url": "http://yamagoya.hakubakousha.com/",
+    "site": "公式HP",
+    "km": 0.8
+   },
+   {
+    "name": "白馬鑓温泉小屋",
+    "url": "https://hakubakan.com/lodge/yarionsengoya/",
+    "site": "公式HP",
+    "km": 3.9
+   }
   ]
  },
  {
@@ -2613,6 +2675,20 @@
     "lat": 36.559765,
     "lon": 137.730277
    }
+  ],
+  "tent_booking": [
+   {
+    "name": "五竜山荘",
+    "url": "https://hakubakan.com/lodge/goryusanso/",
+    "site": "公式HP",
+    "km": 0.9
+   },
+   {
+    "name": "唐松岳頂上山荘",
+    "url": "http://karamatsu.jp/index.html",
+    "site": "公式HP",
+    "km": 3.1
+   }
   ]
  },
  {
@@ -2684,6 +2760,14 @@
     "name": "駐車場",
     "lat": 36.603744,
     "lon": 137.800464
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "冷池山荘",
+    "url": "https://www.kasimayari.jp/",
+    "site": "公式HP",
+    "km": 2.2
    }
   ]
  },
@@ -2965,7 +3049,15 @@
     "km": 3.8
    }
   ],
-  "intro": "室堂から登れる北アルプスの霊山。山頂に雄山神社"
+  "intro": "室堂から登れる北アルプスの霊山。山頂に雄山神社",
+  "tent_booking": [
+   {
+    "name": "ロッジくろよん",
+    "url": "http://www.kuroyon.com/",
+    "site": "公式HP",
+    "km": 3.7
+   }
+  ]
  },
  {
   "no": 50,
@@ -3024,7 +3116,15 @@
     "km": 3.4
    }
   ],
-  "intro": "大きな山容とカール(圏谷)が特徴。太郎平から登る"
+  "intro": "大きな山容とカール(圏谷)が特徴。太郎平から登る",
+  "tent_booking": [
+   {
+    "name": "太郎平小屋",
+    "url": "https://ltaro.com/",
+    "site": "公式HP",
+    "km": 3.4
+   }
+  ]
  },
  {
   "no": 51,
@@ -3092,6 +3192,14 @@
     "name": "笠ヶ岳・双六岳・わさび平 登山道入口",
     "lat": 36.286117,
     "lon": 137.575515
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "黒部五郎小舎",
+    "url": "https://www.sugorokugoya.com/",
+    "site": "公式HP",
+    "km": 2.3
    }
   ]
  },
@@ -3184,6 +3292,14 @@
     "name": "薬師岳登山口",
     "lat": 36.483476,
     "lon": 137.473604
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "雲ノ平山荘",
+    "url": "https://kumonodaira.com/",
+    "site": "公式HP",
+    "km": 1.8
    }
   ]
  },
@@ -3289,6 +3405,20 @@
     "name": "薬師岳登山口",
     "lat": 36.483476,
     "lon": 137.473604
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "雲ノ平山荘",
+    "url": "https://kumonodaira.com/",
+    "site": "公式HP",
+    "km": 2.4
+   },
+   {
+    "name": "双六小屋",
+    "url": "https://www.sugorokugoya.com/",
+    "site": "公式HP",
+    "km": 3.7
    }
   ]
  },
@@ -3465,6 +3595,38 @@
     "lat": 36.286117,
     "lon": 137.575515
    }
+  ],
+  "tent_booking": [
+   {
+    "name": "槍ヶ岳山荘",
+    "url": "https://www.yarigatake.co.jp/",
+    "site": "公式HP",
+    "km": 0.0
+   },
+   {
+    "name": "殺生小屋",
+    "url": "https://www.yarigatake.co.jp/sesshou/",
+    "site": "公式HP",
+    "km": 0.5
+   },
+   {
+    "name": "槍平小屋",
+    "url": "https://www.yamatan.net/hut/yaridairagoya",
+    "site": "Yamatan",
+    "km": 2.6
+   },
+   {
+    "name": "南岳小屋",
+    "url": "https://www.yarigatake.co.jp/minamidake/",
+    "site": "公式HP",
+    "km": 2.8
+   },
+   {
+    "name": "ヒュッテ西岳",
+    "url": "https://www.nakabusa.com/lodge/lodge.html",
+    "site": "公式HP",
+    "km": 3.0
+   }
   ]
  },
  {
@@ -3617,6 +3779,50 @@
     "lat": 36.268036,
     "lon": 137.601803
    }
+  ],
+  "tent_booking": [
+   {
+    "name": "穂高岳山荘",
+    "url": "https://www.hotakadakesanso.com/",
+    "site": "公式HP",
+    "km": 0.5
+   },
+   {
+    "name": "岳沢小屋",
+    "url": "https://www.yarigatake.co.jp/",
+    "site": "公式HP",
+    "km": 1.4
+   },
+   {
+    "name": "涸沢ヒュッテ レンタルテント",
+    "url": "https://www.yamatan.net/hut/karasawahutte-tent",
+    "site": "Yamatan",
+    "km": 1.5
+   },
+   {
+    "name": "涸沢ヒュッテ",
+    "url": "https://www.yamatan.net/hut/karasawahutte",
+    "site": "Yamatan",
+    "km": 1.5
+   },
+   {
+    "name": "北穂高小屋",
+    "url": "https://www.yamatan.net/hut/kitahotakagoya",
+    "site": "Yamatan",
+    "km": 1.7
+   },
+   {
+    "name": "南岳小屋",
+    "url": "https://www.yarigatake.co.jp/minamidake/",
+    "site": "公式HP",
+    "km": 3.1
+   },
+   {
+    "name": "西穂山荘",
+    "url": "http://www.nishiho.com/",
+    "site": "公式HP",
+    "km": 3.8
+   }
   ]
  },
  {
@@ -3672,6 +3878,14 @@
     "name": "燕岳登山口",
     "lat": 36.39036,
     "lon": 137.748686
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "常念小屋",
+    "url": "http://mt-jonen.com/",
+    "site": "公式HP",
+    "km": 0.9
    }
   ]
  },
@@ -3733,6 +3947,14 @@
     "name": "中尾温泉登山口(クリヤ谷)",
     "lat": 36.254125,
     "lon": 137.576236
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "笠ヶ岳山荘",
+    "url": "https://www.kasagatake.com/",
+    "site": "公式HP",
+    "km": 0.3
    }
   ]
  },
@@ -4294,6 +4516,14 @@
     "lat": 36.104035,
     "lon": 138.235822
    }
+  ],
+  "tent_booking": [
+   {
+    "name": "双子池ヒュッテ",
+    "url": "https://www.yamatan.net/hut/hutagoikehyutte",
+    "site": "Yamatan",
+    "km": 3.0
+   }
   ]
  },
  {
@@ -4488,6 +4718,26 @@
     "lat": 35.968735,
     "lon": 138.310682
    }
+  ],
+  "tent_booking": [
+   {
+    "name": "行者小屋",
+    "url": "http://userweb.alles.or.jp/akadake/",
+    "site": "公式HP",
+    "km": 1.0
+   },
+   {
+    "name": "キレット小屋",
+    "url": "https://hakubakan.com/lodge/kiretto/",
+    "site": "公式HP",
+    "km": 1.1
+   },
+   {
+    "name": "オーレン小屋",
+    "url": "https://www.yamatan.net/hut/orengoya",
+    "site": "Yamatan",
+    "km": 3.7
+   }
   ]
  },
  {
@@ -4615,6 +4865,20 @@
     "lat": 35.9256,
     "lon": 138.9296
    }
+  ],
+  "tent_booking": [
+   {
+    "name": "五十人平野営場",
+    "url": "https://www.yamatan.net/hut/gojunindairayaeijo",
+    "site": "Yamatan",
+    "km": 1.6
+   },
+   {
+    "name": "七ツ石小屋",
+    "url": "https://www.yamatan.net/hut/nanatsuishigoya",
+    "site": "Yamatan",
+    "km": 3.7
+   }
   ]
  },
  {
@@ -4704,6 +4968,20 @@
     "name": "道の駅みとみ駐車場",
     "lat": 35.858921,
     "lon": 138.756566
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "甲武信小屋",
+    "url": "https://www.kobushigoya.net/",
+    "site": "公式HP",
+    "km": 0.3
+   },
+   {
+    "name": "十文字小屋",
+    "url": "http://www.hut10monji.com/",
+    "site": "公式HP",
+    "km": 3.8
    }
   ]
  },
@@ -5495,6 +5773,14 @@
     "lat": 35.778712,
     "lon": 137.746633
    }
+  ],
+  "tent_booking": [
+   {
+    "name": "駒ヶ岳頂上山荘",
+    "url": "https://miyadakankou.co.jp/chojosansou",
+    "site": "公式HP",
+    "km": 0.3
+   }
   ]
  },
  {
@@ -5577,6 +5863,14 @@
     "name": "伊奈川ダム登山口",
     "lat": 35.695768,
     "lon": 137.751371
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "檜尾小屋",
+    "url": "https://www.hinokio-chuoalps.com",
+    "site": "公式HP",
+    "km": 3.6
    }
   ]
  },
@@ -5747,6 +6041,20 @@
     "lat": 35.797339,
     "lon": 138.298177
    }
+  ],
+  "tent_booking": [
+   {
+    "name": "七丈小屋",
+    "url": "https://www.yamatan.net/hut/shichijogoya",
+    "site": "Yamatan",
+    "km": 1.2
+   },
+   {
+    "name": "長衛小屋",
+    "url": "https://choei.ashiyasu.com/",
+    "site": "公式HP",
+    "km": 2.8
+   }
   ]
  },
  {
@@ -5866,6 +6174,14 @@
     "lat": 35.740329,
     "lon": 138.089
    }
+  ],
+  "tent_booking": [
+   {
+    "name": "長衛小屋",
+    "url": "https://choei.ashiyasu.com/",
+    "site": "公式HP",
+    "km": 3.6
+   }
   ]
  },
  {
@@ -5950,6 +6266,14 @@
     "name": "ドンドコ沢登山道入口",
     "lat": 35.713805,
     "lon": 138.352989
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "広河原山荘",
+    "url": "https://www.minamialps-yoyaku.jp/",
+    "site": "南アルプス市の予約",
+    "km": 3.0
    }
   ]
  },
@@ -6071,6 +6395,20 @@
     "name": "奈良田駐車場",
     "lat": 35.571642,
     "lon": 138.301508
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "北岳山荘",
+    "url": "https://www.minamialps-yoyaku.jp/",
+    "site": "南アルプス市の予約",
+    "km": 1.2
+   },
+   {
+    "name": "両俣小屋",
+    "url": "https://ryoumatagoya.com/",
+    "site": "公式HP",
+    "km": 3.2
    }
   ]
  },
@@ -6199,6 +6537,26 @@
     "name": "広河原登山口",
     "lat": 35.697274,
     "lon": 138.270473
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "農鳥小屋",
+    "url": "https://www.yamatan.net/hut/notorigoya",
+    "site": "Yamatan",
+    "km": 1.6
+   },
+   {
+    "name": "北岳山荘",
+    "url": "https://www.minamialps-yoyaku.jp/",
+    "site": "南アルプス市の予約",
+    "km": 2.1
+   },
+   {
+    "name": "両俣小屋",
+    "url": "https://ryoumatagoya.com/",
+    "site": "公式HP",
+    "km": 3.9
    }
   ]
  },
@@ -6453,6 +6811,14 @@
     "lat": 35.433338,
     "lon": 138.206723
    }
+  ],
+  "tent_booking": [
+   {
+    "name": "聖平小屋",
+    "url": "https://reserva.be/ikawakanko",
+    "site": "RESERVA",
+    "km": 1.7
+   }
   ]
  },
  {
@@ -6505,6 +6871,14 @@
     "name": "茶臼岳登山口",
     "lat": 35.348354,
     "lon": 138.184161
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "県営光岳小屋",
+    "url": "https://www.chillnn.com/1863f95fe2d74",
+    "site": "公式HP",
+    "km": 0.4
    }
   ]
  },
