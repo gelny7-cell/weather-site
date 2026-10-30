@@ -686,7 +686,9 @@ def mt_detail(m, with_map=True, compact=False):
             + conbilink(near["lat"], near["lon"]) + " " + hutlink(m)) if with_map else ""    # 山小屋は右端
     sun = (f"<p class='muted'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</p>"
            if m.get("sun") else "")
-    return (f"{star('m', m) if with_map else ''}{alert_box(m)}{intro(m)}{sun}{link}<div class='scroll'><table class='sub'>"
+    # スキー場と同じく、文字をまとめて上に、ボタン(お気に入り登録が先頭)をその下に
+    buttons = f"<div class='btnrow'>{star('m', m)} {link}</div>" if with_map else ""
+    return (f"{alert_box(m)}{intro(m)}{sun}{buttons}<div class='scroll'><table class='sub'>"
             "<tr><th class='dt'>日付</th><th>判定</th><th>天気(6〜15時)</th>"
             + ("<th>展望</th>" if has_v else "") + "<th>山頂付近の気温</th>"
             + ("" if compact else "<th>体感温度</th>") + "<th>平均風速</th>"
