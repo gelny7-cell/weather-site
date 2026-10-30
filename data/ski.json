@@ -31,7 +31,7 @@
     "ゴンドラ": 1
    },
    "longest": 6000,
-   "max_slope": 32,
+   "max_slope": 27,
    "vertical": 1225,
    "peak": 1845,
    "base": 620,
@@ -45,7 +45,12 @@
     "圧雪": 65
    },
    "src": "surfsnow:r0070"
-  }
+  },
+  "ticket": {
+   "adult": 8500,
+   "season": "2026-2027"
+  },
+  "park": true
  },
  {
   "name": "妙高杉ノ原スキー場",
@@ -93,7 +98,12 @@
     "コブ": 10
    },
    "src": "surfsnow:r0132"
-  }
+  },
+  "ticket": {
+   "adult": 8000,
+   "season": "2026-2027"
+  },
+  "park": true
  },
  {
   "name": "野沢温泉スキー場",
@@ -128,7 +138,7 @@
     "ゴンドラ": 2
    },
    "longest": 10000,
-   "max_slope": 39,
+   "max_slope": 32,
    "vertical": 1085,
    "peak": 1650,
    "base": 565,
@@ -143,7 +153,12 @@
     "コブ": 20
    },
    "src": "surfsnow:r0028"
-  }
+  },
+  "ticket": {
+   "adult": 7500,
+   "season": "2026-2027"
+  },
+  "park": true
  },
  {
   "name": "竜王スキーパーク",
@@ -190,7 +205,12 @@
     "圧雪": 90
    },
    "src": "surfsnow:r0112"
-  }
+  },
+  "ticket": {
+   "adult": 4700,
+   "season": "2026-2027"
+  },
+  "park": true
  },
  {
   "name": "白馬八方尾根スキー場",
@@ -225,7 +245,7 @@
    },
    "longest": 8000,
    "max_slope": 37,
-   "vertical": 1071,
+   "vertical": 1060,
    "peak": 1831,
    "base": 760,
    "level": {
@@ -239,7 +259,8 @@
     "コブ": 15
    },
    "src": "surfsnow:r0142"
-  }
+  },
+  "park": true
  },
  {
   "name": "ニセコHANAZONOリゾート",
@@ -278,8 +299,10 @@
     "圧雪": 73,
     "コブ": 9
    },
-   "src": "surfsnow:r0945"
-  }
+   "src": "surfsnow:r0945",
+   "longest": 3300
+  },
+  "park": true
  },
  {
   "name": "志賀高原スキー場",
@@ -291,7 +314,11 @@
   "top": 2307,
   "site": "https://www.shigakogen.gr.jp/",
   "muni": "20561",
-  "intro": "多くのスキー場がつながる、日本最大級のエリア"
+  "intro": "多くのスキー場がつながる、日本最大級のエリア",
+  "spec": {
+   "longest": 6000
+  },
+  "park": null
  },
  {
   "name": "ニセコ東急 グラン・ヒラフ",
@@ -341,7 +368,8 @@
     "コブ": 10
    },
    "src": "surfsnow:r0148"
-  }
+  },
+  "park": true
  },
  {
   "name": "ロッテアライリゾート",
@@ -389,7 +417,8 @@
     "圧雪": 16
    },
    "src": "surfsnow:r1020"
-  }
+  },
+  "park": true
  },
  {
   "name": "白馬五竜スキー場",
@@ -437,7 +466,8 @@
     "コブ": 10
    },
    "src": "surfsnow:r0041"
-  }
+  },
+  "park": true
  },
  {
   "name": "栂池高原スキー場",
@@ -475,8 +505,10 @@
     "非圧雪": 30,
     "圧雪": 70
    },
-   "src": "surfsnow:r0144"
-  }
+   "src": "surfsnow:r0144",
+   "longest": 5000
+  },
+  "park": true
  },
  {
   "name": "天元台高原",
@@ -522,7 +554,12 @@
     "コブ": 5
    },
    "src": "surfsnow:r0211"
-  }
+  },
+  "ticket": {
+   "adult": 6000,
+   "season": "2026-2027"
+  },
+  "park": false
  },
  {
   "name": "月山スキー場",
@@ -549,8 +586,10 @@
     "非圧雪": 80,
     "圧雪": 20
    },
-   "src": "surfsnow:r0747"
-  }
+   "src": "surfsnow:r0747",
+   "longest": 5000
+  },
+  "park": null
  },
  {
   "name": "ニセコビレッジ",
@@ -588,8 +627,10 @@
     "非圧雪": 30,
     "圧雪": 70
    },
-   "src": "surfsnow:r0119"
-  }
+   "src": "surfsnow:r0119",
+   "longest": 5000
+  },
+  "park": false
  },
  {
   "name": "苗場スキー場",
@@ -636,7 +677,8 @@
     "圧雪": 80
    },
    "src": "surfsnow:r0047"
-  }
+  },
+  "park": true
  },
  {
   "name": "山形蔵王温泉スキー場",
@@ -671,8 +713,10 @@
     "非圧雪": 20,
     "圧雪": 80
    },
-   "src": "surfsnow:r0177"
-  }
+   "src": "surfsnow:r0177",
+   "longest": 9000
+  },
+  "park": true
  },
  {
   "name": "富良野スキー場",
@@ -721,7 +765,12 @@
     "コブ": 18
    },
    "src": "surfsnow:r0118"
-  }
+  },
+  "ticket": {
+   "adult": 9000,
+   "season": "2026-2027"
+  },
+  "park": false
  },
  {
   "name": "ガーラ湯沢スキー場",
@@ -746,7 +795,7 @@
   "intro": "新幹線の駅とつながるスキー場",
   "spec": {
    "courses": 16,
-   "lifts": 12,
+   "lifts": 11,
    "lift_kinds": {
     "2人用": 4,
     "3人用": 2,
@@ -770,7 +819,8 @@
     "圧雪": 75
    },
    "src": "surfsnow:r0001"
-  }
+  },
+  "park": false
  },
  {
   "name": "上越国際スキー場",
@@ -816,7 +866,12 @@
     "圧雪": 90
    },
    "src": "surfsnow:r0037"
-  }
+  },
+  "ticket": {
+   "adult": 5500,
+   "season": "2026-2027"
+  },
+  "park": true
  },
  {
   "name": "雫石スキー場",
@@ -864,7 +919,12 @@
     "コブ": 10
    },
    "src": "surfsnow:r0122"
-  }
+  },
+  "ticket": {
+   "adult": 6800,
+   "season": "2026-2027"
+  },
+  "park": true
  },
  {
   "name": "赤倉温泉スキー場",
@@ -901,8 +961,10 @@
     "非圧雪": 20,
     "圧雪": 80
    },
-   "src": "surfsnow:r0814"
-  }
+   "src": "surfsnow:r0814",
+   "longest": 3000
+  },
+  "park": false
  },
  {
   "name": "ニセコアンヌプリ国際スキー場",
@@ -940,8 +1002,10 @@
     "非圧雪": 15,
     "圧雪": 85
    },
-   "src": "surfsnow:r0260"
-  }
+   "src": "surfsnow:r0260",
+   "longest": 4000
+  },
+  "park": false
  },
  {
   "name": "富士見パノラマリゾート",
@@ -986,7 +1050,12 @@
     "圧雪": 100
    },
    "src": "surfsnow:r0297"
-  }
+  },
+  "ticket": {
+   "adult": 6000,
+   "season": "2026-2027"
+  },
+  "park": false
  },
  {
   "name": "野麦峠スキー場",
@@ -1023,8 +1092,10 @@
     "非圧雪": 15,
     "圧雪": 85
    },
-   "src": "surfsnow:r0229"
-  }
+   "src": "surfsnow:r0229",
+   "longest": 4000
+  },
+  "park": false
  },
  {
   "name": "池の平温泉スキー場",
@@ -1069,7 +1140,8 @@
     "圧雪": 90
    },
    "src": "surfsnow:r0168"
-  }
+  },
+  "park": true
  },
  {
   "name": "鹿島槍スキー場",
@@ -1106,8 +1178,10 @@
     "非圧雪": 10,
     "圧雪": 90
    },
-   "src": "surfsnow:r0196"
-  }
+   "src": "surfsnow:r0196",
+   "longest": 5000
+  },
+  "park": true
  },
  {
   "name": "スキージャム勝山",
@@ -1153,7 +1227,8 @@
     "圧雪": 80
    },
    "src": "surfsnow:r0019"
-  }
+  },
+  "park": true
  },
  {
   "name": "立山山麓スキー場",
@@ -1190,8 +1265,10 @@
     "非圧雪": 20,
     "圧雪": 80
    },
-   "src": "surfsnow:r0821"
-  }
+   "src": "surfsnow:r0821",
+   "longest": 3000
+  },
+  "park": false
  },
  {
   "name": "会津高原たかつえスキー場",
@@ -1225,7 +1302,7 @@
     "4人用": 2
    },
    "longest": 1760,
-   "max_slope": 36,
+   "max_slope": 38,
    "vertical": 707,
    "peak": 1650,
    "base": 943,
@@ -1239,7 +1316,8 @@
     "圧雪": 85
    },
    "src": "surfsnow:r0759"
-  }
+  },
+  "park": true
  },
  {
   "name": "めいほうスキー場",
@@ -1286,7 +1364,8 @@
     "圧雪": 70
    },
    "src": "surfsnow:r0138"
-  }
+  },
+  "park": true
  },
  {
   "name": "えぼしリゾート",
@@ -1334,7 +1413,12 @@
     "コブ": 10
    },
    "src": "surfsnow:r0024"
-  }
+  },
+  "ticket": {
+   "adult": 5900,
+   "season": "2026-2027"
+  },
+  "park": true
  },
  {
   "name": "星野リゾート トマム",
@@ -1380,7 +1464,8 @@
     "圧雪": 65
    },
    "src": "surfsnow:r0274"
-  }
+  },
+  "park": true
  },
  {
   "name": "四季の森ホワイトワールド尾瀬岩鞍",
@@ -1428,7 +1513,8 @@
     "コブ": 10
    },
    "src": "surfsnow:r0059"
-  }
+  },
+  "park": false
  },
  {
   "name": "安比高原スキー場",
@@ -1475,7 +1561,8 @@
     "圧雪": 60
    },
    "src": "surfsnow:r0226"
-  }
+  },
+  "park": true
  },
  {
   "name": "サッポロテイネ",
@@ -1519,7 +1606,8 @@
     "圧雪": 90
    },
    "src": "surfsnow:r0065"
-  }
+  },
+  "park": true
  },
  {
   "name": "石打丸山スキー場",
@@ -1566,7 +1654,12 @@
     "圧雪": 70
    },
    "src": "surfsnow:r0788"
-  }
+  },
+  "ticket": {
+   "adult": 5200,
+   "season": "2026-2027"
+  },
+  "park": true
  },
  {
   "name": "阿仁スキー場",
@@ -1602,8 +1695,10 @@
     "非圧雪": 40,
     "圧雪": 60
    },
-   "src": "surfsnow:r0719"
-  }
+   "src": "surfsnow:r0719",
+   "longest": 4400
+  },
+  "park": false
  },
  {
   "name": "ハチ北スキー場",
@@ -1654,7 +1749,8 @@
     "コブ": 5
    },
    "src": "surfsnow:r0053"
-  }
+  },
+  "park": true
  },
  {
   "name": "舞子スノーリゾート",
@@ -1703,7 +1799,8 @@
     "コブ": 10
    },
    "src": "surfsnow:r0020"
-  }
+  },
+  "park": true
  },
  {
   "name": "奥利根スノーパーク",
@@ -1742,7 +1839,8 @@
     "コブ": 10
    },
    "src": "surfsnow:r0074"
-  }
+  },
+  "park": true
  },
  {
   "name": "キロロリゾート",
@@ -1780,8 +1878,10 @@
     "非圧雪": 23,
     "圧雪": 77
    },
-   "src": "surfsnow:r0030"
-  }
+   "src": "surfsnow:r0030",
+   "longest": 4050
+  },
+  "park": false
  },
  {
   "name": "サホロリゾート",
@@ -1820,7 +1920,8 @@
     "コブ": 15
    },
    "src": "surfsnow:r0330"
-  }
+  },
+  "park": false
  },
  {
   "name": "丸沼高原スキー場",
@@ -1866,7 +1967,8 @@
     "圧雪": 80
    },
    "src": "surfsnow:r0025"
-  }
+  },
+  "park": true
  },
  {
   "name": "たざわ湖スキー場",
@@ -1904,8 +2006,10 @@
     "非圧雪": 40,
     "圧雪": 60
    },
-   "src": "surfsnow:r0263"
-  }
+   "src": "surfsnow:r0263",
+   "longest": 3000
+  },
+  "park": true
  },
  {
   "name": "カムイスキーリンクス",
@@ -1943,7 +2047,8 @@
     "圧雪": 65
    },
    "src": "surfsnow:r0604"
-  }
+  },
+  "park": false
  },
  {
   "name": "高鷲スノーパーク",
@@ -1990,7 +2095,12 @@
     "圧雪": 85
    },
    "src": "surfsnow:r0212"
-  }
+  },
+  "ticket": {
+   "adult": 6400,
+   "season": "2026-2027"
+  },
+  "park": true
  },
  {
   "name": "ルスツリゾート",
@@ -2023,7 +2133,7 @@
     "ゴンドラ": 4
    },
    "longest": 3500,
-   "max_slope": 40,
+   "max_slope": 35,
    "vertical": 594,
    "peak": 994,
    "base": 400,
@@ -2037,7 +2147,12 @@
     "圧雪": 60
    },
    "src": "surfsnow:r0331"
-  }
+  },
+  "ticket": {
+   "adult": 7900,
+   "season": "2026-2027"
+  },
+  "park": true
  },
  {
   "name": "星野リゾート アルツ磐梯",
@@ -2084,7 +2199,8 @@
     "圧雪": 70
    },
    "src": "surfsnow:r0275"
-  }
+  },
+  "park": true
  },
  {
   "name": "猪苗代スキー場",
@@ -2124,7 +2240,12 @@
     "圧雪": 80
    },
    "src": "surfsnow:r0944"
-  }
+  },
+  "ticket": {
+   "adult": 3300,
+   "season": "2026-2027"
+  },
+  "park": true
  },
  {
   "name": "グランデコスノーリゾート",
@@ -2163,7 +2284,8 @@
     "圧雪": 40
    },
    "src": "surfsnow:r1025"
-  }
+  },
+  "park": true
  },
  {
   "name": "川場スキー場",
@@ -2209,7 +2331,8 @@
     "圧雪": 70
    },
    "src": "surfsnow:r0210"
-  }
+  },
+  "park": true
  },
  {
   "name": "水上宝台樹スキー場",
@@ -2241,7 +2364,7 @@
     "4人用": 2,
     "その他": 1
    },
-   "longest": 2700,
+   "longest": 2600,
    "max_slope": 40,
    "vertical": 570,
    "peak": 1400,
@@ -2256,7 +2379,8 @@
     "圧雪": 60
    },
    "src": "surfsnow:r0771"
-  }
+  },
+  "park": true
  },
  {
   "name": "開田高原マイアスキー場",
@@ -2292,8 +2416,10 @@
    "groom": {
     "圧雪": 100
    },
-   "src": "surfsnow:r0849"
-  }
+   "src": "surfsnow:r0849",
+   "longest": 3200
+  },
+  "park": false
  },
  {
   "name": "グランスノー奥伊吹",
@@ -2341,7 +2467,12 @@
     "コブ": 10
    },
    "src": "surfsnow:r0244"
-  }
+  },
+  "ticket": {
+   "adult": 4000,
+   "season": "2026-2027"
+  },
+  "park": true
  },
  {
   "name": "戸隠スキー場",
@@ -2388,7 +2519,8 @@
     "コブ": 10
    },
    "src": "surfsnow:r0034"
-  }
+  },
+  "park": true
  },
  {
   "name": "キューピットバレイ",
@@ -2434,7 +2566,12 @@
     "圧雪": 70
    },
    "src": "surfsnow:r0150"
-  }
+  },
+  "ticket": {
+   "adult": 5700,
+   "season": "2026-2027"
+  },
+  "park": false
  },
  {
   "name": "朝里川温泉スキー場",
@@ -2458,7 +2595,7 @@
   },
   "intro": "小樽の温泉近くのゲレンデ。札幌から近い",
   "spec": {
-   "courses": 11,
+   "courses": 9,
    "vertical": 520,
    "peak": 660,
    "base": 140,
@@ -2472,8 +2609,10 @@
     "圧雪": 75,
     "コブ": 10
    },
-   "src": "surfsnow:r0249"
-  }
+   "src": "surfsnow:r0249",
+   "longest": 3000
+  },
+  "park": true
  },
  {
   "name": "神立スノーリゾート",
@@ -2520,7 +2659,12 @@
     "コブ": 20
    },
    "src": "surfsnow:r0083"
-  }
+  },
+  "ticket": {
+   "adult": 3500,
+   "season": "2026-2027"
+  },
+  "park": true
  },
  {
   "name": "白馬岩岳スノーフィールド",
@@ -2566,7 +2710,8 @@
     "圧雪": 80
    },
    "src": "surfsnow:r0143"
-  }
+  },
+  "park": true
  },
  {
   "name": "白馬コルチナ国際スキー場",
@@ -2611,7 +2756,8 @@
     "圧雪": 70
    },
    "src": "surfsnow:r0033"
-  }
+  },
+  "park": null
  },
  {
   "name": "青森スプリング・スキーリゾート",
@@ -2658,7 +2804,8 @@
     "コブ": 5
    },
    "src": "surfsnow:r0121"
-  }
+  },
+  "park": true
  },
  {
   "name": "タングラムスキーサーカス",
@@ -2694,7 +2841,12 @@
     "圧雪": 70
    },
    "src": "surfsnow:r0016"
-  }
+  },
+  "ticket": {
+   "adult": 7000,
+   "season": "2026-2027"
+  },
+  "park": null
  },
  {
   "name": "シャルマン火打スキー場",
@@ -2740,7 +2892,8 @@
     "圧雪": 35
    },
    "src": "surfsnow:r0782"
-  }
+  },
+  "park": false
  },
  {
   "name": "恐羅漢スノーパーク",
@@ -2772,8 +2925,8 @@
     "3人用": 1
    },
    "longest": 2500,
-   "max_slope": 38,
-   "vertical": 486,
+   "max_slope": 35,
+   "vertical": 420,
    "peak": 1346,
    "base": 860,
    "level": {
@@ -2786,7 +2939,8 @@
     "圧雪": 70
    },
    "src": "surfsnow:r0922"
-  }
+  },
+  "park": true
  },
  {
   "name": "白馬乗鞍温泉スキー場",
@@ -2832,7 +2986,8 @@
     "コブ": 10
    },
    "src": "surfsnow:r0010"
-  }
+  },
+  "park": true
  },
  {
   "name": "白山一里野温泉スキー場",
@@ -2869,8 +3024,10 @@
     "非圧雪": 30,
     "圧雪": 70
    },
-   "src": "surfsnow:r0328"
-  }
+   "src": "surfsnow:r0328",
+   "longest": 3000
+  },
+  "park": false
  },
  {
   "name": "めがひらスキー場",
@@ -2916,7 +3073,8 @@
     "圧雪": 80
    },
    "src": "surfsnow:r0200"
-  }
+  },
+  "park": true
  },
  {
   "name": "ハチ高原スキー場",
@@ -2966,7 +3124,8 @@
     "コブ": 5
    },
    "src": "surfsnow:r0053"
-  }
+  },
+  "park": true
  },
  {
   "name": "名寄ピヤシリスキー場",
@@ -3003,8 +3162,14 @@
     "非圧雪": 30,
     "圧雪": 70
    },
-   "src": "surfsnow:r0621"
-  }
+   "src": "surfsnow:r0621",
+   "longest": 2000
+  },
+  "ticket": {
+   "adult": 4300,
+   "season": "2026-2027"
+  },
+  "park": true
  },
  {
   "name": "ウイングヒルズ白鳥リゾート",
@@ -3051,7 +3216,8 @@
     "圧雪": 100
    },
    "src": "surfsnow:r0199"
-  }
+  },
+  "park": null
  },
  {
   "name": "札幌国際スキー場",
@@ -3089,8 +3255,10 @@
     "非圧雪": 10,
     "圧雪": 90
    },
-   "src": "surfsnow:r0602"
-  }
+   "src": "surfsnow:r0602",
+   "longest": 3600
+  },
+  "park": true
  },
  {
   "name": "ハンターマウンテン塩原",
@@ -3136,7 +3304,12 @@
     "コブ": 10
    },
    "src": "surfsnow:r0067"
-  }
+  },
+  "ticket": {
+   "adult": 6000,
+   "season": "2026-2027"
+  },
+  "park": true
  },
  {
   "name": "ブランシュたかやまスキーリゾート",
@@ -3183,7 +3356,8 @@
     "圧雪": 80
    },
    "src": "surfsnow:r0077"
-  }
+  },
+  "park": true
  },
  {
   "name": "箕輪スキー場",
@@ -3220,8 +3394,10 @@
     "非圧雪": 5,
     "圧雪": 95
    },
-   "src": "surfsnow:r0152"
-  }
+   "src": "surfsnow:r0152",
+   "longest": 2200
+  },
+  "park": null
  },
  {
   "name": "志賀高原 焼額山スキー場",
@@ -3268,7 +3444,12 @@
     "圧雪": 77
    },
    "src": "surfsnow:r0130"
-  }
+  },
+  "ticket": {
+   "adult": 7000,
+   "season": "2026-2027"
+  },
+  "park": false
  },
  {
   "name": "ダイナランド",
@@ -3315,7 +3496,12 @@
     "コブ": 10
    },
    "src": "surfsnow:r0231"
-  }
+  },
+  "ticket": {
+   "adult": 6400,
+   "season": "2026-2027"
+  },
+  "park": true
  },
  {
   "name": "鷲ヶ岳スキー場",
@@ -3362,7 +3548,8 @@
     "コブ": 5
    },
    "src": "surfsnow:r0224"
-  }
+  },
+  "park": true
  },
  {
   "name": "斑尾高原スキー場",
@@ -3410,7 +3597,8 @@
     "コブ": 10
    },
    "src": "surfsnow:r0202"
-  }
+  },
+  "park": true
  },
  {
   "name": "夏油高原スキー場",
@@ -3457,7 +3645,8 @@
     "コブ": 10
    },
    "src": "surfsnow:r0270"
-  }
+  },
+  "park": true
  },
  {
   "name": "岩原スキー場",
@@ -3504,7 +3693,8 @@
     "コブ": 5
    },
    "src": "surfsnow:r0298"
-  }
+  },
+  "park": false
  },
  {
   "name": "ユートピアサイオト",
@@ -3532,8 +3722,10 @@
     "圧雪": 70,
     "コブ": 10
    },
-   "src": "surfsnow:r0239"
-  }
+   "src": "surfsnow:r0239",
+   "longest": 2500
+  },
+  "park": null
  },
  {
   "name": "ホワイトバレースキー場",
@@ -3570,8 +3762,10 @@
     "非圧雪": 50,
     "圧雪": 50
    },
-   "src": "surfsnow:r0924"
-  }
+   "src": "surfsnow:r0924",
+   "longest": 2000
+  },
+  "park": null
  },
  {
   "name": "車山高原スキー場",
@@ -3608,8 +3802,10 @@
     "圧雪": 90,
     "コブ": 10
    },
-   "src": "surfsnow:r0066"
-  }
+   "src": "surfsnow:r0066",
+   "longest": 2000
+  },
+  "park": null
  },
  {
   "name": "札幌藻岩山スキー場",
@@ -3646,8 +3842,10 @@
     "非圧雪": 10,
     "圧雪": 90
    },
-   "src": "surfsnow:r0612"
-  }
+   "src": "surfsnow:r0612",
+   "longest": 2620
+  },
+  "park": false
  },
  {
   "name": "飛騨ほおのき平スキー場",
@@ -3672,13 +3870,13 @@
   },
   "intro": "飛騨高山から近いゲレンデ",
   "spec": {
-   "courses": 15,
+   "courses": 17,
    "lifts": 4,
    "lift_kinds": {
     "2人用": 3,
     "4人用": 1
    },
-   "longest": 2000,
+   "longest": 1600,
    "max_slope": 42,
    "vertical": 300,
    "peak": 1550,
@@ -3693,7 +3891,8 @@
     "圧雪": 85
    },
    "src": "surfsnow:r0874"
-  }
+  },
+  "park": false
  },
  {
   "name": "万座温泉スキー場",
@@ -3739,7 +3938,12 @@
     "圧雪": 65
    },
    "src": "surfsnow:r0127"
-  }
+  },
+  "ticket": {
+   "adult": 6300,
+   "season": "2026-2027"
+  },
+  "park": false
  },
  {
   "name": "草津温泉スキー場",
@@ -3785,7 +3989,8 @@
     "圧雪": 90
    },
    "src": "surfsnow:r0038"
-  }
+  },
+  "park": false
  },
  {
   "name": "ぴっぷスキー場",
@@ -3824,8 +4029,10 @@
     "圧雪": 70,
     "コブ": 10
    },
-   "src": "surfsnow:r0608"
-  }
+   "src": "surfsnow:r0608",
+   "longest": 2200
+  },
+  "park": true
  },
  {
   "name": "かたしな高原スキー場",
@@ -3871,7 +4078,8 @@
     "コブ": 15
    },
    "src": "surfsnow:r0303"
-  }
+  },
+  "park": false
  },
  {
   "name": "牛岳温泉スキー場",
@@ -3907,8 +4115,10 @@
    "groom": {
     "圧雪": 100
    },
-   "src": "surfsnow:r0819"
-  }
+   "src": "surfsnow:r0819",
+   "longest": 2000
+  },
+  "park": true
  },
  {
   "name": "星野リゾート 猫魔スキー場",
@@ -3955,7 +4165,8 @@
     "圧雪": 70
    },
    "src": "surfsnow:r0275"
-  }
+  },
+  "park": true
  },
  {
   "name": "菅平高原スキー場",
@@ -4002,7 +4213,8 @@
     "コブ": 2
    },
    "src": "surfsnow:r0108"
-  }
+  },
+  "park": false
  },
  {
   "name": "たんばらスキーパーク",
@@ -4035,7 +4247,7 @@
     "4人用": 1
    },
    "longest": 2550,
-   "max_slope": 25,
+   "max_slope": 22,
    "vertical": 300,
    "peak": 1550,
    "base": 1250,
@@ -4049,7 +4261,8 @@
     "圧雪": 90
    },
    "src": "surfsnow:r0170"
-  }
+  },
+  "park": true
  },
  {
   "name": "白樺高原国際スキー場",
@@ -4086,8 +4299,10 @@
     "非圧雪": 10,
     "圧雪": 90
    },
-   "src": "surfsnow:r0843"
-  }
+   "src": "surfsnow:r0843",
+   "longest": 5000
+  },
+  "park": false
  },
  {
   "name": "白樺湖ロイヤルヒルスキー場",
@@ -4125,7 +4340,8 @@
     "圧雪": 90
    },
    "src": "surfsnow:r0017"
-  }
+  },
+  "park": true
  },
  {
   "name": "だいせんホワイトリゾート",
@@ -4162,8 +4378,10 @@
     "非圧雪": 3,
     "圧雪": 97
    },
-   "src": "surfsnow:r0247"
-  }
+   "src": "surfsnow:r0247",
+   "longest": 1600
+  },
+  "park": null
  },
  {
   "name": "さっぽろばんけいスキー場",
@@ -4201,8 +4419,10 @@
     "圧雪": 80,
     "コブ": 15
    },
-   "src": "surfsnow:r0246"
-  }
+   "src": "surfsnow:r0246",
+   "longest": 1200
+  },
+  "park": null
  },
  {
   "name": "湯沢中里スノーリゾート",
@@ -4249,7 +4469,8 @@
     "圧雪": 67
    },
    "src": "surfsnow:r0046"
-  }
+  },
+  "park": true
  },
  {
   "name": "びわ湖バレイ",
@@ -4297,7 +4518,8 @@
     "コブ": 5
    },
    "src": "surfsnow:r0254"
-  }
+  },
+  "park": true
  },
  {
   "name": "軽井沢プリンスホテルスキー場",
@@ -4343,7 +4565,12 @@
     "圧雪": 100
    },
    "src": "surfsnow:r0129"
-  }
+  },
+  "ticket": {
+   "adult": 8000,
+   "season": "2026-2027"
+  },
+  "park": true
  },
  {
   "name": "カムイみさかスキー場",
@@ -4374,7 +4601,7 @@
     "2人用": 4
    },
    "longest": 950,
-   "max_slope": 21,
+   "max_slope": 19,
    "vertical": 200,
    "peak": 1050,
    "base": 850,
@@ -4387,7 +4614,12 @@
     "圧雪": 100
    },
    "src": "surfsnow:r0325"
-  }
+  },
+  "ticket": {
+   "adult": 4500,
+   "season": "2026-2027"
+  },
+  "park": false
  },
  {
   "name": "箱館山スキー場",
@@ -4433,7 +4665,8 @@
     "圧雪": 90
    },
    "src": "surfsnow:r0136"
-  }
+  },
+  "park": false
  },
  {
   "name": "スノーウェーブパーク白鳥高原",
@@ -4466,7 +4699,7 @@
     "4人用": 1
    },
    "longest": 2500,
-   "max_slope": 29,
+   "max_slope": 30,
    "vertical": 176,
    "peak": 1276,
    "base": 1100,
@@ -4480,6 +4713,11 @@
     "圧雪": 60
    },
    "src": "surfsnow:r0252"
-  }
+  },
+  "ticket": {
+   "adult": 3500,
+   "season": "2026-2027"
+  },
+  "park": true
  }
 ]
