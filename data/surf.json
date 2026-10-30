@@ -26,7 +26,8 @@
    }
   ],
   "toilet": true,
-  "shower": true
+  "shower": true,
+  "shop": true
  },
  {
   "name": "難波江",
@@ -111,7 +112,8 @@
    }
   ],
   "toilet": true,
-  "shower": true
+  "shower": true,
+  "shop": true
  },
  {
   "name": "市後浜",
@@ -212,7 +214,8 @@
    }
   ],
   "toilet": true,
-  "shower": true
+  "shower": true,
+  "shop": true
  },
  {
   "name": "入野松原",
