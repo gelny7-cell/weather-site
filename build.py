@@ -1335,7 +1335,9 @@ def index_page(mts, ski, spots):
     # サーフ: 予報コメント + 週末4枠(土朝・土昼・日朝・日昼)の判定表
     surf_comment = "".join(f"<p class='comment'><b>{c}</b> {e(t)}</p>"
                            for c, t in surf_comments(spots, we))
-    heads = "".join(f"<th>{day_label(d)}<br><small>{sl}</small></th>" for d in we for sl in ("朝", "昼"))
+    # 日付は2枠(朝・昼)にまたがる1つの見出しにする
+    heads = ("<tr><th rowspan='2'></th>" + "".join(f"<th colspan='2'>{day_label(d)}</th>" for d in we) + "</tr><tr>"
+             + "".join("<th><small>朝</small></th><th><small>昼</small></th>" for _ in we) + "</tr>")
     surf_rows = ""
     for s in spots:
         cells = ""
@@ -1347,7 +1349,7 @@ def index_page(mts, ski, spots):
                 cells += (f"<td class='{cls}' title='波{sl['height']:.1f}m うねり{sl['swell']:.1f}m 周期{sl['period']:.1f}秒 {sl['kind']}'>"
                           f"<b>{mark}</b><small class='muted'>{sl['height']:.1f}m</small></td>")
         surf_rows += link_row(f"<b>{e(s['name'])}</b>{alert_tags(s)}", cells, f"surf.html#{s['key']}")
-    surf_list = (f"{surf_comment}<div class='scroll'><table class='sub mini'><tr><th></th>{heads}</tr>"
+    surf_list = (f"{surf_comment}<div class='scroll'><table class='sub mini surf'>{heads}"
                  f"{surf_rows}</table></div>")
     return f"""
 <h1>今週末の山と雪と波</h1>
@@ -1417,7 +1419,7 @@ h3 .star{float:none;margin-right:4px}
 .obs{margin:6px 0}.obs b{display:inline!important}  /* 表の中の b{display:block} に負けないように */
 .comment{background:var(--hl);border-radius:8px;padding:8px 12px;margin:0 0 8px;font-size:14px}
 .sub.mini td,.sub.mini th{text-align:center;padding:4px 6px}.sub.mini td b{display:block}
-.sub.mini td.l{text-align:left}
+.sub.mini td.l{text-align:left}.sub.mini.surf td:not(.l),.sub.mini.surf th{padding:4px 2px}
 .scroll{overflow-x:auto}
 table{border-collapse:collapse;font-variant-numeric:tabular-nums}
 .sub{width:100%}.sub th,.sub td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
