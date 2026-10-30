@@ -673,8 +673,8 @@ def mt_detail(m, with_map=True, compact=False):
         label = (trailhead_label(m) if m.get("trailhead") else
                  a["name"] if a["name"] not in ("駐車場", "有料駐車場", "登山者駐車場") else f"{m['name']} {a['name']}")
         place = maplink(f"{a['lat']},{a['lon']}", label)
-    if m.get("accesses"):       # YAMAP に登山口が複数あれば、飲食店と同じく押すと一覧が開く(各登山口の近くの駐車場の位置)
-        items = "".join(maplink(f"{x['lat']},{x['lon']}", x["name"]) for x in m["accesses"])
+    if m.get("accesses"):       # YAMAP・ヤマレコに登山口が複数あれば、飲食店と同じく押すと一覧が開く(各登山口の近くの駐車場の位置)
+        items = "".join(maplink(x.get("q") or f"{x['lat']},{x['lon']}", x["name"]) for x in m["accesses"])
         place = (f"<details class='menu'><summary class='mapbtn'>📍 登山口</summary>"
                  f"<div class='menu-list'>{items}</div></details>")
     near = m.get("access") or m            # 温泉は駐車場・登山口の位置(分からなければ山頂)の周りで探す
