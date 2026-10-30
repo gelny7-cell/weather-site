@@ -3,6 +3,7 @@
 import html
 import json
 import math
+import re
 import time
 import urllib.parse
 import urllib.request
@@ -861,46 +862,53 @@ def mountains_page(mts):
 
 
 # ---------------------------------------------------------------- スノーボード
-def amedas_snow():
-    """気象庁アメダスの積雪の観測値(最新の正時)。取得できなければ None
-    戻り値: (観測時刻, [(地点名, 緯度, 経度, 標高, 積雪cm, 24時間降雪cm)])"""
-    base = "https://www.jma.go.jp/bosai/amedas"
-    try:
-        req = urllib.request.Request(f"{base}/data/latest_time.txt", headers={"User-Agent": "weather-site"})
-        latest = datetime.fromisoformat(urllib.request.urlopen(req, timeout=30).read().decode().strip())
-        hour = latest.replace(minute=0, second=0)
-        table = fetch(f"{base}/const/amedastable.json", {})[0]
-        obs = fetch(f"{base}/data/map/{hour:%Y%m%d%H%M%S}.json", {})[0]
-    except Exception as ex:
-        print(f"アメダスの取得に失敗: {type(ex).__name__}")
+SITE_URL = "https://gelny7-cell.github.io/weather-site/"
+REPORT_HOURS = (9, 12)      # SURF&SNOW の積雪情報を取り直す更新(日本時間の時)。スキー場の報告は1日1〜2回のため
+
+
+def parse_report(h, today):
+    """SURF&SNOW の積雪情報のページから、いちばん新しい「積雪深」の報告の日の値を取る。なければ None"""
+    t = re.sub(r"\s+", " ", re.sub(r"<(script|style)[^>]*>.*?</\1>|<[^>]+>", " ", h, flags=re.S)).replace("&nbsp;", " ")
+    m = re.search(r"積雪情報 日付 (.*?) 積雪深 平均\(cm\) (.*?) 積雪差\(cm\) (.*?) 雪質 (.*?) ゲレンデ状況 (.*?) 週間天気予報", t)
+    if not m:
         return None
-    stations = []
-    for k, v in obs.items():
-        snow = (v.get("snow") or [None])[0]
-        if snow is None or k not in table:
-            continue
-        t = table[k]
-        stations.append((t["kjName"], t["lat"][0] + t["lat"][1] / 60, t["lon"][0] + t["lon"][1] / 60,
-                         t["alt"], snow, (v.get("snow24h") or [None])[0]))
-    return hour, stations
+    dates = re.findall(r"(\d{1,2})/(\d{1,2})\(", m.group(1))
+    cols = [x.split(" ") for x in m.group(2, 3, 4, 5)]
+    if not dates or any(len(c) != len(dates) for c in cols):
+        return None
+    for (mo, dy), depth, diff, quality, state in zip(dates, *cols):     # 左が新しい日
+        if re.fullmatch(r"\d+", depth) and int(depth) > 0:     # 0cm(オープン前など)は出さない
+            year = today.year - (1 if int(mo) > today.month + 1 else 0)
+            return {"date": f"{year}-{int(mo):02d}-{int(dy):02d}", "depth": int(depth),
+                    "diff": int(diff) if re.fullmatch(r"-?\d+", diff) else None,
+                    "quality": None if quality == "-" else quality, "state": None if state == "-" else state}
+    return None
 
 
-def attach_amedas(ski):
-    """15km以内で、ゲレンデ下部との標高差が300m以内の観測点があれば、その積雪を付ける"""
-    am = amedas_snow()
-    if not am:
-        return
-    hour, stations = am
+def attach_report(ski):
+    """スキー場が報告したゲレンデの積雪深・雪質・ゲレンデ状況(SURF&SNOW の積雪情報)を s["report"] に付ける。
+    取り直すのは朝・昼の更新のときだけで、ほかの回は公開中のサイトの snow_report.json(前回の値)を使う"""
+    rids = {s["name"]: s.get("spec", {}).get("src", "")[9:] for s in ski}
+    now = datetime.now(JST)
+    data = None
+    if now.hour not in REPORT_HOURS:
+        try:
+            data = fetch(SITE_URL + "snow_report.json", {})[0]
+        except Exception as ex:
+            print(f"前回の積雪情報の取得に失敗: {type(ex).__name__}")
+    if data is None:
+        data = {}
+        for rid in sorted({r for r in rids.values() if r}):
+            try:
+                req = urllib.request.Request(f"https://surfsnow.jp/guide/htm/{rid}we.htm", headers={"User-Agent": "Mozilla/5.0"})
+                data[rid] = parse_report(urllib.request.urlopen(req, timeout=30).read().decode("utf-8", "ignore"), now.date())
+            except Exception as ex:
+                print(f"積雪情報の取得に失敗({rid}): {type(ex).__name__}")
+            time.sleep(1)
     for s in ski:
-        best = None
-        for st in stations:
-            km = ((st[1] - s["lat"]) * 111) ** 2 + ((st[2] - s["lon"]) * 91) ** 2
-            km = km ** 0.5
-            if km <= 15 and abs(st[3] - s["base"]) <= 300 and (best is None or km < best[0]):
-                best = (km, st)
-        if best:
-            km, (name, _, _, alt, snow, snow24) = best
-            s["amedas"] = {"name": name, "alt": alt, "km": km, "snow": snow, "snow24h": snow24, "time": hour}
+        s["report"] = data.get(rids[s["name"]])
+    OUT.mkdir(exist_ok=True)
+    (OUT / "snow_report.json").write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
 
 
 def overnight_snow(h, day):
@@ -990,7 +998,7 @@ def build_ski():
                 "ice": bool(thawed and frozen and min(frozen) <= -2 and night < 3),
             })
     ski = align(ski, "スノーボード")
-    attach_amedas(ski)
+    attach_report(ski)
     return ski
 
 
@@ -1111,11 +1119,14 @@ def ski_detail(s, with_map=True, simple=False):
         link = ((sitelink(s["site"], "🏠 公式ページ") + " " if s.get("site") else "")
                 + (sitelink(s["map"], "🗺️ ゲレンデマップ") + " " if s.get("map") else "")
                 + maplink(s['name'] + ' 第1駐車場', '駐車場') + " " + onsenlink(s["lat"], s["lon"]) + foodlink(s["lat"], s["lon"], s["pref"], "ski") + michilink(s["lat"], s["lon"]) + conbilink(s["lat"], s["lon"]) + " ")
-    am = s.get("amedas")
+    rp = s.get("report")
     obs = ""
-    if am:
-        fresh = f"/24時間降雪:<b>{am['snow24h']}cm</b>" if am["snow24h"] is not None else ""
-        obs = f"<p class='obs'>ベース積雪:<b>{am['snow']}cm</b>{fresh}</p>"
+    if rp:                      # スキー場が報告したゲレンデの積雪(SURF&SNOW)。報告のない日は出さない
+        when = date.fromisoformat(rp["date"])
+        obs = (f"<p class='obs'>ゲレンデ積雪:<b>{rp['depth']}cm</b>"
+               + (f"(前日比{rp['diff']:+d}cm)" if rp["diff"] is not None else "")
+               + "".join(f"・{e(x)}" for x in (rp["quality"], rp["state"]) if x)
+               + f" <small class='muted'>{when.month}/{when.day}時点</small></p>")
     # 文字(注意報・紹介・営業時間・標高・積雪の観測)をまとめて上に、ボタン(お気に入り登録が先頭)をその下の1か所に
     buttons = f"<div class='btnrow'>{star('s', s)} {ski_info(s)}{link}</div>" if with_map else ""
     return (f"{alert_box(s)}{intro(s)}{obs}"
@@ -1163,7 +1174,7 @@ def ski_page(ski):
 <div class='note'><ul>
 <li>新雪: 前日17時〜当日8時(ゲレンデが閉まってから開くまで)に降る雪の量の予報</li>
 <li>積雪: 朝9時に積もっている雪の深さの予報(気象モデルの推定。実際の積雪と大きく違うことがあります)</li>
-<li>ベースの積雪(観測): 15km以内に気象庁アメダスの観測点があり、ゲレンデ下部との標高差が300m以内のスキー場だけ表示しています(圧雪・人工降雪は含みません)</li>
+<li>ゲレンデ積雪: スキー場が報告した積雪深(平均)・前日比・雪質・ゲレンデ状況で、<a href='https://surfsnow.jp/'>SURF&amp;SNOW</a> の積雪情報から朝・昼に取得しています。報告がないスキー場・日は表示しません</li>
 <li><span class='tag'>パウダー期待</span> 上部の新雪が10cm以上で、上部の最高気温が-2℃以下</li>
 <li>🧊 アイスバーン注意: 前日に上部で雨が降ったか0℃を超え、夜〜朝の上部の最低気温が-2℃以下で、新雪が3cm未満の日(湿った雪が凍って硬くなりやすい)</li>
 <li>体感温度: 上部の気温と風速から求めた、8〜16時で最も低い値。平均風速には風向(風が吹いてくる方角)も表示しています</li>
@@ -1675,7 +1686,7 @@ def layout(file, title, body, updated):
 <header><nav>{nav}</nav></header>
 <main>{body}<p class='muted'>更新: {updated:%Y年%-m月%-d日 %H:%M}(3時間ごとに自動更新)</p></main>
 <footer>予報は目安です。登山・海に出る前に、気象庁の警報・注意報と現地の情報を必ず確認してください。<br>
-気象データ: <a href="https://open-meteo.com/">Open-Meteo.com</a>(CC BY 4.0) · 積雪の観測: 気象庁(アメダス) · リフトの位置: © OpenStreetMap contributors ·
+気象データ: <a href="https://open-meteo.com/">Open-Meteo.com</a>(CC BY 4.0) · ゲレンデ積雪: SURF&amp;SNOW · リフトの位置: © OpenStreetMap contributors ·
 山の一覧・座標: Wikipedia「日本百名山」、Wikidata、ヤマレコ「関西百名山」</footer>
 <script>const DEFAULT_FAVS={json.dumps(default_favs(), ensure_ascii=False)};{JS}</script></body></html>"""
 
