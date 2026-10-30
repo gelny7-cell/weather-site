@@ -198,7 +198,26 @@ def intro(x):
         fac += (f" <span class='fac' title='避難小屋(緊急時用。多くは無人)' role='img' aria-label='避難小屋{len(x['shelters'])}か所'>"
                 f"<span class='hinan'>避</span>{len(x['shelters'])}</span>")
     text = e(x.get("intro", ""))
-    return f"<p class='intro'>{text}{fac}</p>" if text or fac else ""
+    flower, photo = flower_text(x)
+    return (f"<p class='intro'>{text}{flower}{fac}</p>{photo}" if text or fac else "")
+
+
+def flower_text(x):
+    """花の百名山の花「花の百名山:○○(○月ごろ)」と、花の名前を押すと開く写真(作者・ライセンス・元のページ付き)"""
+    f = x.get("flower")
+    if not f:
+        return "", ""
+    where = f"({e(f['where'])})" if f.get("where") else ""
+    if not f.get("photo"):
+        return f"。花の百名山{where}:{e(f['name'])}({e(f['season'])}ごろ)", ""
+    c = f["credit"]
+    lic = (f"<a href='{e(c['license_url'])}' target='_blank' rel='noopener'>{e(c['license'])}</a>"
+           if c.get("license_url") else e(c["license"]))
+    by = f"{e(c['author'])} · " if c.get("author") else ""
+    return (f"。花の百名山{where}:<button type='button' class='flw' aria-expanded='false'>{e(f['name'])}</button>({e(f['season'])}ごろ)",
+            f"<figure class='flwimg' hidden><img src='flowers/{e(f['photo'])}' alt='{e(f['name'])}の写真' loading='lazy'>"
+            f"<figcaption>{e(f['name'])} 写真: {by}{lic} · "
+            f"<a href='{e(c['src'])}' target='_blank' rel='noopener'>{e(c['site'])}</a></figcaption></figure>")
 
 
 def alert_tags(x):
@@ -274,11 +293,13 @@ def mean_dir(degs, weights=None):
 RATE = {3: ("◎", "r3"), 2: ("○", "r2"), 1: ("△", "r1"), 0: ("×", "r0")}
 
 
+BADGES = {"百名山": ("日本百名山", " hyaku"), "花の百名山": ("花の百名山", " hana")}    # それ以外(関西百名山など)は関西のバッジ
+
+
 def tags(m):
-    """入っている一覧の印(バッジ)。日本百名山と関西百名山の両方に入る山は両方付ける"""
-    shown = ["日本百名山" if t == "百名山" else t for t in m.get("lists", [])]
-    return "".join(f" <span class='mk{' hyaku' if t == '日本百名山' else ''}' title='{t}' role='img' aria-label='{t}'>"
-                   "</span>" for t in shown)
+    """入っている一覧の印(バッジ)。複数の一覧に入る山は全部付ける"""
+    return "".join(f" <span class='mk{cls}' title='{t}' role='img' aria-label='{t}'></span>"
+                   for t, cls in (BADGES.get(x, (x, "")) for x in m.get("lists", [])))
 
 
 def trailhead(m):
@@ -664,11 +685,21 @@ def sakura(mts):
 SEASONS = {"sakura": ("🌸", "桜", SAKURA_ELEV, "咲き始め"), "koyo": ("🍁", "紅葉", KOYO_ELEV, "色づき始め")}
 
 
-def season_mark(m, dates):
-    """指定した日のどれかで桜・紅葉が見ごろ(予想)なら 🌸・🍁"""
-    return "".join(f" <span class='fac' title='{name}の見ごろ(予想)' role='img' aria-label='{name}の見ごろ(予想)'>{icon}</span>"
-                   for key, (icon, name, _, _) in SEASONS.items()
-                   if any(d.get(key) == 2 for d in m["days"] if d["date"] in dates))
+def in_bloom(m, dates):
+    """花の百名山の花の開花時期(月)に、指定した日のどれかが入るか"""
+    months = m.get("flower", {}).get("months", [])
+    return any(int(d[5:7]) in months for d in dates)
+
+
+def season_mark(m, dates, flower=True):
+    """指定した日のどれかで桜・紅葉が見ごろ(予想)なら 🌸・🍁、花の百名山の花の時期なら 🌼(flower=False で出さない)"""
+    out = "".join(f" <span class='fac' title='{name}の見ごろ(予想)' role='img' aria-label='{name}の見ごろ(予想)'>{icon}</span>"
+                  for key, (icon, name, _, _) in SEASONS.items()
+                  if any(d.get(key) == 2 for d in m["days"] if d["date"] in dates))
+    if flower and in_bloom(m, dates):
+        name = e(m["flower"]["name"])
+        out += f" <span class='fac' title='{name}の花の時期' role='img' aria-label='{name}の花の時期'>🌼</span>"
+    return out
 
 
 def season_line(m):
@@ -688,6 +719,11 @@ def season_line(m):
             continue
         where = "山頂付近" if m["elev"] <= cap else f"標高{cap:,}m付近"
         lines += f"<p class='muted'>{icon} {name}({where}・予想): {text}</p>"
+    days = [d["date"] for d in m["days"]]
+    if in_bloom(m, days[:1]):
+        lines += f"<p class='muted'>🌼 {e(m['flower']['name'])}の花の時期です({e(m['flower']['season'])}ごろ。年や場所で前後します)</p>"
+    elif in_bloom(m, days):
+        lines += f"<p class='muted'>🌼 {e(m['flower']['name'])}の花の時期が近づいています({e(m['flower']['season'])}ごろ)</p>"
     return lines
 
 
@@ -761,7 +797,7 @@ def mt_detail(m, with_map=True, compact=False):
         hours = d.get("hours")
         label = (f"<button type='button' class='hbtn' aria-expanded='false'>{day_label(d['date'])}</button>"
                  if hours else day_label(d["date"]))
-        label += season_mark(m, [d["date"]])
+        label += season_mark(m, [d["date"]], flower=False)    # 花の時期は月単位なので日ごとには付けない
         rows += (f"<tr><td class='dt'>{label}</td>"
                  f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b></td>"
                  f"<td>{wx(d['code'])[0]} {wx(d['code'])[1]}</td>"
@@ -827,7 +863,8 @@ def mountains_page(mts):
                       f"<b>{mark}</b><small>{icon}</small></td>")
         rows += (
             f"<tbody class='mt' id='{m['key']}' data-fid='{e(fid('m', m))}' data-region='{e(m['region'])}' data-name='{e(m['name'] + m['yomi'])}'"
-            + (f" data-prefs='{e(','.join(m['prefs']))}'" if m["region"] == "近畿" else "") + ">"
+            + (f" data-prefs='{e(','.join(m['prefs']))}'" if m["region"] == "近畿" else "")
+            + (" data-hana='1'" if m.get("flower") else "") + ">"
             f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
             f"<span>{e(m['name'])}</span>"
             + tags(m) + season_mark(m, days) + alert_tags(m)
@@ -835,6 +872,7 @@ def mountains_page(mts):
             f"</button></th>{cells}</tr>"
             f"<tr class='detail' hidden><td colspan='{len(days) + 1}'><template>{mt_detail(m)}</template></td></tr></tbody>")
     chips = ("<button class='chip on' data-r=''>すべて</button><button class='chip' data-r='fav'>★お気に入り</button>"
+             "<button class='chip' data-r='hana'>花の百名山</button>"
              + "".join(f"<button class='chip' data-r='{r}'>{r}</button>" for r in regions)
              + "".join(f"<button class='chip' data-r='pref:{p}'>{p.rstrip('県府')}</button>" for p in kinki)
              + "".join(f"<button class='chip' data-r='{r}'>{r}</button>" for r in after))
@@ -851,6 +889,7 @@ def mountains_page(mts):
 <p>雷の確率: 米国の予報モデル(GFS)を条件を少しずつ変えて31通り計算したうち、6〜15時に「大気が不安定で雨が降る」時間がある割合です。20%以上で判定は最高でも△、50%以上で×。山では早めの下山を。</p>
 <p>🏠 山小屋・⛺ テント場: 山頂から4km以内にあるもの(ヤマレコの登録。避難小屋は除く)。<span class='hinan'>避</span> 避難小屋: 山頂から4km以内の避難小屋の数(ヤマレコの登録)。緊急時に使うためのもので、多くは無人です(夏だけ管理人がいる小屋もあります)。冬は雪に埋まって使えないこともあります。宿泊の計画には入れないでください。「山小屋」のボタンは、山頂か登山口の近くの小屋・宿の予約先です。予約サイト(Yamatan・モンベル・RESERVA・南アルプス市の予約)で予約できる小屋を先に、それ以外は公式ホームページ(長野県山小屋情報ポータル・OpenStreetMap などの登録)を並べています。その後ろの ⛺ は、山頂から4km以内のテント場のうち、予約先(Yamatan、またはテント場を管理する小屋の予約先・公式HP)が分かるものです。</p>
 <p>展望: 6〜12時の雲の量の平均で、◎20%未満・○50%未満・△80%未満・×それ以上(霧の時間があれば×)。眺めの目安です。</p>
+<p>🌼 花の百名山の花: 一言紹介の後ろに、その山の花と咲く時期を載せています(YAMAP MAGAZINE「花の百名山」の開花時期)。今日〜表の最後の日が開花時期の月に入ると 🌼 を付けています。月単位の目安なので、その年の雪どけや天気で前後します。花の名前を押すと写真が開きます(写真の下に撮影者・ライセンス・元のページ。Wikimedia Commons・iNaturalist の再利用が許可された写真。ツクシフウロは見つからなかったため写真なし)。</p>
 <p>🌸 桜(予想): 山頂付近(1,500mより高い山は標高1,500m付近)の気温から、2月1日からの最高気温の合計が600℃に達した日を開花とし、開花から4〜11日目を見ごろとしました(600℃の法則。吉野山・高尾山・六甲山・金剛山・弘前公園の2024・2025年の満開の時期と合わせた目安です)。麓は山頂付近より早く咲きます。</p>
 <p>🍁 紅葉(予想): 山頂付近(2,400mより高い山は標高2,400m付近)の最低気温の7日平均から予想しています。8℃を下回ると色づき始め、6℃を下回ってから3℃を下回るまで(長くても18日間)を見ごろとしました(2024・2025年の気温で、涸沢・大台ヶ原・金剛山・六甲山・高尾山など10か所の例年の見ごろと合わせた目安です)。中腹や麓の見ごろは山頂付近より遅くなります。</p>
 <p>❄️ 積雪あり: 山頂付近の積雪深の予報(6〜15時)が5cm以上の日。予報の格子が粗いため、稜線の吹き飛ばしや吹きだまりは表せません。雪がありそうかの目安です。</p>
@@ -860,7 +899,7 @@ def mountains_page(mts):
 <p>風速は山頂の高さに最も近い上空(約760m・1,000m・1,500m・1,950m・3,000mのいずれか)の予報です。稜線の実際の風とは異なることがあり、突風はさらに強くなります。</p>
 <p>予報モデル: 今日〜2日後は気象庁MSM、3〜5日後は英国気象局UKMO、6〜10日後は気象庁GSM、それ以降は Open-Meteo のおまかせ(各国のモデルの組み合わせ)を使っています。</p>
 <h2>このページについて</h2>
-<p>日本百名山(<span class='mk hyaku'></span>)と関西百名山(<span class='mk'></span>、山と溪谷社『関西百名山』)の予報です。両方に入る伊吹山・大台ヶ原山・大峰山は1つにまとめ、両方のバッジを付けています。
+<p>日本百名山(<span class='mk hyaku'></span>)・関西百名山(<span class='mk'></span>、山と溪谷社『関西百名山』)・花の百名山(<span class='mk hana'></span>、田中澄江『花の百名山』)の予報です。複数に入る山は1つにまとめ、入っている一覧のバッジを全部付けています。花の百名山の尾瀬沼は燧ヶ岳(燧岳)に、久住山は九重山に、黒檜山は赤城山にまとめています。沼ノ平・雨竜沼・葦毛湿原・五色ヶ原などの湿原・高原は、その場所の標高で予報しています。
 山頂の標高での予報(6〜15時)から、登山に向いた天気かを判定しています。表は7日間で、山名を押すと最大16日間の詳細が開きます。
 詳細で今日から5日後までの日付を押すと、時間ごとの予報(今日は1時間ごと、明日〜5日後は3時間ごと。3時間ごとの行の風速・降水量はその3時間の最大・合計)が開きます。
 日の出・日の入りは本日の時刻で、平地の地平線を基準にしています(山頂ではもう少し早く昇り、遅く沈みます)。</p></div>
@@ -1727,6 +1766,8 @@ border:1px solid var(--line);background:var(--card);color:var(--text);box-shadow
 tr.detail .star{display:table}tr.detail .btnrow .star{display:inline-block;vertical-align:top}h3+.star{margin-top:-2px}
 .favbox h3{font-size:14px;margin:4px 0}
 .intro{margin:0 0 8px;font-size:14px;color:var(--text)}
+.flw{font:inherit;color:var(--accent);background:none;border:0;padding:0;text-decoration:underline dotted;text-underline-offset:3px;cursor:pointer}
+.flwimg{margin:0 0 10px}.flwimg img{display:block;width:100%;max-width:360px;height:auto;border-radius:8px}.flwimg figcaption{font-size:11px;color:var(--muted);margin-top:4px;max-width:360px}
 .fac{font-size:12px}
 .hinan{display:inline-block;width:17px;height:17px;border-radius:50%;background:var(--r3);color:#fff;font-size:10.5px;line-height:17px;text-align:center;font-weight:700;vertical-align:1px;margin-right:1px}
 .frz{display:inline-block;width:17px;height:17px;border-radius:50%;background:var(--r2);color:#fff;font-size:10.5px;line-height:17px;text-align:center;font-weight:700;vertical-align:1px}
@@ -1753,7 +1794,7 @@ small{font-size:12px}
 .r3{color:var(--r3)}.r2{color:var(--r2)}.r1{color:var(--r1)}.r0{color:var(--r0)}
 .big{font-weight:700;color:var(--r2)}.mid{font-weight:600}
 .tag{display:inline-block;font-size:11px;padding:0 6px;border-radius:99px;background:var(--hl);color:var(--accent)}
-.mk{display:inline-block;width:24px;height:24px;vertical-align:-5px;font-size:0;background:url(kansai.svg) center/contain no-repeat}.mk.hyaku{background-image:url(hyaku.svg)}
+.mk{display:inline-block;width:24px;height:24px;vertical-align:-5px;font-size:0;background:url(kansai.svg) center/contain no-repeat}.mk.hyaku{background-image:url(hyaku.svg)}.mk.hana{background-image:url(hana.svg)}
 .tag.warn{color:var(--r1)}
 .filters{display:flex;flex-direction:column;gap:8px;margin:8px 0 12px}
 #q{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text);max-width:320px}
@@ -1793,7 +1834,7 @@ const q=document.getElementById('q');
 if(q){
   apply=()=>{const t=q.value.trim();
     document.querySelectorAll('tbody.mt').forEach(b=>{
-      const inRegion=!region||b.dataset.region===region||(region==='fav'&&b.dataset.fav)||(region==='powder'&&b.dataset.powder)
+      const inRegion=!region||b.dataset.region===region||(region==='fav'&&b.dataset.fav)||(region==='powder'&&b.dataset.powder)||(region==='hana'&&b.dataset.hana)
         ||(region.startsWith('pref:')&&(b.dataset.prefs||'').split(',').includes(region.slice(5)));
       b.hidden=!(inRegion&&(!t||b.dataset.name.includes(t)));});};
   q.addEventListener('input',apply);
@@ -1815,6 +1856,9 @@ document.addEventListener('click',ev=>{
   if(hb){const open=hb.getAttribute('aria-expanded')!=='true';
     for(let r=hb.closest('tr').nextElementSibling;r&&!r.querySelector('.hbtn');r=r.nextElementSibling)if(r.classList.contains('hr'))r.hidden=!open;
     hb.setAttribute('aria-expanded',String(open));return;}
+  const fw=ev.target.closest('.flw');
+  if(fw){const fig=fw.closest('.intro').nextElementSibling;const open=fig.hidden;fig.hidden=!open;
+    fw.setAttribute('aria-expanded',String(open));return;}
   const nb=ev.target.closest('.nm button');
   if(nb){const tb=nb.closest('tbody');openDetail(tb,tb.querySelector('tr.detail').hidden);return;}
   // 「飲食店」などの一覧は、外を押したら閉じる
@@ -1844,13 +1888,13 @@ def layout(file, title, body, updated):
     return f"""<!doctype html><html lang="ja"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{title} | 山と雪と波の天気</title>
-<meta name="description" content="日本百名山と関西百名山の登山天気、スキー場の降雪、サーフポイントの波と風の予報をまとめたサイト">
+<meta name="description" content="日本百名山・関西百名山・花の百名山の登山天気、スキー場の降雪、サーフポイントの波と風の予報をまとめたサイト">
 <style>{CSS}</style></head><body>
 <header><nav>{nav}</nav></header>
 <main>{body}<p class='muted'>更新: {updated:%Y年%-m月%-d日 %H:%M}(3時間ごとに自動更新)</p></main>
 <footer>予報は目安です。登山・海に出る前に、気象庁の警報・注意報と現地の情報を必ず確認してください。<br>
 気象データ: <a href="https://open-meteo.com/">Open-Meteo.com</a>(CC BY 4.0) · ゲレンデ積雪: SURF&amp;SNOW · リフトの位置: © OpenStreetMap contributors ·
-山の一覧・座標: Wikipedia「日本百名山」、Wikidata、ヤマレコ「関西百名山」</footer>
+山の一覧・座標: Wikipedia「日本百名山」「花の百名山」、Wikidata、ヤマレコ「関西百名山」、YAMAP MAGAZINE「花の百名山」 · 花の写真: Wikimedia Commons、iNaturalist(撮影者・ライセンスは各写真の下)</footer>
 <script>const DEFAULT_FAVS={json.dumps(default_favs(), ensure_ascii=False)};{JS}</script></body></html>"""
 
 
@@ -1875,6 +1919,9 @@ def main():
         (OUT / f).write_text(layout(f, title, body, updated), encoding="utf-8")
     for icon in (ROOT / "data/icons").iterdir():     # ボタンのアイコン
         (OUT / icon.name).write_bytes(icon.read_bytes())
+    (OUT / "flowers").mkdir(exist_ok=True)
+    for photo in (ROOT / "data/flowers").iterdir():  # 花の百名山の花の写真
+        (OUT / "flowers" / photo.name).write_bytes(photo.read_bytes())
     print("書き出し:", ", ".join(bodies), "→", OUT)
 
 
