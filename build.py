@@ -1208,7 +1208,7 @@ def surf_page(spots):
     cards = ""
     for s in spots:
         cards += (f"<section class='card' id='{s['key']}'><h3>{e(s['name'])} <small>{e(s['pref'])} · "
-                  f"浜の向き {dir_name(s['facing'])}</small> {maplink(s['parking'], '駐車場の地図')} {onsenlink(s['lat'], s['lon'])}{foodlink(s['lat'], s['lon'], s['pref'][:s['pref'].index('県') + 1] if '県' in s['pref'] else s['pref'][:3], "surf")}{michilink(s['lat'], s['lon'])}{conbilink(s['lat'], s['lon'])}</h3>{alert_box(s)}"
+                  f"浜の向き {dir_name(s['facing'])}</small> {maplink(s['parking'], '駐車場の地図')} {onsenlink(s['lat'], s['lon'])}{foodlink(s['lat'], s['lon'], s['pref'][:s['pref'].index('県') + 1] if '県' in s['pref'] else s['pref'][:3], "surf")}{michilink(s['lat'], s['lon'])}{conbilink(s['lat'], s['lon'])}</h3>{intro(s)}{alert_box(s)}"
                   f"{surf_table(s)}"
                   f"<p class='muted'>波は沖合({s['grid'][0]:.2f}, {s['grid'][1]:.2f})の予報</p></section>")
     return f"""
