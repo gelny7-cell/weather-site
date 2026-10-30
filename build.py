@@ -1398,7 +1398,7 @@ def surf_page(spots):
                 sl = max(d["slots"], key=lambda x: x["score"])
                 mark, cls = RATE[sl["score"]]
                 cells += (f"<td class='{cls}' title='{sl['slot']} 波{sl['height']:.1f}m うねり{sl['swell']:.1f}m "
-                          f"周期{sl['period']:.1f}秒 {sl['kind']}'><b>{mark}</b><small>{sl['height']:.1f}m</small></td>")
+                          f"周期{sl['period']:.1f}秒 {sl['kind']}'><b>{mark}</b><small>うねり{sl['swell']:.1f}m</small></td>")
             rows += (
                 f"<tbody class='mt' id='{s['key']}' data-fid='{e(fid('w', s))}' data-region='{c}' data-name='{e(s['name'] + s['pref'])}'>"
                 f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
@@ -1423,7 +1423,7 @@ def surf_page(spots):
 <li>気温は浜付近、水温は沖合の海面水温の予報</li>
 <li>潮: その時間帯にある満潮・干潮の時刻。なければ上げ潮・下げ潮(沖合の潮位の予報から求めた目安で、港の潮汐表とは数十分ずれることがあります)</li>
 <li>⚠️ 警報・注意報は、浜のある市町村に気象庁がいま出しているもの</li>
-<li>一覧は7日間で、その日の朝・昼のよいほうの判定と波の高さです。ポイント名を押すと、朝・昼の詳しい予報(最大16日間)が開きます</li>
+<li>一覧は7日間で、その日の朝・昼のよいほうの判定とうねりの高さです。ポイント名を押すと、朝・昼の詳しい予報(最大16日間)が開きます</li>
 <li>今日〜明後日の日付を押すと、6〜16時の時間ごとの予報が開きます(今日・明日は1時間ごと、明後日は3時間ごと。その時刻の値)</li></ul>
 <h2>このページについて</h2>
 <p>朝(6〜11時)と昼(12〜17時)の平均です。波の高さは沖合の予報で、浜では地形や向きにより小さくなることが多いです。</p></div>
@@ -1543,7 +1543,7 @@ def index_page(mts, ski, spots):
             for sl in d["slots"]:
                 mark, cls = RATE[sl["score"]]
                 cells += (f"<td class='{cls}' title='波{sl['height']:.1f}m うねり{sl['swell']:.1f}m 周期{sl['period']:.1f}秒 {sl['kind']}'>"
-                          f"<b>{mark}</b><small class='muted'>{sl['height']:.1f}m</small></td>")
+                          f"<b>{mark}</b><small class='muted'>{sl['swell']:.1f}m</small></td>")
         surf_rows += link_row(f"<b>{e(s['name'])}</b>", cells, f"surf.html#{s['key']}",
                               f" class='favonly' data-fid='{e(fid('w', s))}' hidden")
     surf_list = (f"{surf_comment}<div class='favbox' hidden><div class='scroll'><table class='sub mini surf'>{heads}"
