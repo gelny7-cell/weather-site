@@ -31,7 +31,7 @@
     "ゴンドラ": 1
    },
    "longest": 6000,
-   "max_slope": 27,
+   "max_slope": 32,
    "vertical": 1225,
    "peak": 1845,
    "base": 620,
@@ -44,7 +44,10 @@
     "非圧雪": 35,
     "圧雪": 65
    },
-   "src": "surfsnow:r0070"
+   "src": "surfsnow:r0070",
+   "official": [
+    "max_slope"
+   ]
   },
   "ticket": {
    "adult": 8500,
@@ -137,7 +140,7 @@
     "ゴンドラ": 2
    },
    "longest": 10000,
-   "max_slope": 32,
+   "max_slope": 39,
    "vertical": 1085,
    "peak": 1650,
    "base": 565,
@@ -151,7 +154,10 @@
     "圧雪": 70,
     "コブ": 20
    },
-   "src": "surfsnow:r0028"
+   "src": "surfsnow:r0028",
+   "official": [
+    "max_slope"
+   ]
   },
   "ticket": {
    "adult": 7800,
@@ -312,7 +318,11 @@
   "muni": "20561",
   "intro": "多くのスキー場がつながる、日本最大級のエリア",
   "spec": {
-   "longest": 6000
+   "longest": 6000,
+   "max_slope": 39,
+   "official": [
+    "max_slope"
+   ]
   }
  },
  {
@@ -510,7 +520,11 @@
     "圧雪": 70
    },
    "src": "surfsnow:r0144",
-   "longest": 5000
+   "longest": 5000,
+   "max_slope": 35,
+   "official": [
+    "max_slope"
+   ]
   },
   "ticket": {
    "adult": 9800,
@@ -712,7 +726,7 @@
   },
   "intro": "樹氷で有名な温泉地のスキー場",
   "spec": {
-   "courses": 24,
+   "courses": 12,
    "level": {
     "初級": 40,
     "中級": 40,
@@ -723,7 +737,14 @@
     "圧雪": 80
    },
    "src": "surfsnow:r0177",
-   "longest": 9000
+   "longest": 9000,
+   "max_slope": 38,
+   "lifts": 26,
+   "official": [
+    "courses",
+    "lifts",
+    "max_slope"
+   ]
   }
  },
  {
@@ -1098,7 +1119,11 @@
     "圧雪": 85
    },
    "src": "surfsnow:r0229",
-   "longest": 4000
+   "longest": 4000,
+   "max_slope": 31,
+   "official": [
+    "max_slope"
+   ]
   },
   "ticket": {
    "adult": 4000,
@@ -1216,7 +1241,7 @@
   },
   "intro": "福井の大型ゲレンデ。関西や中京から行きやすい",
   "spec": {
-   "courses": 16,
+   "courses": 12,
    "lifts": 6,
    "lift_kinds": {
     "2人用": 2,
@@ -1237,7 +1262,10 @@
     "非圧雪": 20,
     "圧雪": 80
    },
-   "src": "surfsnow:r0019"
+   "src": "surfsnow:r0019",
+   "official": [
+    "courses"
+   ]
   },
   "ticket": {
    "adult": 6000,
@@ -2643,7 +2671,11 @@
     "コブ": 10
    },
    "src": "surfsnow:r0249",
-   "longest": 3000
+   "longest": 3000,
+   "max_slope": 35,
+   "official": [
+    "max_slope"
+   ]
   },
   "ticket": {
    "adult": 6500,
@@ -2964,7 +2996,7 @@
     "3人用": 1
    },
    "longest": 2500,
-   "max_slope": 35,
+   "max_slope": 38,
    "vertical": 420,
    "peak": 1346,
    "base": 860,
@@ -2977,7 +3009,10 @@
     "非圧雪": 30,
     "圧雪": 70
    },
-   "src": "surfsnow:r0922"
+   "src": "surfsnow:r0922",
+   "official": [
+    "max_slope"
+   ]
   }
  },
  {
@@ -3381,7 +3416,7 @@
   },
   "intro": "長野県長和町の高原にあるゲレンデ",
   "spec": {
-   "courses": 10,
+   "courses": 9,
    "lifts": 9,
    "lift_kinds": {
     "2人用": 5,
@@ -3402,7 +3437,10 @@
     "非圧雪": 20,
     "圧雪": 80
    },
-   "src": "surfsnow:r0077"
+   "src": "surfsnow:r0077",
+   "official": [
+    "courses"
+   ]
   },
   "ticket": {
    "adult": 5700,
@@ -3522,13 +3560,13 @@
   },
   "intro": "大日ヶ岳の大型ゲレンデ。休日は朝6時から、高鷲と共通券あり",
   "spec": {
-   "courses": 20,
+   "courses": 18,
    "lifts": 5,
    "lift_kinds": {
     "2人用": 2,
     "4人用": 3
    },
-   "longest": 3200,
+   "longest": 3800,
    "max_slope": 38,
    "vertical": 447,
    "peak": 1430,
@@ -3543,7 +3581,11 @@
     "圧雪": 70,
     "コブ": 10
    },
-   "src": "surfsnow:r0231"
+   "src": "surfsnow:r0231",
+   "official": [
+    "courses",
+    "longest"
+   ]
   },
   "ticket": {
    "adult": 6400,
@@ -3623,7 +3665,7 @@
   },
   "intro": "ツリーランが人気の高原リゾート",
   "spec": {
-   "courses": 32,
+   "courses": 52,
    "lifts": 10,
    "lift_kinds": {
     "1人用": 1,
@@ -3646,7 +3688,10 @@
     "圧雪": 40,
     "コブ": 10
    },
-   "src": "surfsnow:r0202"
+   "src": "surfsnow:r0202",
+   "official": [
+    "courses"
+   ]
   }
  },
  {
@@ -3970,7 +4015,7 @@
     "4人用": 1
    },
    "longest": 2500,
-   "max_slope": 30,
+   "max_slope": 32,
    "vertical": 336,
    "peak": 1990,
    "base": 1654,
@@ -3983,7 +4028,10 @@
     "非圧雪": 35,
     "圧雪": 65
    },
-   "src": "surfsnow:r0127"
+   "src": "surfsnow:r0127",
+   "official": [
+    "max_slope"
+   ]
   },
   "ticket": {
    "adult": 6300,
@@ -4078,7 +4126,11 @@
     "コブ": 10
    },
    "src": "surfsnow:r0608",
-   "longest": 2200
+   "longest": 2200,
+   "max_slope": 36,
+   "official": [
+    "max_slope"
+   ]
   }
  },
  {
@@ -4166,7 +4218,13 @@
     "圧雪": 100
    },
    "src": "surfsnow:r0819",
-   "longest": 2000
+   "longest": 2000,
+   "max_slope": 20,
+   "lifts": 3,
+   "official": [
+    "lifts",
+    "max_slope"
+   ]
   }
  },
  {
@@ -4304,7 +4362,7 @@
     "4人用": 1
    },
    "longest": 2550,
-   "max_slope": 22,
+   "max_slope": 25,
    "vertical": 300,
    "peak": 1550,
    "base": 1250,
@@ -4317,7 +4375,10 @@
     "非圧雪": 10,
     "圧雪": 90
    },
-   "src": "surfsnow:r0170"
+   "src": "surfsnow:r0170",
+   "official": [
+    "max_slope"
+   ]
   },
   "ticket": {
    "adult": 5500,
