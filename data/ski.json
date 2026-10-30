@@ -263,6 +263,11 @@
     "コブ": 15
    },
    "src": "surfsnow:r0142"
+  },
+  "ticket": {
+   "adult": 8700,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -303,7 +308,13 @@
     "コブ": 9
    },
    "src": "surfsnow:r0945",
-   "longest": 3300
+   "longest": 3300,
+   "lifts": 4
+  },
+  "ticket": {
+   "adult": 11000,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -524,7 +535,8 @@
    "max_slope": 35,
    "official": [
     "max_slope"
-   ]
+   ],
+   "lifts": 16
   },
   "ticket": {
    "adult": 9800,
@@ -648,7 +660,13 @@
     "圧雪": 70
    },
    "src": "surfsnow:r0119",
-   "longest": 5000
+   "longest": 5000,
+   "lifts": 8
+  },
+  "ticket": {
+   "adult": 9700,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -745,6 +763,11 @@
     "lifts",
     "max_slope"
    ]
+  },
+  "ticket": {
+   "adult": 7500,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -991,7 +1014,13 @@
     "圧雪": 80
    },
    "src": "surfsnow:r0814",
-   "longest": 3000
+   "longest": 3000,
+   "lifts": 14
+  },
+  "ticket": {
+   "adult": 7000,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -1031,7 +1060,13 @@
     "圧雪": 85
    },
    "src": "surfsnow:r0260",
-   "longest": 4000
+   "longest": 4000,
+   "lifts": 6
+  },
+  "ticket": {
+   "adult": 7000,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -1123,7 +1158,8 @@
    "max_slope": 31,
    "official": [
     "max_slope"
-   ]
+   ],
+   "lifts": 4
   },
   "ticket": {
    "adult": 4000,
@@ -1216,7 +1252,13 @@
     "圧雪": 90
    },
    "src": "surfsnow:r0196",
-   "longest": 5000
+   "longest": 5000,
+   "lifts": 5
+  },
+  "ticket": {
+   "adult": 5900,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -1308,7 +1350,13 @@
     "圧雪": 80
    },
    "src": "surfsnow:r0821",
-   "longest": 3000
+   "longest": 3000,
+   "lifts": 7
+  },
+  "ticket": {
+   "adult": 5400,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -1408,6 +1456,11 @@
     "圧雪": 70
    },
    "src": "surfsnow:r0138"
+  },
+  "ticket": {
+   "adult": 5300,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -1609,6 +1662,11 @@
     "圧雪": 60
    },
    "src": "surfsnow:r0226"
+  },
+  "ticket": {
+   "adult": 9000,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -1745,7 +1803,13 @@
     "圧雪": 60
    },
    "src": "surfsnow:r0719",
-   "longest": 4400
+   "longest": 4400,
+   "lifts": 3
+  },
+  "ticket": {
+   "adult": 4500,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -1893,7 +1957,13 @@
     "圧雪": 80,
     "コブ": 10
    },
-   "src": "surfsnow:r0074"
+   "src": "surfsnow:r0074",
+   "lifts": 7
+  },
+  "ticket": {
+   "adult": 6500,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -1933,7 +2003,13 @@
     "圧雪": 77
    },
    "src": "surfsnow:r0030",
-   "longest": 4050
+   "longest": 4050,
+   "lifts": 9
+  },
+  "ticket": {
+   "adult": 8800,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -1972,7 +2048,13 @@
     "圧雪": 50,
     "コブ": 15
    },
-   "src": "surfsnow:r0330"
+   "src": "surfsnow:r0330",
+   "lifts": 8
+  },
+  "ticket": {
+   "adult": 8800,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -2062,7 +2144,13 @@
     "圧雪": 60
    },
    "src": "surfsnow:r0263",
-   "longest": 3000
+   "longest": 3000,
+   "lifts": 6
+  },
+  "ticket": {
+   "adult": 5300,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -2100,7 +2188,8 @@
     "非圧雪": 35,
     "圧雪": 65
    },
-   "src": "surfsnow:r0604"
+   "src": "surfsnow:r0604",
+   "lifts": 6
   },
   "ticket": {
    "adult": 5300,
@@ -2294,7 +2383,8 @@
     "非圧雪": 20,
     "圧雪": 80
    },
-   "src": "surfsnow:r0944"
+   "src": "surfsnow:r0944",
+   "lifts": 10
   },
   "ticket": {
    "adult": 3300,
@@ -2337,7 +2427,14 @@
     "非圧雪": 60,
     "圧雪": 40
    },
-   "src": "surfsnow:r1025"
+   "src": "surfsnow:r1025",
+   "courses": 10,
+   "lifts": 4
+  },
+  "ticket": {
+   "adult": 6500,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -2477,7 +2574,13 @@
     "圧雪": 100
    },
    "src": "surfsnow:r0849",
-   "longest": 3200
+   "longest": 3200,
+   "lifts": 2
+  },
+  "ticket": {
+   "adult": 5200,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -2675,7 +2778,8 @@
    "max_slope": 35,
    "official": [
     "max_slope"
-   ]
+   ],
+   "lifts": 5
   },
   "ticket": {
    "adult": 6500,
@@ -2728,6 +2832,11 @@
     "コブ": 20
    },
    "src": "surfsnow:r0083"
+  },
+  "ticket": {
+   "adult": 6500,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -2964,6 +3073,11 @@
     "圧雪": 35
    },
    "src": "surfsnow:r0782"
+  },
+  "ticket": {
+   "adult": 4800,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -3101,7 +3215,13 @@
     "圧雪": 70
    },
    "src": "surfsnow:r0328",
-   "longest": 3000
+   "longest": 3000,
+   "lifts": 6
+  },
+  "ticket": {
+   "adult": 5000,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -3244,7 +3364,8 @@
     "圧雪": 70
    },
    "src": "surfsnow:r0621",
-   "longest": 2000
+   "longest": 2000,
+   "lifts": 3
   },
   "ticket": {
    "adult": 4300,
@@ -3340,7 +3461,13 @@
     "圧雪": 90
    },
    "src": "surfsnow:r0602",
-   "longest": 3600
+   "longest": 3600,
+   "lifts": 4
+  },
+  "ticket": {
+   "adult": 6000,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -3692,6 +3819,11 @@
    "official": [
     "courses"
    ]
+  },
+  "ticket": {
+   "adult": 8500,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -3790,6 +3922,11 @@
     "コブ": 5
    },
    "src": "surfsnow:r0298"
+  },
+  "ticket": {
+   "adult": 5500,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -3858,7 +3995,13 @@
     "圧雪": 50
    },
    "src": "surfsnow:r0924",
-   "longest": 2000
+   "longest": 2000,
+   "lifts": 2
+  },
+  "ticket": {
+   "adult": 5500,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -3897,7 +4040,13 @@
     "コブ": 10
    },
    "src": "surfsnow:r0066",
-   "longest": 2000
+   "longest": 2000,
+   "lifts": 5
+  },
+  "ticket": {
+   "adult": 5500,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -3936,7 +4085,13 @@
     "圧雪": 90
    },
    "src": "surfsnow:r0612",
-   "longest": 2620
+   "longest": 2620,
+   "lifts": 5
+  },
+  "ticket": {
+   "adult": 7000,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -3983,6 +4138,11 @@
     "圧雪": 85
    },
    "src": "surfsnow:r0874"
+  },
+  "ticket": {
+   "adult": 4900,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -4130,7 +4290,13 @@
    "max_slope": 36,
    "official": [
     "max_slope"
-   ]
+   ],
+   "lifts": 3
+  },
+  "ticket": {
+   "adult": 3800,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -4225,6 +4391,11 @@
     "lifts",
     "max_slope"
    ]
+  },
+  "ticket": {
+   "adult": 4000,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -4421,7 +4592,8 @@
     "圧雪": 90
    },
    "src": "surfsnow:r0843",
-   "longest": 5000
+   "longest": 5000,
+   "lifts": 3
   },
   "ticket": {
    "adult": 6400,
@@ -4464,7 +4636,13 @@
     "非圧雪": 10,
     "圧雪": 90
    },
-   "src": "surfsnow:r0017"
+   "src": "surfsnow:r0017",
+   "lifts": 3
+  },
+  "ticket": {
+   "adult": 6000,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -4503,7 +4681,13 @@
     "圧雪": 97
    },
    "src": "surfsnow:r0247",
-   "longest": 1600
+   "longest": 1600,
+   "lifts": 10
+  },
+  "ticket": {
+   "adult": 5800,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -4543,7 +4727,13 @@
     "コブ": 15
    },
    "src": "surfsnow:r0246",
-   "longest": 1200
+   "longest": 1200,
+   "lifts": 4
+  },
+  "ticket": {
+   "adult": 7000,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -4955,6 +5145,11 @@
    "peak": 1860,
    "base": 1310,
    "src": "surfsnow:r0876"
+  },
+  "ticket": {
+   "adult": 3900,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -5046,7 +5241,8 @@
    "vertical": 120,
    "peak": 1430,
    "base": 1310,
-   "src": "surfsnow:r0878"
+   "src": "surfsnow:r0878",
+   "lifts": 1
   }
  },
  {
@@ -5083,7 +5279,8 @@
    "vertical": 200,
    "peak": 1100,
    "base": 900,
-   "src": "surfsnow:r0879"
+   "src": "surfsnow:r0879",
+   "lifts": 1
   }
  },
  {
@@ -5121,7 +5318,13 @@
    "vertical": 386,
    "peak": 1216,
    "base": 830,
-   "src": "surfsnow:r0873"
+   "src": "surfsnow:r0873",
+   "lifts": 3
+  },
+  "ticket": {
+   "adult": 3900,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -5159,7 +5362,13 @@
    "vertical": 655,
    "peak": 1400,
    "base": 745,
-   "src": "surfsnow:r0877"
+   "src": "surfsnow:r0877",
+   "lifts": 6
+  },
+  "ticket": {
+   "adult": 4700,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -5416,6 +5625,11 @@
    "peak": 1125,
    "base": 900,
    "src": "surfsnow:r0901"
+  },
+  "ticket": {
+   "adult": 4500,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -5523,6 +5737,11 @@
    "peak": 1070,
    "base": 930,
    "src": "surfsnow:r1015"
+  },
+  "ticket": {
+   "adult": 4800,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -5561,7 +5780,13 @@
    "vertical": 280,
    "peak": 900,
    "base": 620,
-   "src": "surfsnow:r0220"
+   "src": "surfsnow:r0220",
+   "lifts": 4
+  },
+  "ticket": {
+   "adult": 4800,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -5599,7 +5824,13 @@
    "vertical": 550,
    "peak": 1100,
    "base": 550,
-   "src": "surfsnow:r0897"
+   "src": "surfsnow:r0897",
+   "lifts": 4
+  },
+  "ticket": {
+   "adult": 4500,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -5638,7 +5869,8 @@
    "vertical": 500,
    "peak": 1007,
    "base": 507,
-   "src": "surfsnow:r0222"
+   "src": "surfsnow:r0222",
+   "lifts": 5
   }
  },
  {
@@ -5675,7 +5907,13 @@
    "src": "surfsnow:r0886",
    "vertical": 200,
    "peak": 1200,
-   "base": 1000
+   "base": 1000,
+   "lifts": 2
+  },
+  "ticket": {
+   "adult": 2000,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -5713,6 +5951,11 @@
    "vertical": 42,
    "peak": 855,
    "base": 813
+  },
+  "ticket": {
+   "adult": 3300,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -5751,7 +5994,13 @@
    "vertical": 560,
    "peak": 940,
    "base": 380,
-   "src": "surfsnow:r0902"
+   "src": "surfsnow:r0902",
+   "lifts": 5
+  },
+  "ticket": {
+   "adult": 5500,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -5789,7 +6038,13 @@
    "vertical": 490,
    "peak": 1050,
    "base": 560,
-   "src": "surfsnow:r0898"
+   "src": "surfsnow:r0898",
+   "lifts": 4
+  },
+  "ticket": {
+   "adult": 4800,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -5843,7 +6098,13 @@
    "src": "surfsnow:r0890",
    "vertical": 208,
    "peak": 592,
-   "base": 384
+   "base": 384,
+   "lifts": 4
+  },
+  "ticket": {
+   "adult": 5000,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -5880,7 +6141,13 @@
    "vertical": 130,
    "peak": 580,
    "base": 450,
-   "src": "surfsnow:r0889"
+   "src": "surfsnow:r0889",
+   "lifts": 2
+  },
+  "ticket": {
+   "adult": 3800,
+   "season": "2025-2026",
+   "src": "weathernews"
   }
  },
  {
@@ -5916,7 +6183,8 @@
    "vertical": 80,
    "peak": 1040,
    "base": 960,
-   "src": "surfsnow:r0903"
+   "src": "surfsnow:r0903",
+   "lifts": 2
   }
  },
  {
@@ -5944,7 +6212,13 @@
    "src": "surfsnow:r0888",
    "vertical": 174,
    "peak": 358,
-   "base": 184
+   "base": 184,
+   "courses": 1,
+   "level": {
+    "初級": 90,
+    "中級": 10,
+    "上級": 0
+   }
   }
  }
 ]
