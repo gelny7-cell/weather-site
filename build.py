@@ -623,27 +623,70 @@ def koyo(mts):
     return out
 
 
-def koyo_mark(m, dates):
-    """指定した日のどれかで紅葉が見ごろ(予想)なら 🍁"""
-    return (" <span class='fac' title='紅葉の見ごろ(予想)' role='img' aria-label='紅葉の見ごろ(予想)'>🍁</span>"
-            if any(d.get("koyo") == 2 for d in m["days"] if d["date"] in dates) else "")
+# 桜の予想: 2月1日からの最高気温(0℃未満は0)の合計が600℃に達した日を開花とし(600℃の法則)、
+# 開花から3日目までを咲き始め、4〜11日目を見ごろとする(満開は開花の5〜7日後が目安)。
+# 吉野山・高尾山・六甲山・金剛山・弘前公園の2024・2025年の満開の時期と合うことを確かめた
+SAKURA_SUM, SAKURA_ELEV = 600, 1500     # 1,500mより高い山は、この標高で見る(桜が咲くのはおおむねこの高さまで)
 
 
-def koyo_line(m):
-    """詳細に出す紅葉の予想の一文(予報の期間に色づき始め・見ごろの日があるときだけ)"""
-    st = {d["date"]: d.get("koyo") for d in m["days"]}
-    peak = [x for x, v in st.items() if v == 2]
+def sakura(mts):
+    """山ごとの桜の予想 {日付: 1(咲き始め) / 2(見ごろ)}。3〜5月だけ計算し、取得できなければ空"""
+    if datetime.now(JST).month not in (3, 4, 5):
+        return [{} for _ in mts]
+    res = forecast([(m["lat"], m["lon"], min(m["elev"], SAKURA_ELEV)) for m in mts],
+                   daily="temperature_2m_max", past_days=92)
+    out = []
+    for r in res:
+        st = {}
+        if r:
+            total, bloom = 0, None
+            for x, v in zip(r["daily"]["time"], r["daily"]["temperature_2m_max"]):
+                if x[5:] < "02-01" or v is None:
+                    continue
+                total += max(v, 0)
+                if total >= SAKURA_SUM:
+                    bloom = date.fromisoformat(x)
+                    break
+            if bloom:
+                for x in r["daily"]["time"]:
+                    k = (date.fromisoformat(x) - bloom).days
+                    if 0 <= k <= 2:
+                        st[x] = 1
+                    elif 3 <= k <= 10:
+                        st[x] = 2
+        out.append(st)
+    return out
+
+
+# 季節の見ごろ: data の日ごとのキー → (印, 名前, 見る標高の上限, 見ごろ前の言い方)
+SEASONS = {"sakura": ("🌸", "桜", SAKURA_ELEV, "咲き始め"), "koyo": ("🍁", "紅葉", KOYO_ELEV, "色づき始め")}
+
+
+def season_mark(m, dates):
+    """指定した日のどれかで桜・紅葉が見ごろ(予想)なら 🌸・🍁"""
+    return "".join(f" <span class='fac' title='{name}の見ごろ(予想)' role='img' aria-label='{name}の見ごろ(予想)'>{icon}</span>"
+                   for key, (icon, name, _, _) in SEASONS.items()
+                   if any(d.get(key) == 2 for d in m["days"] if d["date"] in dates))
+
+
+def season_line(m):
+    """詳細に出す桜・紅葉の予想の一文(予報の期間に咲き始め・色づき始め・見ごろの日があるときだけ)"""
     md = lambda x: f"{date.fromisoformat(x).month}/{date.fromisoformat(x).day}"
-    where = "山頂付近" if m["elev"] <= KOYO_ELEV else f"標高{KOYO_ELEV:,}m付近"
-    if peak:
-        days = list(st)
-        text = ("見ごろ" if peak[0] == days[0] else f"{md(peak[0])}頃から見ごろ") + \
-               ("" if peak[-1] == days[-1] else f"、{md(peak[-1])}頃まで")
-    elif 1 in st.values():
-        text = "色づき始め"
-    else:
-        return ""
-    return f"<p class='muted'>🍁 紅葉({where}・予想): {text}</p>"
+    lines = ""
+    for key, (icon, name, cap, early) in SEASONS.items():
+        st = {d["date"]: d.get(key) for d in m["days"]}
+        peak = [x for x, v in st.items() if v == 2]
+        if peak:
+            days = list(st)
+            text = ("見ごろ" if peak[0] == days[0] else f"{md(peak[0])}頃から見ごろ") + \
+                   ("" if peak[-1] == days[-1] else f"、{md(peak[-1])}頃まで")
+        elif 1 in st.values():
+            text = early
+        else:
+            continue
+        where = "山頂付近" if m["elev"] <= cap else f"標高{cap:,}m付近"
+        lines += f"<p class='muted'>{icon} {name}({where}・予想): {text}</p>"
+    return lines
 
 
 def build_mountains():
@@ -654,7 +697,7 @@ def build_mountains():
     res = forecast(points, hourly=hourly, daily="sunrise,sunset")
     extra = [forecast(points, hourly=hourly, models=model, forecast_days=n) for model, n, _ in MT_MODELS]
     probs = thunder_prob(mts)
-    leaves = koyo(mts)
+    leaves, blossoms = koyo(mts), sakura(mts)
     today = datetime.now(JST).date()
     for i, (m, r) in enumerate(zip(mts, res)):
         m["days"] = []
@@ -699,7 +742,7 @@ def build_mountains():
             wet = (sum(hours_of(r["hourly"], "precipitation", prev, range(12, 24)))
                    + sum(hours_of(r["hourly"], "precipitation", d, range(0, 16))))
             day["ice"] = day["tmin"] <= 0 and (wet >= 0.5 or day["tmin"] <= -3)
-            m["days"].append({"date": d, "score": score, "thunder": thunder, "koyo": leaves[i].get(d), **day})
+            m["days"].append({"date": d, "score": score, "thunder": thunder, "koyo": leaves[i].get(d), "sakura": blossoms[i].get(d), **day})
     return align(mts, "登山")
 
 
@@ -713,8 +756,7 @@ def mt_detail(m, with_map=True, compact=False):
         hours = d.get("hours")
         label = (f"<button type='button' class='hbtn' aria-expanded='false'>{day_label(d['date'])}</button>"
                  if hours else day_label(d["date"]))
-        if d.get("koyo") == 2:
-            label += " <span class='fac' title='紅葉の見ごろ(予想)' role='img' aria-label='紅葉の見ごろ(予想)'>🍁</span>"
+        label += season_mark(m, [d["date"]])
         rows += (f"<tr><td class='dt'>{label}</td>"
                  f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b></td>"
                  f"<td>{wx(d['code'])[0]} {wx(d['code'])[1]}</td>"
@@ -754,7 +796,7 @@ def mt_detail(m, with_map=True, compact=False):
            if m.get("sun") else "")
     # スキー場と同じく、文字をまとめて上に、ボタン(お気に入り登録が先頭)をその下に
     buttons = f"<div class='btnrow'>{star('m', m)} {link}</div>" if with_map else ""
-    return (f"{alert_box(m)}{intro(m)}{sun}{koyo_line(m)}{buttons}<div class='scroll'><table class='sub'>"
+    return (f"{alert_box(m)}{intro(m)}{sun}{season_line(m)}{buttons}<div class='scroll'><table class='sub'>"
             "<tr><th class='dt'>日付</th><th>判定</th><th>天気(6〜15時)</th>"
             + ("<th>展望</th>" if has_v else "") + "<th>山頂付近の気温</th>"
             + ("" if compact else "<th>体感温度</th>") + "<th>平均風速</th>"
@@ -782,7 +824,7 @@ def mountains_page(mts):
             + (f" data-prefs='{e(','.join(m['prefs']))}'" if m["region"] == "近畿" else "") + ">"
             f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
             f"<span>{e(m['name'])}</span>"
-            + tags(m) + koyo_mark(m, days) + alert_tags(m)
+            + tags(m) + season_mark(m, days) + alert_tags(m)
             + f"<small>{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>"
             f"</button></th>{cells}</tr>"
             f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{mt_detail(m)}</td></tr></tbody>")
@@ -803,6 +845,7 @@ def mountains_page(mts):
 <p>雷の確率: 米国の予報モデル(GFS)を条件を少しずつ変えて31通り計算したうち、6〜15時に「大気が不安定で雨が降る」時間がある割合です。20%以上で判定は最高でも△、50%以上で×。山では早めの下山を。</p>
 <p>🏠 山小屋・⛺ テント場: 山頂から4km以内にあるもの(ヤマレコの登録。避難小屋は除く)。「山小屋」のボタンは、山頂か登山口の近くの小屋・宿の予約先です。予約サイト(Yamatan・モンベル・RESERVA・南アルプス市の予約)で予約できる小屋を先に、それ以外は公式ホームページ(長野県山小屋情報ポータル・OpenStreetMap などの登録)を並べています。その後ろの ⛺ は、山頂から4km以内のテント場のうち、予約先(Yamatan、またはテント場を管理する小屋の予約先・公式HP)が分かるものです。</p>
 <p>展望: 6〜12時の雲の量の平均で、◎20%未満・○50%未満・△80%未満・×それ以上(霧の時間があれば×)。眺めの目安です。</p>
+<p>🌸 桜(予想): 山頂付近(1,500mより高い山は標高1,500m付近)の気温から、2月1日からの最高気温の合計が600℃に達した日を開花とし、開花から4〜11日目を見ごろとしました(600℃の法則。吉野山・高尾山・六甲山・金剛山・弘前公園の2024・2025年の満開の時期と合わせた目安です)。麓は山頂付近より早く咲きます。</p>
 <p>🍁 紅葉(予想): 山頂付近(2,400mより高い山は標高2,400m付近)の最低気温の7日平均から予想しています。8℃を下回ると色づき始め、6℃を下回ってから3℃を下回るまで(長くても18日間)を見ごろとしました(2024・2025年の気温で、涸沢・大台ヶ原・金剛山・六甲山・高尾山など10か所の例年の見ごろと合わせた目安です)。中腹や麓の見ごろは山頂付近より遅くなります。</p>
 <p>🧊 凍結注意: 山頂付近の最低気温(6〜15時)が0℃以下で前日昼〜当日に雨・雪が0.5mm以上の日、または最低気温が-3℃以下の日。登山道が凍りやすいので、チェーンスパイクやアイゼンの目安に。</p>
 <p>体感温度: 山頂付近の気温と風速から求めた、6〜15時で最も低い値です(風が強いほど低くなります)。</p>
@@ -1402,7 +1445,7 @@ def index_page(mts, ski, spots):
                 cells += (f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b> {icon}"
                           f"<br><small class='muted'>{round(d['tavg'])}℃ · "
                           f"{d['wind']:.0f}m/s</small></td>")
-        return link_row(f"<b>{e(m['name'])}</b>{tags(m)}{koyo_mark(m, we)}<br><small class='muted'>"
+        return link_row(f"<b>{e(m['name'])}</b>{tags(m)}{season_mark(m, we)}<br><small class='muted'>"
                         f"{m['elev']:,}m · {e(m['prefs'][0])}</small>",
                         cells, f"mountains.html#{m['key']}", attrs)
     mt_rows = "".join(mt_row(m) for m in good[:10]) or (
