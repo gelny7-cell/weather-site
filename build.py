@@ -928,6 +928,8 @@ def ski_info(s):
                                                           f"{sp['max_slope']}度" if sp.get("max_slope") else "") if x))
     if sp.get("vertical"):
         row("⛰️ 標高差", f"{sp['vertical']:,}m" + (f" <small class='muted'>({sp['base']:,}〜{sp['peak']:,}m)</small>" if sp.get("peak") and sp.get("base") else ""))
+    else:                       # SURF&SNOW にないときは一覧の上部・下部の標高で
+        row("⛰️ 標高差", f"{s['top'] - s['base']:,}m <small class='muted'>({s['base']:,}〜{s['top']:,}m)</small>")
     if sp.get("level"):
         row("📊 難易度", " ".join(f"{k}{v}%" for k, v in sp["level"].items()))
     if sp.get("groom"):
@@ -1005,7 +1007,7 @@ def ski_detail(s, with_map=True, simple=False):
         obs = f"<p class='obs'>ベース積雪:<b>{am['snow']}cm</b>{fresh}</p>"
     # 文字(注意報・紹介・営業時間・標高・積雪の観測)をまとめて上に、ボタン(お気に入り登録が先頭)をその下の1か所に
     buttons = f"<div class='btnrow'>{star('s', s)} {ski_info(s)}{link}</div>" if with_map else ""
-    return (f"{alert_box(s)}{intro(s)}<p class='muted'>上部 {s['top']:,}m / 下部 {s['base']:,}m</p>{obs}"
+    return (f"{alert_box(s)}{intro(s)}{obs}"
             f"{buttons}<div class='scroll'><table class='sub'>"
             "<tr><th rowspan='2' class='dt'>日付</th><th colspan='2'>天気</th><th colspan='2'>新雪</th><th rowspan='2'>積雪<br>(上部)</th>"
             "<th rowspan='2'>気温<br>(上部)</th><th rowspan='2'>体感温度<br>(上部)</th><th rowspan='2'>0℃の高さ<br>(8〜16時)</th><th rowspan='2'>平均風速<br>(上部)</th>"
