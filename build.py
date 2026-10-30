@@ -1392,9 +1392,9 @@ def surf_page(spots):
     coasts = ["太平洋側", "日本海側"]
     rows = ""
     for c in coasts:                            # 海側ごとに並べる
-        for s in [x for x in spots if x.get("coast") == c]:
+        for s in sorted([x for x in spots if x.get("coast") == c], key=lambda x: -x["lon"]):   # 東から西へ
             cells = ""
-            for d in s["days"][:TOP_DAYS]:      # 一覧はその日の朝・昼のよいほうの判定と波の高さだけ
+            for d in s["days"][:TOP_DAYS]:      # 一覧はその日の朝・昼のよいほうの判定とうねりの高さだけ
                 sl = max(d["slots"], key=lambda x: x["score"])
                 mark, cls = RATE[sl["score"]]
                 cells += (f"<td class='{cls}' title='{sl['slot']} 波{sl['height']:.1f}m うねり{sl['swell']:.1f}m "
