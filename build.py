@@ -174,12 +174,6 @@ def star(kind, x):
             f"aria-label='{e(x['name'])}をお気に入りに登録'>☆ お気に入り登録</button>")
 
 
-def hut_line(m):
-    """詳細に出す、山小屋・テント場の数"""
-    parts = ([f"🏠 山小屋 {len(m['huts'])}軒"] if m.get("huts") else []) + ([f"⛺ テント場 {len(m['tents'])}か所"] if m.get("tents") else [])
-    return f"<p class='muted'>{' · '.join(parts)}</p>" if parts else ""     # 範囲と出典はページ下部の説明に
-
-
 def hutlink(m):
     """山小屋の予約先の一覧ボタン(data の booking)。予約サイトの小屋を山頂に近い順に、その後に公式HPの小屋を並べる。
     選ぶとその予約ページ・公式HPが開く"""
@@ -192,8 +186,12 @@ def hutlink(m):
 
 
 def intro(x):
-    """詳細の一番上に出す一言紹介(data の intro。書いてある場所だけ)"""
-    return f"<p class='intro'>{e(x['intro'])}</p>" if x.get("intro") else ""
+    """詳細の一番上に出す一言紹介(data の intro)。山は最後に山小屋・テント場の数を印と数字だけで付ける
+    (範囲と出典はページ下部の説明に)"""
+    fac = "".join(f" <span class='fac' title='{label}'>{icon}{len(x[k])}</span>"
+                  for k, icon, label in (("huts", "🏠", "山小屋"), ("tents", "⛺", "テント場")) if x.get(k))
+    text = e(x.get("intro", ""))
+    return f"<p class='intro'>{text}{fac}</p>" if text or fac else ""
 
 
 def alert_tags(x):
@@ -445,6 +443,14 @@ def day_label(d):
     return f"<span class='{cls}'>{dt.month}/{dt.day}<small>({WEEK[dt.weekday()]})</small></span>"
 
 
+def day_label2(d, first=False):
+    """一覧の表の見出し用の短い日付(日と曜日の2段)。月は最初の列と月が変わる日だけ書く"""
+    dt = date.fromisoformat(d)
+    cls = "sat" if dt.weekday() == 5 else ("sun" if dt.weekday() == 6 or dt in holidays() else "")
+    day = f"{dt.month}/{dt.day}" if first or dt.day == 1 else f"{dt.day}"
+    return f"<span class='{cls}'>{day}<br>{WEEK[dt.weekday()]}</span>"
+
+
 def weekend(days):
     """次の土日(今日が土日なら今日から)の日付"""
     return [d for d in days if date.fromisoformat(d).weekday() >= 5][:2]
@@ -674,7 +680,7 @@ def mt_detail(m, with_map=True, compact=False):
             + conbilink(near["lat"], near["lon"]) + " " + hutlink(m)) if with_map else ""    # 山小屋は右端
     sun = (f"<p class='muted'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</p>"
            if m.get("sun") else "")
-    return (f"{star('m', m) if with_map else ''}{intro(m)}{link}{alert_box(m)}{hut_line(m) if with_map else ''}{sun}<div class='scroll'><table class='sub'>"
+    return (f"{star('m', m) if with_map else ''}{intro(m)}{link}{alert_box(m)}{sun}<div class='scroll'><table class='sub'>"
             "<tr><th class='dt'>日付</th><th>判定</th><th>天気(6〜15時)</th>"
             + ("<th>展望</th>" if has_v else "") + "<th>山頂付近の気温</th>"
             + ("" if compact else "<th>体感温度</th>") + "<th>平均風速</th>"
@@ -687,7 +693,7 @@ def mountains_page(mts):
     regions = ["北海道", "東北", "関東", "上信越", "北アルプス", "南アルプス", "中部"]
     kinki = ["滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県", "三重県", "福井県"]   # 近畿は県ごと
     after = ["中国・四国", "九州"]
-    head = "".join(f"<th>{day_label(d)}</th>" for d in days)
+    head = "".join(f"<th>{day_label2(d, i == 0)}</th>" for i, d in enumerate(days))
     rows = ""
     for m in mts:
         cells = ""
@@ -979,7 +985,7 @@ def ski_detail(s, with_map=True, simple=False):
 
 def ski_page(ski):
     days = [d["date"] for d in ski[0]["days"][:TOP_DAYS]]   # 一覧は7日、詳細は全日数
-    head = "".join(f"<th>{day_label(d)}</th>" for d in days)
+    head = "".join(f"<th>{day_label2(d, i == 0)}</th>" for i, d in enumerate(days))
     used = []
     rows = ""
     for r in SKI_REGIONS:                       # 地方の順に並べる
@@ -1302,7 +1308,9 @@ def index_page(mts, ski, spots):
     # お気に入り(☆で登録)の山: 全部の山を隠して入れておき、登録されたものだけ表示する
     fav_mt = "".join(mt_row(m, f" class='favonly' data-fid='{e(fid('m', m))}' hidden") for m in mts)
     # お気に入りと天気が良さそうな山は、列の幅がそろうよう1つの表にして、見出しの行を間に挟む
-    mt_list = (f"<div class='scroll'><table class='sub'>"
+    # 登山とスノーの表は列の幅をそろえる(広い画面で予報の列がずれないように)
+    cols = "<colgroup><col class='nmcol'>" + "<col>" * len(we) + "</colgroup>"
+    mt_list = (f"<div class='scroll'><table class='sub top'>{cols}"
                f"<tbody class='favhead' hidden><tr><th><a href='mountains.html#fav'><span class='favmark'>★</span>お気に入りの山</a></th>"
                f"{we_head}</tr></tbody>{fav_mt}"
                f"<tbody><tr><th>週末天気が良さそうな山</th>{we_head}</tr></tbody>{mt_rows}</table></div>")
@@ -1318,7 +1326,7 @@ def index_page(mts, ski, spots):
         more = f"<br><small class='muted'>週末まで {until:.0f}cm</small>" if round(until) else ""
         fav_rows += link_row(f"<b>{e(n)}</b>{alert_tags(s)}{more}",
                              cells, f"snow.html#{s['key']}", f" class='favonly' data-fid='{e(fid('s', s))}' hidden")
-    fav = (f"<div class='favbox' hidden><div class='scroll'><table class='sub'><tr><th></th>"
+    fav = (f"<div class='favbox' hidden><div class='scroll'><table class='sub top'>{cols}<tr><th></th>"
            + "".join(f"<th>{day_label(d)}</th>" for d in we)
            + f"</tr>{fav_rows}</table></div></div>"
            + "<p class='favhint muted'>スノーボードのページでスキー場の詳細を開き「☆ お気に入り登録」を押すと、ここに表示されます</p>")
@@ -1411,7 +1419,8 @@ tr.detail .star{display:table}h3+.star{margin-top:-2px}
 .obs{margin:6px 0}.obs b{display:inline!important}  /* 表の中の b{display:block} に負けないように */
 .comment{background:var(--hl);border-radius:8px;padding:8px 12px;margin:0 0 8px;font-size:14px}
 .sub.mini td,.sub.mini th{text-align:center;padding:4px 6px}.sub.mini td b{display:block}
-.sub.mini td.l{text-align:left}.sub.mini.surf td:not(.l),.sub.mini.surf th{padding:4px 2px}
+.sub.mini td.l{text-align:left}
+@media (min-width:600px){.sub.top{table-layout:fixed}.sub.top col.nmcol{width:40%}}.sub.mini.surf td:not(.l),.sub.mini.surf th{padding:4px 2px}
 .scroll{overflow-x:auto}
 table{border-collapse:collapse;font-variant-numeric:tabular-nums}
 .sub{width:100%}.sub th,.sub td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
