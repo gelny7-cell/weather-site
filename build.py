@@ -606,96 +606,162 @@ def mt_hours(h, d, elev, step):
     return rows
 
 
-# 紅葉の予想: 7日平均の最低気温がこの値(℃)を下回った日から 色づき始め・見ごろ・見ごろ終わり。
-# 2024・2025年の気温で、涸沢・大台ヶ原・金剛山・六甲山・高尾山など10か所の例年の見ごろと合うように決めた
-KOYO_START, KOYO_PEAK, KOYO_END = 8, 6, 3
-KOYO_DAYS = 18      # 見ごろは長くてもこの日数まで(高い山は3℃を下回るのが遅く、見ごろが長くなりすぎるため)
-KOYO_ELEV = 2400    # これより高い山は、森林限界付近のこの標高で見る(山頂付近には木がないため)
+# ---------------------------------------------------------------- 桜・紅葉の予想
+# 山頂付近・中腹・麓の3か所で、気温から色づき・開花の日を予想する。式と係数は、気象庁の生物季節観測
+# (全国約100地点、1991〜2025年のかえでの紅葉日・落葉日、さくらの開花日・満開日)とその地点の気温で決めた。
+# 気温は Open-Meteo(過去92日と予報)。その前後は平年の気温(気象台の1991〜2020年の平均を標高で補正)に、
+# 最近の平年との差を少しずつ弱めながら足して延ばす
+CLIMATE = json.loads((ROOT / "data/climate.json").read_text(encoding="utf-8"))
+LAPSE = 0.6                     # 標高100mあたりの気温の下がり方(℃)
+OM_BIAS = (1.1, -0.1)           # Open-Meteo の最高・最低気温に足す値(気象台の実測との平均の差)
+KOYO_CAP, SAKURA_CAP = 2400, 1500   # 紅葉は森林限界付近、桜はおおむね咲く高さまでを見る
+KOYO = (20, 310)                # 紅葉日(見ごろの始め): 寒さの積算 Σmax(0, 基準 − 平均気温) の基準(℃)と、達する値(℃・日)
+KOYO_SHIFT = -12                # 山の紅葉(ナナカマド・ブナなど)は街のかえでより早い。山の名所35か所の例年の見ごろとの平均の差
+KOYO_LEN = 15                   # 見ごろの長さ(山の名所の例年の見ごろの中央値)
+KOYO_EARLY = 10                 # 見ごろの前この日数を「色づき始め」とする
+SAKURA = {"somei": {"bloom": (46, 520), "full": (60, 500)},       # 1月1日からの日数・最高気温の積算(℃)
+          "ezo": {"bloom": (75, 460), "full": (75, 500)}}         # 北海道の山はエゾヤマザクラ
+def sakura_rule(c):
+    """説明用「2月15日からの最高気温の合計が520℃で開花、3月1日からの合計が500℃で満開」"""
+    md = lambda n: (lambda d: f"{d.month}月{d.day}日")(date(2001, 1, 1) + timedelta(days=n - 1))
+    return f"{md(c['bloom'][0])}からの最高気温の合計が{c['bloom'][1]}℃で開花、{md(c['full'][0])}からの合計が{c['full'][1]}℃で満開"
+ZONES = (("top", "山頂付近"), ("mid", "中腹"), ("base", "麓"))
 
 
-def koyo(mts):
-    """山ごとの紅葉の予想 {日付: 1(色づき始め) / 2(見ごろ)}。9〜12月だけ計算し、取得できなければ空"""
-    if datetime.now(JST).month not in (9, 10, 11, 12):
-        return [{} for _ in mts]
-    res = forecast([(m["lat"], m["lon"], min(m["elev"], KOYO_ELEV)) for m in mts],
-                   daily="temperature_2m_min", past_days=92)
-    out = []
-    for r in res:
-        st = {}
-        if r:
-            t, v = r["daily"]["time"], r["daily"]["temperature_2m_min"]
-            cross, first = {}, True
-            for i in range(6, len(t)):
-                w = v[i - 6:i + 1]
-                if None in w or t[i][5:] < "09-01":
-                    continue
-                avg, d = sum(w) / 7, date.fromisoformat(t[i])
-                for th in (KOYO_START, KOYO_PEAK, KOYO_END):
-                    # 取得した期間の最初から下回っていれば、ずっと前に下回ったとみなす(9月初めは除く)
-                    if avg <= th and th not in cross:
-                        cross[th] = date.min if first and t[i][5:] > "09-07" else d
-                first = False
-            for x in t:
-                d = date.fromisoformat(x)
-                peak = cross.get(KOYO_PEAK)
-                if peak and d >= peak and d < min(cross.get(KOYO_END, date.max), peak + timedelta(days=KOYO_DAYS)):
-                    st[x] = 2
-                elif KOYO_START in cross and d >= cross[KOYO_START] and not (peak and d >= peak):
-                    st[x] = 1
-        out.append(st)
+def zones(m, cap):
+    """[(キー, 名前, 標高)]。山頂と麓の差が300m未満なら1か所。cap より高いところは cap で見る(山頂付近の名前も変える)"""
+    top, base = min(m["elev"], cap), m.get("base", m["elev"])
+    if base >= cap:
+        return []
+    name = "山頂付近" if m["elev"] <= cap else f"標高{cap:,}m付近"
+    if top - base < 300:
+        return [("top", name, top)]
+    return [("top", name, top), ("mid", "中腹", round((top + base) / 2, -1)), ("base", "麓", base)]
+
+
+def normals(m, elev):
+    """その山・標高の平年の {MM-DD: (最高, 最低)}。近い気象台3地点の平年値を距離で重み付けし、標高で補正する"""
+    near = sorted(CLIMATE, key=lambda c: (c["lat"] - m["lat"]) ** 2 + ((c["lon"] - m["lon"]) * math.cos(math.radians(m["lat"]))) ** 2)[:3]
+    w = [1 / max(0.05, math.hypot(c["lat"] - m["lat"], (c["lon"] - m["lon"]) * math.cos(math.radians(m["lat"])))) for c in near]
+    out = {}
+    for k in near[0]["tmax"]:
+        if all(k in c["tmax"] for c in near):
+            out[k] = tuple(sum(wi * (c[v][k] - LAPSE / 100 * (elev - c["alt"])) for wi, c in zip(w, near)) / sum(w)
+                           for v in ("tmax", "tmin"))
     return out
 
 
-# 桜の予想: 2月1日からの最高気温(0℃未満は0)の合計が600℃に達した日を開花とし(600℃の法則)、
-# 開花から3日目までを咲き始め、4〜11日目を見ごろとする(満開は開花の5〜7日後が目安)。
-# 吉野山・高尾山・六甲山・金剛山・弘前公園の2024・2025年の満開の時期と合うことを確かめた
-SAKURA_SUM, SAKURA_ELEV = 600, 1500     # 1,500mより高い山は、この標高で見る(桜が咲くのはおおむねこの高さまで)
-
-
-def sakura(mts):
-    """山ごとの桜の予想 {日付: 1(咲き始め) / 2(見ごろ)}。3〜5月だけ計算し、取得できなければ空"""
-    if datetime.now(JST).month not in (3, 4, 5):
-        return [{} for _ in mts]
-    res = forecast([(m["lat"], m["lon"], min(m["elev"], SAKURA_ELEV)) for m in mts],
-                   daily="temperature_2m_max", past_days=92)
-    out = []
-    for r in res:
-        st = {}
-        if r:
-            total, bloom = 0, None
-            for x, v in zip(r["daily"]["time"], r["daily"]["temperature_2m_max"]):
-                if x[5:] < "02-01" or v is None:
-                    continue
-                total += max(v, 0)
-                if total >= SAKURA_SUM:
-                    bloom = date.fromisoformat(x)
-                    break
-            if bloom:
-                for x in r["daily"]["time"]:
-                    k = (date.fromisoformat(x) - bloom).days
-                    if 0 <= k <= 2:
-                        st[x] = 1
-                    elif 3 <= k <= 10:
-                        st[x] = 2
-        out.append(st)
+def temp_series(r, m, ref, elev, first, last):
+    """first〜last の日ごとの (日付, 最高, 最低)。elev の標高での値。r は ref の標高で取った Open-Meteo の日別値"""
+    nm = normals(m, elev)
+    got = {}
+    if r:
+        dl = r["daily"]
+        for x, hi, lo in zip(dl["time"], dl["temperature_2m_max"], dl["temperature_2m_min"]):
+            if hi is not None and lo is not None:
+                got[date.fromisoformat(x)] = (hi + OM_BIAS[0] - LAPSE / 100 * (elev - ref), lo + OM_BIAS[1] - LAPSE / 100 * (elev - ref))
+    # 平年との差: 取得できた最後の14日の平均。その先は15日ほどで弱まるとする
+    tail = sorted(got)[-14:]
+    anom = [sum(got[d][i] - nm[d.strftime("%m-%d")][i] for d in tail if d.strftime("%m-%d") in nm) / max(1, len(tail))
+            for i in (0, 1)] if tail else [0, 0]
+    out, d = [], first
+    while d <= last:
+        k = d.strftime("%m-%d") if d.strftime("%m-%d") != "02-29" else "02-28"
+        if d in got:
+            out.append((d, *got[d]))
+        elif k in nm:
+            fade = math.exp(-(d - tail[-1]).days / 15) if tail and d > tail[-1] else 0
+            out.append((d, nm[k][0] + anom[0] * fade, nm[k][1] + anom[1] * fade))
+        d += timedelta(days=1)
     return out
 
 
-# 季節の見ごろ: data の日ごとのキー → (印, 名前, 見る標高の上限, 見ごろ前の言い方)
-SEASONS = {"sakura": ("🌸", "桜", SAKURA_ELEV, "咲き始め"), "koyo": ("🍁", "紅葉", KOYO_ELEV, "色づき始め")}
+def cold_day(s, tb, f):
+    """寒さの積算 Σmax(0, tb − 平均気温) が f に達した日"""
+    tot = 0
+    for d, hi, lo in s:
+        tot += max(0, tb - (hi + lo) / 2)
+        if tot >= f:
+            return d
+    return None
+
+
+def warm_day(s, d0, f):
+    """1月1日から d0 日目以降の最高気温(0℃未満は0)の積算が f に達した日"""
+    tot = 0
+    for d, hi, lo in s:
+        if d.month < 7 and d.timetuple().tm_yday >= d0:
+            tot += max(0, hi)
+            if tot >= f:
+                return d
+    return None
+
+
+def seasons(mts):
+    """山ごとの桜・紅葉の予想 {"koyo"/"sakura": [{key, name, elev, early, peak, end}]}(early〜peak が色づき始め・咲き始め、
+    peak〜end が見ごろ)。紅葉は9〜12月、桜は2〜6月だけ計算する"""
+    today = datetime.now(JST).date()
+    kind = "koyo" if today.month >= 9 else "sakura" if 2 <= today.month <= 6 else None
+    if not kind:
+        return [{} for _ in mts]
+    cap = KOYO_CAP if kind == "koyo" else SAKURA_CAP
+    res = forecast([(m["lat"], m["lon"], min(m["elev"], cap)) for m in mts],
+                   daily="temperature_2m_max,temperature_2m_min", past_days=92)
+    out = []
+    for m, r in zip(mts, res):
+        ref, zs = min(m["elev"], cap), []
+        for key, name, elev in zones(m, cap):
+            if kind == "koyo":
+                s = temp_series(r, m, ref, elev, date(today.year, 9, 1), date(today.year, 12, 31))
+                peak = cold_day(s, *KOYO)
+                peak = peak and peak + timedelta(days=KOYO_SHIFT)
+                early, end = peak and peak - timedelta(days=KOYO_EARLY), peak and peak + timedelta(days=KOYO_LEN)
+            else:
+                s = temp_series(r, m, ref, elev, date(today.year, 1, 1), date(today.year, 6, 30))
+                c = SAKURA["ezo" if m["region"] == "北海道" else "somei"]
+                early, full = warm_day(s, *c["bloom"]), warm_day(s, *c["full"])
+                peak = full and full - timedelta(days=2)
+                end = full and full + timedelta(days=5)
+                if early and peak and peak < early:
+                    peak = early
+            if peak and early:
+                zs.append({"key": key, "name": name, "elev": elev, "early": early, "peak": peak, "end": end})
+        out.append({kind: zs} if zs else {})
+    return out
+
+
+def season_state(z, d):
+    """その日の状態: 1(色づき始め・咲き始め) / 2(見ごろ) / 3(見ごろ過ぎ) / None(まだ)"""
+    d = date.fromisoformat(d) if isinstance(d, str) else d
+    return 3 if d >= z["end"] else 2 if d >= z["peak"] else 1 if d >= z["early"] else None
+
+
+# 季節の見ごろ: キー → (印, 名前, 見ごろ前の言い方)
+SEASONS = {"sakura": ("🌸", "桜", "咲き始め"), "koyo": ("🍁", "紅葉", "色づき始め")}
 
 
 def in_bloom(m, dates):
-    """花の百名山の花の開花時期(月)に、指定した日のどれかが入るか"""
-    months = m.get("flower", {}).get("months", [])
-    return any(int(d[5:7]) in months for d in dates)
+    """花の百名山の花の開花時期に、指定した日のどれかが入るか。時期は旬(from/to: [月, 0上旬/1中旬/2下旬])、
+    なければ月(months)で見る"""
+    f = m.get("flower", {})
+    if "from" not in f:
+        return any(int(d[5:7]) in f.get("months", []) for d in dates)
+    a, b = (f["from"][0], 1 + 10 * f["from"][1]), (f["to"][0], 10 + 10 * f["to"][1] if f["to"][1] < 2 else 31)
+    def inside(d):
+        x = (int(d[5:7]), int(d[8:10]))
+        return a <= x <= b if a <= b else x >= a or x <= b
+    return any(inside(d) for d in dates)
 
 
 def season_mark(m, dates, flower=True):
-    """指定した日のどれかで桜・紅葉が見ごろ(予想)なら 🌸・🍁、花の百名山の花の時期なら 🌼(flower=False で出さない)"""
-    out = "".join(f" <span class='fac' title='{name}の見ごろ(予想)' role='img' aria-label='{name}の見ごろ(予想)'>{icon}</span>"
-                  for key, (icon, name, _, _) in SEASONS.items()
-                  if any(d.get(key) == 2 for d in m["days"] if d["date"] in dates))
+    """指定した日のどれかで桜・紅葉が見ごろ(予想)なら 🌸・🍁(どこが見ごろかを title に)、
+    花の百名山の花の時期なら 🌼(flower=False で出さない)"""
+    out = ""
+    for key, (icon, name, _) in SEASONS.items():
+        where = [z["name"] for z in m.get("season", {}).get(key, []) if any(season_state(z, d) == 2 for d in dates)]
+        if where:
+            t = f"{name}の見ごろ(予想): {'・'.join(where)}"
+            out += f" <span class='fac' title='{t}' role='img' aria-label='{t}'>{icon}</span>"
     if flower and in_bloom(m, dates):
         name = e(m["flower"]["name"])
         out += f" <span class='fac' title='{name}の花の時期' role='img' aria-label='{name}の花の時期'>🌼</span>"
@@ -703,22 +769,30 @@ def season_mark(m, dates, flower=True):
 
 
 def season_line(m):
-    """詳細に出す桜・紅葉の予想の一文(予報の期間に咲き始め・色づき始め・見ごろの日があるときだけ)"""
-    md = lambda x: f"{date.fromisoformat(x).month}/{date.fromisoformat(x).day}"
+    """詳細に出す桜・紅葉の予想(山頂付近・中腹・麓ごと)と、いまいちばんの見ごろの場所。見ごろが近いか、見ごろの所があるときだけ"""
+    md = lambda x: f"{x.month}/{x.day}"
+    today = date.fromisoformat(m["days"][0]["date"]) if m["days"] else datetime.now(JST).date()
     lines = ""
-    for key, (icon, name, cap, early) in SEASONS.items():
-        st = {d["date"]: d.get(key) for d in m["days"]}
-        peak = [x for x, v in st.items() if v == 2]
-        if peak:
-            days = list(st)
-            text = ("見ごろ" if peak[0] == days[0] else f"{md(peak[0])}頃から見ごろ") + \
-                   ("" if peak[-1] == days[-1] else f"、{md(peak[-1])}頃まで")
-        elif 1 in st.values():
-            text = early
-        else:
+    for key, (icon, name, early) in SEASONS.items():
+        zs = m.get("season", {}).get(key, [])
+        if not zs or not any(season_state(z, today) in (1, 2) or 0 < (z["peak"] - today).days <= 30 for z in zs):
             continue
-        where = "山頂付近" if m["elev"] <= cap else f"標高{cap:,}m付近"
-        lines += f"<p class='muted'>{icon} {name}({where}・予想): {text}</p>"
+        parts = []
+        for z in zs:
+            st = season_state(z, today)
+            text = (f"{icon}見ごろ({md(z['end'] - timedelta(days=1))}頃まで)" if st == 2 else
+                    f"{early}({md(z['peak'])}頃から見ごろ)" if st == 1 else
+                    "見ごろ過ぎ" if st == 3 else f"{md(z['peak'])}頃から見ごろ")
+            parts.append(f"{z['name']}" + ("" if "標高" in z["name"] else f"({z['elev']:,.0f}m)") + f" {text}")
+        now = [z for z in zs if season_state(z, today) == 2]
+        if now:
+            best = min(now, key=lambda z: abs((today - z["peak"]).days - (z["end"] - z["peak"]).days / 2))
+            tip = f"いまいちばんの見ごろは{best['name']}" if len(zs) > 1 else ""
+        else:
+            nxt = [z for z in zs if z["peak"] > today]
+            tip = f"次の見ごろは{min(nxt, key=lambda z: z['peak'])['name']}" if nxt and len(zs) > 1 else ""
+        lines += (f"<p class='muted'>{icon} {name}(予想): {' / '.join(parts)}"
+                  + (f"。<b>{tip}</b>" if tip else "") + "</p>")
     days = [d["date"] for d in m["days"]]
     if in_bloom(m, days[:1]):
         lines += f"<p class='muted'>🌼 {e(m['flower']['name'])}の花の時期です({e(m['flower']['season'])}ごろ。年や場所で前後します)</p>"
@@ -735,10 +809,10 @@ def build_mountains():
     res = forecast(points, hourly=hourly + ",snow_depth", daily="sunrise,sunset")   # 積雪はおまかせのモデルだけで見る
     extra = [forecast(points, hourly=hourly, models=model, forecast_days=n) for model, n, _ in MT_MODELS]
     probs = thunder_prob(mts)
-    leaves, blossoms = koyo(mts), sakura(mts)
+    sea = seasons(mts)
     today = datetime.now(JST).date()
     for i, (m, r) in enumerate(zip(mts, res)):
-        m["days"] = []
+        m["days"], m["season"] = [], sea[i]
         if r is None:
             continue
         prob = probs.get(grid(m), {})
@@ -783,7 +857,7 @@ def build_mountains():
             # 山頂付近の積雪: 6〜15時の積雪深の予報が5cm以上なら ❄️(格子が粗く山では実際とずれやすいので目安)
             depth = hours_of(r["hourly"], "snow_depth", d, range(6, 16)) if "snow_depth" in r["hourly"] else []
             day["snowy"] = bool(depth) and max(depth) >= 0.05
-            m["days"].append({"date": d, "score": score, "thunder": thunder, "koyo": leaves[i].get(d), "sakura": blossoms[i].get(d), **day})
+            m["days"].append({"date": d, "score": score, "thunder": thunder, **day})
     return align(mts, "登山")
 
 
@@ -889,9 +963,9 @@ def mountains_page(mts):
 <p>雷の確率: 米国の予報モデル(GFS)を条件を少しずつ変えて31通り計算したうち、6〜15時に「大気が不安定で雨が降る」時間がある割合です。20%以上で判定は最高でも△、50%以上で×。山では早めの下山を。</p>
 <p>🏠 山小屋・⛺ テント場: 山頂から4km以内にあるもの(ヤマレコの登録。避難小屋は除く)。<span class='hinan'>避</span> 避難小屋: 山頂から4km以内の避難小屋の数(ヤマレコの登録)。緊急時に使うためのもので、多くは無人です(夏だけ管理人がいる小屋もあります)。冬は雪に埋まって使えないこともあります。宿泊の計画には入れないでください。「山小屋」のボタンは、山頂か登山口の近くの小屋・宿の予約先です。予約サイト(Yamatan・モンベル・RESERVA・南アルプス市の予約)で予約できる小屋を先に、それ以外は公式ホームページ(長野県山小屋情報ポータル・OpenStreetMap などの登録)を並べています。その後ろの ⛺ は、山頂から4km以内のテント場のうち、予約先(Yamatan、またはテント場を管理する小屋の予約先・公式HP)が分かるものです。</p>
 <p>展望: 6〜12時の雲の量の平均で、◎20%未満・○50%未満・△80%未満・×それ以上(霧の時間があれば×)。眺めの目安です。</p>
-<p>🌼 花の百名山の花: 一言紹介の後ろに、その山の花と咲く時期を載せています(YAMAP MAGAZINE「花の百名山」の開花時期)。今日〜表の最後の日が開花時期の月に入ると 🌼 を付けています。月単位の目安なので、その年の雪どけや天気で前後します。花の名前を押すと写真が開きます(写真の下に撮影者・ライセンス・元のページ。Wikimedia Commons・iNaturalist の再利用が許可された写真。ツクシフウロは見つからなかったため写真なし)。</p>
-<p>🌸 桜(予想): 山頂付近(1,500mより高い山は標高1,500m付近)の気温から、2月1日からの最高気温の合計が600℃に達した日を開花とし、開花から4〜11日目を見ごろとしました(600℃の法則。吉野山・高尾山・六甲山・金剛山・弘前公園の2024・2025年の満開の時期と合わせた目安です)。麓は山頂付近より早く咲きます。</p>
-<p>🍁 紅葉(予想): 山頂付近(2,400mより高い山は標高2,400m付近)の最低気温の7日平均から予想しています。8℃を下回ると色づき始め、6℃を下回ってから3℃を下回るまで(長くても18日間)を見ごろとしました(2024・2025年の気温で、涸沢・大台ヶ原・金剛山・六甲山・高尾山など10か所の例年の見ごろと合わせた目安です)。中腹や麓の見ごろは山頂付近より遅くなります。</p>
+<p>🌼 花の百名山の花: 一言紹介の後ろに、その山の花と咲く時期を載せています。時期は、iNaturalist の観察記録(花が咲いていると記録されたもの)と GBIF の標本の採集日から、山に近い記録を優先して(50km → 100km → 200km)、記録の60%が入る最も短い期間を旬単位で求めました。記録した場所との高さの差(100mで2.5日)と緯度の差(1度で3日)は補正しています。記録が少ない花や、遠くの記録しかない花、実や葉の記録が混ざって時期がずれた花は YAMAP MAGAZINE「花の百名山」の開花時期のままです。今日〜表の最後の日が開花時期に入ると 🌼 を付けています。その年の雪どけや天気で前後します。花の名前を押すと写真が開きます(写真の下に撮影者・ライセンス・元のページ。Wikimedia Commons・iNaturalist の再利用が許可された写真。ツクシフウロは見つからなかったため写真なし)。</p>
+<p>🌸 桜(予想): 気象庁の生物季節観測(1991〜2025年、全国のソメイヨシノ、北海道はエゾヤマザクラ)の開花日・満開日と、その気象台の毎日の気温から式を作りました。{sakura_rule(SAKURA['somei'])}です(北海道は{sakura_rule(SAKURA['ezo'])}。年ごとに分けて確かめた誤差は約3〜4日、山の桜の名所12か所の例年の見ごろとの差も約3日)。山頂付近(1,500mより高い山は1,500m付近)・中腹・麓のそれぞれの高さの気温(高さ100mで0.6℃低い)で計算し、開花〜満開の2日前を咲き始め、満開の2日前〜5日後を見ごろとしています。予報の先は平年の気温でつないでいます。</p>
+<p>🍁 紅葉(予想): 気象庁の生物季節観測(1991〜2025年。山に近い涼しい気候の55地点のかえで)の紅葉日と、その気象台の毎日の気温から式を作りました。9月1日から「{KOYO[0]}℃と平均気温の差」を毎日足し、{KOYO[1]}℃に達した日が紅葉日です(年ごとに分けて確かめた誤差は約8日)。山の木(ナナカマド・ブナ・ダケカンバなど)は街のかえでより早く色づくため、山の紅葉の名所35か所の例年の見ごろと比べて{-KOYO_SHIFT}日早め、そこから{KOYO_LEN}日間を見ごろ、その前{KOYO_EARLY}日間を色づき始めとしています(名所との差は約5日)。山頂付近(2,400mより高い山は2,400m付近)・中腹・麓のそれぞれで計算し、見ごろの場所が複数あるときは、いちばんの見ごろ(見ごろの真ん中に近い所)をコメントしています。</p>
 <p>❄️ 積雪あり: 山頂付近の積雪深の予報(6〜15時)が5cm以上の日。予報の格子が粗いため、稜線の吹き飛ばしや吹きだまりは表せません。雪がありそうかの目安です。</p>
 <p>🧊 凍結注意: 山頂付近の最低気温(6〜15時)が0℃以下で前日昼〜当日に雨・雪が0.5mm以上の日、または最低気温が-3℃以下の日。登山道が凍りやすいので、チェーンスパイクやアイゼンの目安に。</p>
 <p>体感温度: 山頂付近の気温と風速から求めた、6〜15時で最も低い値です(風が強いほど低くなります)。</p>
