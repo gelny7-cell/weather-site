@@ -1318,12 +1318,11 @@ def ski_page(ski):
                 snow_cls = "big" if d["snow"] >= 20 else ("mid" if d["snow"] >= 5 else "muted")
                 cells += (f"<td title='{e(label)} {round(d['tmin'])}〜{round(d['tmax'])}℃'>"
                           f"<b class='{snow_cls}'>{d['snow']:.0f}</b><small>{icon}</small></td>")
-            total7 = sum(d["snow"] for d in s["days"][:TOP_DAYS])
             powder7 = " data-powder='1'" if any(is_powder(s, d) for d in s["days"][:TOP_DAYS]) else ""
             rows += (
                 f"<tbody class='mt' id='{s['key']}' data-fid='{e(fid('s', s))}' data-region='{r}' data-name='{e(s['name'] + s.get('yomi', ''))}'{powder7}>"
                 f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
-                f"<span>{e(s['name'])}</span>{hour_marks(s)}{alert_tags(s)}<small>{e(s['pref'])} · 7日間 {total7:.0f}cm</small>"
+                f"<span>{e(s['name'])}</span>{hour_marks(s)}{alert_tags(s)}<small>{e(s['pref'])}</small>"
                 f"</button></th>{cells}</tr>"
                 f"<tr class='detail' hidden><td colspan='{len(days) + 1}'><template>{ski_detail(s)}</template></td></tr></tbody>")
     chips = ("<button class='chip on' data-r=''>すべて</button>"
