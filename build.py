@@ -975,12 +975,14 @@ def mountains_page(mts):
              "<button class='chip' data-r='hyaku'>日本100名山</button><button class='chip' data-r='kansai'>関西100名山</button>"
              "<button class='chip' data-r='hana'>花の100名山</button>"
              + "".join(f"<button class='chip' data-r='{r}'>{r}</button>" for r in regions)
-             + "".join(f"<button class='chip' data-r='pref:{p}'>{p.rstrip('県府')}</button>" for p in kinki)
+             + "<button class='chip' data-r='近畿'>関西</button>"
              + "".join(f"<button class='chip' data-r='{r}'>{r}</button>" for r in after))
+    # 関西の県ごとのボタンは、「関西」を押したときだけ下の段に出す(ボタンが多くなりすぎないように)
+    prefs = "".join(f"<button class='chip' data-r='pref:{p}'>{p.rstrip('県府')}</button>" for p in kinki)
     return f"""
 <h1>登山天気</h1>
 <div class='filters'><input id='q' type='search' placeholder='山名で絞り込み(例: 槍、ふじ)' aria-label='山名で絞り込み'>
-<div class='chips'>{chips}</div></div>
+<div class='chips'>{chips}</div><div class='chips' id='prefs' hidden>{prefs}</div></div>
 <div class='scroll'><table class='grid' id='mt'><thead><tr><th class='nm'>山名</th>{head}</tr></thead>{rows}</table></div>
 <div class='note'><h2>判定の基準</h2><ul>
 <li><b class='r3'>◎</b> 降水0.5mm未満、風速10m/s未満</li>
@@ -1916,7 +1918,7 @@ small{font-size:12px}
 .tag.warn{color:var(--r1)}
 .filters{display:flex;flex-direction:column;gap:8px;margin:8px 0 12px}
 #q{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text);max-width:320px}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips[hidden]{display:none}
 .chip{font:inherit;font-size:13px;padding:4px 12px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--sub);cursor:pointer}
 .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .note{color:var(--sub);font-size:13px;margin-top:24px}.note ul{padding-left:18px}
@@ -1958,7 +1960,11 @@ if(q){
   q.addEventListener('input',apply);
   document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
     document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===c));
-    region=c.dataset.r;apply();}));
+    region=c.dataset.r;apply();
+    // 関西の県ごとのボタン(登山)は、「関西」か県を選んでいる間だけ出し、県を選んでいる間は「関西」も選んだ表示に
+    const pr=document.getElementById('prefs');
+    if(pr){const k=region==='近畿'||region.startsWith('pref:');pr.hidden=!k;
+      const kc=document.querySelector(".chip[data-r='近畿']");if(kc&&k)kc.classList.add('on');}}));
 }
 // ボタンの反応はページ全体で1か所で受ける(あとから組み立てた詳細の中のボタンにも効く)
 document.addEventListener('click',ev=>{
