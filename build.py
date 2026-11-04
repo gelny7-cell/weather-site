@@ -1577,7 +1577,9 @@ def surf_detail(s):
     suit = (f"<p class='muted'>🩱 ウェットスーツの目安: <b>{wetsuit(sum(seas) / len(seas))}</b>"
             f"(今日の水温 {sum(seas) / len(seas):.0f}℃。風が強い日や朝夕は一段厚めに)</p>") if seas else ""
     sun = (f"<p class='muted'>本日の日の出 {s['sun'][0].lstrip('0')} ／ 日の入り {s['sun'][1]}</p>" if s.get("sun") else "")
-    return (f"{alert_box(s)}{intro(s)}{sun}{suit}{buttons}{surf_table(s)}"
+    facing = (f"<p class='muted'>🏖️ 浜の向き: <b>{dir_name(s['facing'])}</b>(この向きから入るうねりの時間帯に 🎯)</p>"
+              if s.get("facing") is not None else "")
+    return (f"{alert_box(s)}{intro(s)}{facing}{sun}{suit}{buttons}{surf_table(s)}"
             + (f"<p class='muted'>波は沖合({s['grid'][0]:.2f}, {s['grid'][1]:.2f})の予報</p>" if s.get("grid") else ""))
 
 
@@ -1597,7 +1599,7 @@ def surf_page(spots):
             rows += (
                 f"<tbody class='mt' id='{s['key']}' data-fid='{e(fid('w', s))}' data-region='{c}' data-name='{e(s['name'] + s['pref'])}'>"
                 f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
-                f"<span>{e(s['name'])}</span>{facmarks(s)}<small>{e(s['pref'])} · 浜の向き {dir_name(s['facing'])}</small>"
+                f"<span>{e(s['name'])}</span>{facmarks(s)}<small>{e(s['pref'])}</small>"
                 f"</button></th>{cells}</tr>"
                 f"<tr class='detail' hidden><td colspan='{len(days) + 1}'><template>{surf_detail(s)}</template></td></tr></tbody>")
     chips = ("<button class='chip on' data-r=''>すべて</button><button class='chip' data-r='fav'>★お気に入り</button>"
@@ -1605,7 +1607,7 @@ def surf_page(spots):
     cards = f"""
 <div class='filters'><input id='q' type='search' placeholder='ポイント名・地名で絞り込み' aria-label='ポイント名・地名で絞り込み'>
 <div class='chips'>{chips}</div></div>
-<div class='scroll'><table class='grid'><thead><tr><th class='nm'>ポイント</th>{head}</tr></thead>{rows}</table></div>"""
+<div class='scroll'><table class='grid surf'><thead><tr><th class='nm'>ポイント</th>{head}</tr></thead>{rows}</table></div>"""
     return f"""
 <h1>サーフィン 波と風</h1>
 {cards}
@@ -1857,6 +1859,7 @@ table{border-collapse:collapse;font-variant-numeric:tabular-nums}
 .grid thead th{font-size:12px;color:var(--sub);font-weight:500;padding:8px 2px}
 .grid td b{display:block;font-size:16px;line-height:1.2}.grid td small{font-size:12px}
 .grid .nm{text-align:left;min-width:120px;padding-left:10px}
+@media (max-width:480px){.grid.surf .nm{min-width:92px;padding-left:8px}.grid.surf td small{font-size:11px}}
 .nm button{all:unset;cursor:pointer;display:block}.nm button span{font-weight:600}
 .nm button small{display:block;color:var(--muted);font-size:11px;font-weight:400}
 .nm button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
