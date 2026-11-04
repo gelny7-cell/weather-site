@@ -1560,13 +1560,17 @@ def camlink(s):
             f"<div class='menu-list'>{items}</div></details> ")
 
 
-def wetsuit(t):
-    """水温(℃)からウェットスーツの目安(一般的な目安。風が強い日・朝夕は一段厚めに)"""
-    for lo, text in ((25, "ボードショーツ・ラッシュガード"), (23, "スプリング(半袖・半ズボン)"), (20, "シーガル(半袖・長ズボン)"),
-                     (17, "3/2mm フルスーツ"), (14, "5/3mm フルスーツ"), (11, "5/3mm セミドライ+ブーツ")):
-        if t >= lo:
-            return text
-    return "5mm セミドライ+ブーツ・グローブ・キャップ"
+SUITS = ("ボードショーツ・ラッシュガード", "スプリング(半袖・半ズボン)", "シーガル(半袖・長ズボン)", "3/2mm フルスーツ",
+         "5/3mm フルスーツ", "5/3mm セミドライ+ブーツ", "5mm セミドライ+ブーツ・グローブ・キャップ")
+SEA_NEAR = 1.5      # 水温の予報は沖合の値。岸近くは秋冬に1〜2℃低いことが多いので、この分を引いて見る
+
+
+def wetsuit(sea, air=None):
+    """水温(沖合の予報)と朝の気温それぞれからウェットスーツの目安を出し、厚い方を返す(一般的な目安)"""
+    t = sea - SEA_NEAR
+    by_sea = next((i for i, lo in enumerate((25, 23, 20, 17, 14, 11)) if t >= lo), 6)
+    by_air = 0 if air is None else next((i for i, lo in enumerate((27, 24, 20, 14, 8)) if air >= lo), 5)
+    return SUITS[max(by_sea, by_air)]
 
 
 def surf_detail(s):
@@ -1576,9 +1580,11 @@ def surf_detail(s):
                f"{foodlink(s['lat'], s['lon'], pref, 'surf')}{michilink(s['lat'], s['lon'])}{conbilink(s['lat'], s['lon'])}</div>")
     seas = [sl["sea"] for d in s["days"][:1] for sl in d["slots"] if sl.get("sea") is not None]
     t = sum(seas) / len(seas) if seas else None
+    air = next((sl["air"] for d in s["days"][:1] for sl in d["slots"] if sl["slot"] == "朝" and sl.get("air") is not None), None)
     # 浜の向き・日の出・ウェットは紹介と同じ文字の形式で
-    suit = (f"<p class='intro' title='今日の水温 {t:.0f}℃から。風が強い日や朝夕は一段厚めに'>"
-            f"ウェット予想:{wetsuit(t).split('(')[0]}</p>") if seas else ""
+    suit = (f"<p class='intro' title='今日の水温 {t:.0f}℃(沖合)"
+            + (f"・朝の気温 {air:.0f}℃" if air is not None else "") + "から'>"
+            f"ウェット予想:{wetsuit(t, air).split('(')[0]}</p>") if seas else ""
     sun = (f"<p class='intro'>本日の日の出 {s['sun'][0].lstrip('0')} ／ 日の入り {s['sun'][1]}</p>" if s.get("sun") else "")
     facing = (f"<p class='intro'>浜の向き:{dir_name(s['facing'])}</p>" if s.get("facing") is not None else "")
     return (f"{alert_box(s)}{intro(s)}{facing}{sun}{suit}{buttons}{surf_table(s)}"
@@ -1627,7 +1633,7 @@ def surf_page(spots):
 <li>⚠️ 警報・注意報は、浜のある市町村に気象庁がいま出しているもの</li>
 <li>🚻 トイレ・🚿 シャワー: <a href='https://japan.surfride.net/'>surfride.net</a> の設備の情報で、あるポイントの名前の横に付けています(分からないポイントは付けていません)</li>
 <li>うねり: 高さ(向き)。🎯 はうねりの向きが浜の向き(正面)から30°以内の時間帯。うねりがまっすぐ入り、波が立ちやすい目安です</li>
-<li>ウェット予想: 今日の水温の予報から、25℃以上 ボードショーツ・ラッシュガード、23℃以上 スプリング、20℃以上 シーガル、17℃以上 3/2mm フル、14℃以上 5/3mm フル、11℃以上 5/3mm セミドライ+ブーツ、それ未満 5mm セミドライ+ブーツ・グローブ・キャップ(一般的な目安です)</li>
+<li>ウェット予想: 水温と朝(6〜11時)の気温それぞれから目安を出し、厚い方にしています。水温は沖合の予報なので、岸近くに合わせて1.5℃低く見ています。水温: 25℃以上 ボードショーツ・ラッシュガード、23℃以上 スプリング、20℃以上 シーガル、17℃以上 3/2mm フル、14℃以上 5/3mm フル、11℃以上 5/3mm セミドライ+ブーツ、それ未満 5mm セミドライ+ブーツ・グローブ・キャップ。朝の気温: 27℃以上 ボードショーツ、24℃以上 スプリング、20℃以上 シーガル、14℃以上 3/2mm フル、8℃以上 5/3mm フル、それ未満 5/3mm セミドライ(一般的な目安です)</li>
 <li>📷 ライブカメラ: <a href='https://www.surfers-ocean.com/'>サーファーズオーシャン</a>・<a href='https://japan.surfride.net/'>surfride.net</a> に載っているカメラのうち、ポイントかそのすぐ近くを映すものです(停止中のものは除く)。提供元のサイトが開きます</li>
 <li>一覧は7日間で、その日の朝・昼のよいほうの判定とうねりの高さです。ポイント名を押すと、朝・昼の詳しい予報(最大16日間)が開きます</li>
 <li>今日〜明後日の日付を押すと、6〜16時の時間ごとの予報が開きます(今日・明日は1時間ごと、明後日は3時間ごと。その時刻の値)</li></ul>
