@@ -810,13 +810,13 @@ def season_line(m):
         else:
             nxt = [z for z in zs if z["peak"] > today]
             tip = f"次の見ごろは{min(nxt, key=lambda z: z['peak'])['name']}" if nxt and len(zs) > 1 else ""
-        lines += (f"<p class='muted'>{icon} {name}(予想): {' / '.join(parts)}"
-                  + (f"。<b>{tip}</b>" if tip else "") + "</p>")
+        lines += (f"<p class='intro'>{icon} {name}(予想): {' / '.join(parts)}"
+                  + (f"。<b class='{key}'>{tip}</b>" if tip else "") + "</p>")
     days = [d["date"] for d in m["days"]]
     if in_bloom(m, days[:1]):
-        lines += f"<p class='muted'>🌼 {e(m['flower']['name'])}の花の時期です({e(m['flower']['season'])}ごろ。年や場所で前後します)</p>"
+        lines += f"<p class='intro'>🌼 {e(m['flower']['name'])}の花の時期です({e(m['flower']['season'])}ごろ)</p>"
     elif in_bloom(m, days):
-        lines += f"<p class='muted'>🌼 {e(m['flower']['name'])}の花の時期が近づいています({e(m['flower']['season'])}ごろ)</p>"
+        lines += f"<p class='intro'>🌼 {e(m['flower']['name'])}の花の時期が近づいています({e(m['flower']['season'])}ごろ)</p>"
     return lines
 
 
@@ -962,7 +962,9 @@ def mountains_page(mts):
         rows += (
             f"<tbody class='mt' id='{m['key']}' data-fid='{e(fid('m', m))}' data-region='{e(m['region'])}' data-name='{e(m['name'] + m['yomi'])}'"
             + (f" data-prefs='{e(','.join(m['prefs']))}'" if m["region"] == "近畿" else "")
-            + (" data-hana='1'" if m.get("flower") else "") + ">"
+            + (" data-hana='1'" if m.get("flower") else "")
+            + (" data-hyaku='1'" if "百名山" in m.get("lists", []) else "")
+            + (" data-kansai='1'" if "関西百名山" in m.get("lists", []) else "") + ">"
             f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
             f"<span>{e(m['name'])}</span>"
             + tags(m) + season_mark(m, days) + alert_tags(m)
@@ -970,7 +972,8 @@ def mountains_page(mts):
             f"</button></th>{cells}</tr>"
             f"<tr class='detail' hidden><td colspan='{len(days) + 1}'><template>{mt_detail(m)}</template></td></tr></tbody>")
     chips = ("<button class='chip on' data-r=''>すべて</button><button class='chip' data-r='fav'><span class='favmark'>★</span>お気に入り</button>"
-             "<button class='chip' data-r='hana'>花の百名山</button>"
+             "<button class='chip' data-r='hyaku'>日本100名山</button><button class='chip' data-r='kansai'>関西100名山</button>"
+             "<button class='chip' data-r='hana'>花の100名山</button>"
              + "".join(f"<button class='chip' data-r='{r}'>{r}</button>" for r in regions)
              + "".join(f"<button class='chip' data-r='pref:{p}'>{p.rstrip('県府')}</button>" for p in kinki)
              + "".join(f"<button class='chip' data-r='{r}'>{r}</button>" for r in after))
@@ -1829,10 +1832,10 @@ def index_page(mts, ski, spots):
 # ---------------------------------------------------------------- 共通レイアウト
 CSS = """
 :root{color-scheme:light;--bg:#f6f7f5;--card:#fff;--line:#e2e4df;--text:#14171a;--sub:#55595e;--muted:#868a8f;
---accent:#1f6fb2;--r3:#0b7a3b;--r2:#2a78d6;--r1:#b27300;--r0:#c4312f;--sat:#2a6fd6;--sun:#d03b3b;--hl:#e8f1fb;--hyaku:#c4312f;--hyaku-bg:#fdecea;--fav:#f2b600}
+--accent:#1f6fb2;--r3:#0b7a3b;--r2:#2a78d6;--r1:#b27300;--r0:#c4312f;--sat:#2a6fd6;--sun:#d03b3b;--hl:#e8f1fb;--hyaku:#c4312f;--hyaku-bg:#fdecea;--fav:#f2b600;--koyo:#c4312f;--sakura:#d6337a}
 @media (prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#151617;--card:#1e2022;--line:#34373a;--text:#eef0f2;
 --sub:#b9bdc2;--muted:#8c9196;--accent:#6aaee8;--r3:#47c47c;--r2:#5fa3ef;--r1:#e0a43a;--r0:#ef6b69;--sat:#6aa6f0;
---sun:#f07a7a;--hl:#1f2a36;--hyaku:#ff8a87;--hyaku-bg:#3a2222;--fav:#ffd23f}}
+--sun:#f07a7a;--hl:#1f2a36;--hyaku:#ff8a87;--hyaku-bg:#3a2222;--fav:#ffd23f;--koyo:#ff8a87;--sakura:#ff8fc0}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);
 font:15px/1.65 system-ui,-apple-system,"Hiragino Sans","Noto Sans JP","Yu Gothic UI",sans-serif}
 header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
@@ -1875,6 +1878,7 @@ tbody[id],section[id]{scroll-margin-top:56px}   /* 上に固定したメニュ�
 border:1px solid var(--line);background:var(--card);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.12)}
 .star[aria-pressed='true']{border-color:var(--fav);font-weight:600}
 .favmark{color:var(--fav)}
+.intro b.koyo{color:var(--koyo)}.intro b.sakura{color:var(--sakura)}
 .star:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 tr.detail .star{display:table}tr.detail .btnrow .star{display:inline-block;vertical-align:top}h3+.star{margin-top:-2px}
 .favbox h3{font-size:14px;margin:4px 0}
@@ -1948,7 +1952,7 @@ const q=document.getElementById('q');
 if(q){
   apply=()=>{const t=q.value.trim();
     document.querySelectorAll('tbody.mt').forEach(b=>{
-      const inRegion=!region||b.dataset.region===region||(region==='fav'&&b.dataset.fav)||(region==='powder'&&b.dataset.powder)||(region==='hana'&&b.dataset.hana)
+      const inRegion=!region||b.dataset.region===region||(region==='fav'&&b.dataset.fav)||(region==='powder'&&b.dataset.powder)||(region==='hana'&&b.dataset.hana)||(region==='hyaku'&&b.dataset.hyaku)||(region==='kansai'&&b.dataset.kansai)
         ||(region.startsWith('pref:')&&(b.dataset.prefs||'').split(',').includes(region.slice(5)));
       b.hidden=!(inRegion&&(!t||b.dataset.name.includes(t)));});};
   q.addEventListener('input',apply);
