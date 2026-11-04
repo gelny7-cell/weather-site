@@ -969,7 +969,7 @@ def mountains_page(mts):
             + f"<small>{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>"
             f"</button></th>{cells}</tr>"
             f"<tr class='detail' hidden><td colspan='{len(days) + 1}'><template>{mt_detail(m)}</template></td></tr></tbody>")
-    chips = ("<button class='chip on' data-r=''>すべて</button><button class='chip' data-r='fav'>★お気に入り</button>"
+    chips = ("<button class='chip on' data-r=''>すべて</button><button class='chip' data-r='fav'><span class='favmark'>★</span>お気に入り</button>"
              "<button class='chip' data-r='hana'>花の百名山</button>"
              + "".join(f"<button class='chip' data-r='{r}'>{r}</button>" for r in regions)
              + "".join(f"<button class='chip' data-r='pref:{p}'>{p.rstrip('県府')}</button>" for p in kinki)
@@ -1350,7 +1350,7 @@ def ski_page(ski):
                 f"</button></th>{cells}</tr>"
                 f"<tr class='detail' hidden><td colspan='{len(days) + 1}'><template>{ski_detail(s)}</template></td></tr></tbody>")
     chips = ("<button class='chip on' data-r=''>すべて</button>"
-             + "<button class='chip' data-r='fav'>★お気に入り</button>"
+             + "<button class='chip' data-r='fav'><span class='favmark'>★</span>お気に入り</button>"
              + "<button class='chip' data-r='powder'>❄️パウダー期待</button>"
              + "".join(f"<button class='chip' data-r='{r}'>{r}</button>" for r in used))
     cards = f"""
@@ -1634,7 +1634,7 @@ def surf_page(spots):
                 f"<span>{e(s['name'])}</span>{facmarks(s)}<small>{e(s['pref'])}</small>"
                 f"</button></th>{cells}</tr>"
                 f"<tr class='detail' hidden><td colspan='{len(days) + 1}'><template>{surf_detail(s)}</template></td></tr></tbody>")
-    chips = ("<button class='chip on' data-r=''>すべて</button><button class='chip' data-r='fav'>★お気に入り</button>"
+    chips = ("<button class='chip on' data-r=''>すべて</button><button class='chip' data-r='fav'><span class='favmark'>★</span>お気に入り</button>"
              + "".join(f"<button class='chip' data-r='{c}'>{c}</button>" for c in coasts if any(x.get("coast") == c for x in spots)))
     cards = f"""
 <div class='filters'><input id='q' type='search' placeholder='ポイント名・地名で絞り込み' aria-label='ポイント名・地名で絞り込み'>
