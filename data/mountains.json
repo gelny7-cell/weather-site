@@ -7013,6 +7013,52 @@
     "lat": 36.810216,
     "lon": 137.798782
    }
+  ],
+  "booking": [
+   {
+    "name": "白馬大池山荘",
+    "url": "https://hakubakan.com/lodge/hakubaoikesanso/",
+    "site": "公式HP",
+    "km": 2.2
+   },
+   {
+    "name": "白馬山荘",
+    "url": "https://hakubakan.com/lodge/hakubasanso/",
+    "site": "公式HP",
+    "km": 2.7
+   },
+   {
+    "name": "村営白馬岳頂上宿舎",
+    "url": "http://yamagoya.hakubakousha.com/",
+    "site": "公式HP",
+    "km": 3.1
+   },
+   {
+    "name": "猿倉荘",
+    "url": "https://hakubakan.com/lodge/sarukuraso-hakubajiri/",
+    "site": "公式HP",
+    "km": 3.8
+   },
+   {
+    "name": "栂池山荘",
+    "url": "http://www.tsugaikesansou.jp/",
+    "site": "公式HP",
+    "km": 3.8
+   },
+   {
+    "name": "栂池ヒュッテ",
+    "url": "https://hakubakan.com/lodge/tsugaikehutte/",
+    "site": "公式HP",
+    "km": 3.8
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "村営白馬岳頂上宿舎",
+    "url": "http://yamagoya.hakubakousha.com/",
+    "site": "公式HP",
+    "km": 3.1
+   }
   ]
  },
  {
@@ -7076,7 +7122,33 @@
    "name": "中房温泉登山口",
    "lat": 36.392882,
    "lon": 137.747086
-  }
+  },
+  "booking": [
+   {
+    "name": "燕山荘",
+    "url": "https://www.enzanso.co.jp/",
+    "site": "公式HP",
+    "km": 0.8
+   },
+   {
+    "name": "湯俣山荘",
+    "url": "https://mitsumatasanso.com/yumata/",
+    "site": "公式HP",
+    "km": 2.9
+   },
+   {
+    "name": "湯俣温泉晴嵐荘",
+    "url": "http://seiransou.com/",
+    "site": "公式HP",
+    "km": 3.1
+   },
+   {
+    "name": "有明荘",
+    "url": "https://www.enzanso.co.jp/ariakeso",
+    "site": "公式HP",
+    "km": 3.9
+   }
+  ]
  },
  {
   "no": null,
@@ -7129,7 +7201,35 @@
    "name": "八方池山荘(八方アルペンラインの上)",
    "lat": 36.697007,
    "lon": 137.798922
-  }
+  },
+  "booking": [
+   {
+    "name": "唐松岳頂上山荘",
+    "url": "http://karamatsu.jp/index.html",
+    "site": "公式HP",
+    "km": 0.4
+   },
+   {
+    "name": "五竜山荘",
+    "url": "https://hakubakan.com/lodge/goryusanso/",
+    "site": "公式HP",
+    "km": 2.7
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "唐松岳頂上山荘",
+    "url": "http://karamatsu.jp/index.html",
+    "site": "公式HP",
+    "km": 0.4
+   },
+   {
+    "name": "五竜山荘",
+    "url": "https://hakubakan.com/lodge/goryusanso/",
+    "site": "公式HP",
+    "km": 2.7
+   }
+  ]
  },
  {
   "no": null,
@@ -7192,6 +7292,26 @@
     "name": "徳沢(長塀尾根)",
     "lat": 36.263666,
     "lon": 137.68984
+   }
+  ],
+  "booking": [
+   {
+    "name": "蝶ヶ岳ヒュッテ",
+    "url": "https://www.yamatan.net/hut/chogadakehutte",
+    "site": "Yamatan",
+    "km": 0.2
+   },
+   {
+    "name": "大滝山荘",
+    "url": "https://chougatake.com/ootaki/",
+    "site": "公式HP",
+    "km": 2.1
+   },
+   {
+    "name": "横尾山荘",
+    "url": "https://www.yamatan.net/hut/yokoosanso",
+    "site": "Yamatan",
+    "km": 2.5
    }
   ]
  },
@@ -7259,7 +7379,35 @@
    "name": "新穂高温泉",
    "lat": 36.283115,
    "lon": 137.574676
-  }
+  },
+  "booking": [
+   {
+    "name": "黒部五郎小舎",
+    "url": "https://www.sugorokugoya.com/",
+    "site": "公式HP",
+    "km": 2.0
+   },
+   {
+    "name": "雲ノ平山荘",
+    "url": "https://kumonodaira.com/",
+    "site": "公式HP",
+    "km": 3.5
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "黒部五郎小舎",
+    "url": "https://www.sugorokugoya.com/",
+    "site": "公式HP",
+    "km": 2.0
+   },
+   {
+    "name": "雲ノ平山荘",
+    "url": "https://kumonodaira.com/",
+    "site": "公式HP",
+    "km": 3.1
+   }
+  ]
  },
  {
   "no": null,
@@ -7359,6 +7507,44 @@
     "lat": 36.577971,
     "lon": 137.515069
    }
+  ],
+  "booking": [
+   {
+    "name": "雷鳥沢ヒュッテ",
+    "url": "https://www.raichozawa.net/hyutte.html",
+    "site": "公式HP",
+    "km": 2.0
+   },
+   {
+    "name": "天狗平山荘",
+    "url": "https://www.tengu.ne.jp/",
+    "site": "公式HP",
+    "km": 2.0
+   },
+   {
+    "name": "みくりが池温泉",
+    "url": "https://www.mikuri.com/",
+    "site": "公式HP",
+    "km": 2.3
+   },
+   {
+    "name": "立山室堂山荘",
+    "url": "https://www.yamatan.net/hut/tateyamamurodosanso",
+    "site": "Yamatan",
+    "km": 2.9
+   },
+   {
+    "name": "剣山荘",
+    "url": "https://www.yamatan.net/hut/kenzanso",
+    "site": "Yamatan",
+    "km": 3.1
+   },
+   {
+    "name": "剱澤小屋",
+    "url": "https://www.yamatan.net/hut/tsurugisawagoya",
+    "site": "Yamatan",
+    "km": 3.2
+   }
   ]
  },
  {
@@ -7415,6 +7601,14 @@
     "name": "ブナ立尾根取付(高瀬ダム)",
     "lat": 36.478198,
     "lon": 137.676518
+   }
+  ],
+  "booking": [
+   {
+    "name": "烏帽子小屋",
+    "url": "https://www.ne.jp/asahi/eboshidake/2628/",
+    "site": "公式HP",
+    "km": 1.1
    }
   ]
  },
@@ -7483,6 +7677,34 @@
     "name": "一ノ沢登山口(常念岳経由)",
     "lat": 36.332882,
     "lon": 137.776418
+   }
+  ],
+  "booking": [
+   {
+    "name": "大天荘",
+    "url": "https://www.enzanso.co.jp/daitenso",
+    "site": "公式HP",
+    "km": 0.2
+   },
+   {
+    "name": "大天井ヒュッテ",
+    "url": "https://www.yarigatake.co.jp/",
+    "site": "公式HP",
+    "km": 0.6
+   },
+   {
+    "name": "ヒュッテ西岳",
+    "url": "https://www.nakabusa.com/lodge/lodge.html",
+    "site": "公式HP",
+    "km": 3.8
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "ヒュッテ西岳",
+    "url": "https://www.nakabusa.com/lodge/lodge.html",
+    "site": "公式HP",
+    "km": 3.8
    }
   ]
  },
@@ -10115,6 +10337,34 @@
     "lat": 35.868624,
     "lon": 138.744981
    }
+  ],
+  "booking": [
+   {
+    "name": "甲武信小屋",
+    "url": "https://www.kobushigoya.net/",
+    "site": "公式HP",
+    "km": 1.2
+   },
+   {
+    "name": "十文字小屋",
+    "url": "http://www.hut10monji.com/",
+    "site": "公式HP",
+    "km": 2.8
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "甲武信小屋",
+    "url": "https://www.kobushigoya.net/",
+    "site": "公式HP",
+    "km": 1.2
+   },
+   {
+    "name": "十文字小屋",
+    "url": "http://www.hut10monji.com/",
+    "site": "公式HP",
+    "km": 2.8
+   }
   ]
  },
  {
@@ -10304,6 +10554,26 @@
     "name": "戸沢出合駐車場",
     "lat": 35.435636,
     "lon": 139.173117
+   }
+  ],
+  "booking": [
+   {
+    "name": "尊仏山荘",
+    "url": "https://www.yamatan.net/hut/sombutsusanso",
+    "site": "Yamatan",
+    "km": 0.0
+   },
+   {
+    "name": "花立山荘",
+    "url": "http://hanatatesansou.michikusa.jp/",
+    "site": "公式HP",
+    "km": 1.0
+   },
+   {
+    "name": "鍋割山荘",
+    "url": "http://nabewari.net/",
+    "site": "公式HP",
+    "km": 2.3
    }
   ]
  },
@@ -10509,6 +10779,26 @@
     "name": "寄大橋",
     "lat": 35.420117,
     "lon": 139.13109
+   }
+  ],
+  "booking": [
+   {
+    "name": "鍋割山荘",
+    "url": "http://nabewari.net/",
+    "site": "公式HP",
+    "km": 0.0
+   },
+   {
+    "name": "花立山荘",
+    "url": "http://hanatatesansou.michikusa.jp/",
+    "site": "公式HP",
+    "km": 1.9
+   },
+   {
+    "name": "尊仏山荘",
+    "url": "https://www.yamatan.net/hut/sombutsusanso",
+    "site": "Yamatan",
+    "km": 2.3
    }
   ]
  },
@@ -13173,6 +13463,88 @@
     "lat": 35.981741,
     "lon": 138.301048
    }
+  ],
+  "booking": [
+   {
+    "name": "硫黄岳山荘",
+    "url": "https://iodake.jp/sanso/",
+    "site": "公式HP",
+    "km": 0.7
+   },
+   {
+    "name": "オーレン小屋",
+    "url": "https://www.yamatan.net/hut/orengoya",
+    "site": "Yamatan",
+    "km": 1.0
+   },
+   {
+    "name": "根石岳山荘",
+    "url": "https://iodake.jp/neishidake/",
+    "site": "公式HP",
+    "km": 1.9
+   },
+   {
+    "name": "行者小屋",
+    "url": "http://userweb.alles.or.jp/akadake/",
+    "site": "公式HP",
+    "km": 2.2
+   },
+   {
+    "name": "夏沢鉱泉",
+    "url": "https://iodake.jp/natsuzawa/",
+    "site": "公式HP",
+    "km": 2.3
+   },
+   {
+    "name": "赤岳天望荘",
+    "url": "http://www.yatsugatake.gr.jp/",
+    "site": "公式HP",
+    "km": 2.6
+   },
+   {
+    "name": "赤岳頂上山荘",
+    "url": "http://www.yatsu-honzawaonsen.com/",
+    "site": "公式HP",
+    "km": 3.0
+   },
+   {
+    "name": "しらびそ小屋",
+    "url": "https://shirabisogoya.com/",
+    "site": "公式HP",
+    "km": 3.4
+   },
+   {
+    "name": "黒百合ヒュッテ",
+    "url": "https://www.yamatan.net/hut/kuroyurihutte",
+    "site": "Yamatan",
+    "km": 3.6
+   },
+   {
+    "name": "キレット小屋",
+    "url": "https://hakubakan.com/lodge/kiretto/",
+    "site": "公式HP",
+    "km": 4.0
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "オーレン小屋",
+    "url": "https://www.yamatan.net/hut/orengoya",
+    "site": "Yamatan",
+    "km": 1.0
+   },
+   {
+    "name": "行者小屋",
+    "url": "http://userweb.alles.or.jp/akadake/",
+    "site": "公式HP",
+    "km": 2.2
+   },
+   {
+    "name": "キレット小屋",
+    "url": "https://hakubakan.com/lodge/kiretto/",
+    "site": "公式HP",
+    "km": 4.0
+   }
   ]
  },
  {
@@ -13323,6 +13695,76 @@
     "lat": 35.989407,
     "lon": 138.415359
    }
+  ],
+  "booking": [
+   {
+    "name": "硫黄岳山荘",
+    "url": "https://iodake.jp/sanso/",
+    "site": "公式HP",
+    "km": 0.9
+   },
+   {
+    "name": "行者小屋",
+    "url": "http://userweb.alles.or.jp/akadake/",
+    "site": "公式HP",
+    "km": 1.1
+   },
+   {
+    "name": "赤岳天望荘",
+    "url": "http://www.yatsugatake.gr.jp/",
+    "site": "公式HP",
+    "km": 1.2
+   },
+   {
+    "name": "赤岳頂上山荘",
+    "url": "http://www.yatsu-honzawaonsen.com/",
+    "site": "公式HP",
+    "km": 1.7
+   },
+   {
+    "name": "オーレン小屋",
+    "url": "https://www.yamatan.net/hut/orengoya",
+    "site": "Yamatan",
+    "km": 2.3
+   },
+   {
+    "name": "キレット小屋",
+    "url": "https://hakubakan.com/lodge/kiretto/",
+    "site": "公式HP",
+    "km": 2.7
+   },
+   {
+    "name": "夏沢鉱泉",
+    "url": "https://iodake.jp/natsuzawa/",
+    "site": "公式HP",
+    "km": 3.3
+   },
+   {
+    "name": "根石岳山荘",
+    "url": "https://iodake.jp/neishidake/",
+    "site": "公式HP",
+    "km": 3.3
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "行者小屋",
+    "url": "http://userweb.alles.or.jp/akadake/",
+    "site": "公式HP",
+    "km": 1.1
+   },
+   {
+    "name": "オーレン小屋",
+    "url": "https://www.yamatan.net/hut/orengoya",
+    "site": "Yamatan",
+    "km": 2.3
+   },
+   {
+    "name": "キレット小屋",
+    "url": "https://hakubakan.com/lodge/kiretto/",
+    "site": "公式HP",
+    "km": 2.7
+   }
   ]
  },
  {
@@ -13395,6 +13837,52 @@
     "lat": 36.112347,
     "lon": 138.319261
    }
+  ],
+  "booking": [
+   {
+    "name": "北横岳ヒュッテ",
+    "url": "http://kitayoko.fine.to/",
+    "site": "公式HP",
+    "km": 0.3
+   },
+   {
+    "name": "縞枯山荘",
+    "url": "http://www.lcv.ne.jp/~simagare/",
+    "site": "公式HP",
+    "km": 1.2
+   },
+   {
+    "name": "双子池ヒュッテ",
+    "url": "https://www.yamatan.net/hut/hutagoikehyutte",
+    "site": "Yamatan",
+    "km": 1.7
+   },
+   {
+    "name": "蓼科山頂ヒュッテ",
+    "url": "http://tateshinayama.com/",
+    "site": "公式HP",
+    "km": 2.9
+   },
+   {
+    "name": "蓼科山荘",
+    "url": "https://www.yamatan.net/hut/tateshinasanso",
+    "site": "Yamatan",
+    "km": 2.9
+   },
+   {
+    "name": "麦草ヒュッテ",
+    "url": "http://www.mugikusa.com/",
+    "site": "公式HP",
+    "km": 4.0
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "双子池ヒュッテ",
+    "url": "https://www.yamatan.net/hut/hutagoikehyutte",
+    "site": "Yamatan",
+    "km": 1.7
+   }
   ]
  },
  {
@@ -13463,6 +13951,14 @@
     "name": "御所平峠登山口",
     "lat": 35.901345,
     "lon": 138.171931
+   }
+  ],
+  "booking": [
+   {
+    "name": "山彦荘",
+    "url": "http://www.mid.janis.or.jp/~yamabiko/",
+    "site": "公式HP",
+    "km": 1.0
    }
   ]
  },
@@ -13592,6 +14088,94 @@
     "lat": 36.009954,
     "lon": 138.334308
    }
+  ],
+  "booking": [
+   {
+    "name": "根石岳山荘",
+    "url": "https://iodake.jp/neishidake/",
+    "site": "公式HP",
+    "km": 0.7
+   },
+   {
+    "name": "黒百合ヒュッテ",
+    "url": "https://www.yamatan.net/hut/kuroyurihutte",
+    "site": "Yamatan",
+    "km": 1.2
+   },
+   {
+    "name": "ヒュッテ夏沢",
+    "url": "http://www.yatsugatake.gr.jp/",
+    "site": "公式HP",
+    "km": 1.7
+   },
+   {
+    "name": "山びこ荘",
+    "url": "http://www.yatsu-honzawaonsen.com/",
+    "site": "公式HP",
+    "km": 1.7
+   },
+   {
+    "name": "オーレン小屋",
+    "url": "https://www.yamatan.net/hut/orengoya",
+    "site": "Yamatan",
+    "km": 1.8
+   },
+   {
+    "name": "夏沢鉱泉",
+    "url": "https://iodake.jp/natsuzawa/",
+    "site": "公式HP",
+    "km": 2.1
+   },
+   {
+    "name": "しらびそ小屋",
+    "url": "https://shirabisogoya.com/",
+    "site": "公式HP",
+    "km": 2.2
+   },
+   {
+    "name": "唐沢鉱泉",
+    "url": "http://www.karasawakousen.com/",
+    "site": "公式HP",
+    "km": 2.4
+   },
+   {
+    "name": "高見石小屋",
+    "url": "https://takamiishi.com/",
+    "site": "公式HP",
+    "km": 3.1
+   },
+   {
+    "name": "硫黄岳山荘",
+    "url": "https://iodake.jp/sanso/",
+    "site": "公式HP",
+    "km": 3.2
+   },
+   {
+    "name": "白駒荘",
+    "url": "http://yachiho-montblanc.com/",
+    "site": "公式HP",
+    "km": 3.5
+   },
+   {
+    "name": "赤岳鉱泉",
+    "url": "http://userweb.alles.or.jp/akadake/",
+    "site": "公式HP",
+    "km": 3.6
+   },
+   {
+    "name": "青苔荘",
+    "url": "https://www.yamatan.net/hut/seitaiso",
+    "site": "Yamatan",
+    "km": 3.8
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "オーレン小屋",
+    "url": "https://www.yamatan.net/hut/orengoya",
+    "site": "Yamatan",
+    "km": 1.8
+   }
   ]
  },
  {
@@ -13695,6 +14279,28 @@
     "name": "富士見高原",
     "lat": 35.924026,
     "lon": 138.306397
+   }
+  ],
+  "booking": [
+   {
+    "name": "権現小屋",
+    "url": "https://yatsugatake-seinengoya-tooinomiya.net/",
+    "site": "公式HP",
+    "km": 1.6
+   },
+   {
+    "name": "キレット小屋",
+    "url": "https://hakubakan.com/lodge/kiretto/",
+    "site": "公式HP",
+    "km": 2.8
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "キレット小屋",
+    "url": "https://hakubakan.com/lodge/kiretto/",
+    "site": "公式HP",
+    "km": 2.8
    }
   ]
  },
@@ -13842,6 +14448,88 @@
     "lat": 36.036063,
     "lon": 138.328262
    }
+  ],
+  "booking": [
+   {
+    "name": "黒百合ヒュッテ",
+    "url": "https://www.yamatan.net/hut/kuroyurihutte",
+    "site": "Yamatan",
+    "km": 0.4
+   },
+   {
+    "name": "高見石小屋",
+    "url": "https://takamiishi.com/",
+    "site": "公式HP",
+    "km": 1.5
+   },
+   {
+    "name": "白駒荘",
+    "url": "http://yachiho-montblanc.com/",
+    "site": "公式HP",
+    "km": 2.0
+   },
+   {
+    "name": "しらびそ小屋",
+    "url": "https://shirabisogoya.com/",
+    "site": "公式HP",
+    "km": 2.0
+   },
+   {
+    "name": "根石岳山荘",
+    "url": "https://iodake.jp/neishidake/",
+    "site": "公式HP",
+    "km": 2.2
+   },
+   {
+    "name": "青苔荘",
+    "url": "https://www.yamatan.net/hut/seitaiso",
+    "site": "Yamatan",
+    "km": 2.2
+   },
+   {
+    "name": "唐沢鉱泉",
+    "url": "http://www.karasawakousen.com/",
+    "site": "公式HP",
+    "km": 2.6
+   },
+   {
+    "name": "麦草ヒュッテ",
+    "url": "http://www.mugikusa.com/",
+    "site": "公式HP",
+    "km": 2.9
+   },
+   {
+    "name": "ヒュッテ夏沢",
+    "url": "http://www.yatsugatake.gr.jp/",
+    "site": "公式HP",
+    "km": 3.1
+   },
+   {
+    "name": "山びこ荘",
+    "url": "http://www.yatsu-honzawaonsen.com/",
+    "site": "公式HP",
+    "km": 3.2
+   },
+   {
+    "name": "オーレン小屋",
+    "url": "https://www.yamatan.net/hut/orengoya",
+    "site": "Yamatan",
+    "km": 3.4
+   },
+   {
+    "name": "夏沢鉱泉",
+    "url": "https://iodake.jp/natsuzawa/",
+    "site": "公式HP",
+    "km": 3.5
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "オーレン小屋",
+    "url": "https://www.yamatan.net/hut/orengoya",
+    "site": "Yamatan",
+    "km": 3.4
+   }
   ]
  },
  {
@@ -13969,6 +14657,82 @@
     "name": "美濃戸口",
     "lat": 35.981741,
     "lon": 138.301048
+   }
+  ],
+  "booking": [
+   {
+    "name": "行者小屋",
+    "url": "http://userweb.alles.or.jp/akadake/",
+    "site": "公式HP",
+    "km": 0.9
+   },
+   {
+    "name": "赤岳頂上山荘",
+    "url": "http://www.yatsu-honzawaonsen.com/",
+    "site": "公式HP",
+    "km": 1.1
+   },
+   {
+    "name": "キレット小屋",
+    "url": "https://hakubakan.com/lodge/kiretto/",
+    "site": "公式HP",
+    "km": 1.1
+   },
+   {
+    "name": "赤岳天望荘",
+    "url": "http://www.yatsugatake.gr.jp/",
+    "site": "公式HP",
+    "km": 1.2
+   },
+   {
+    "name": "権現小屋",
+    "url": "https://yatsugatake-seinengoya-tooinomiya.net/",
+    "site": "公式HP",
+    "km": 2.5
+   },
+   {
+    "name": "硫黄岳山荘",
+    "url": "https://iodake.jp/sanso/",
+    "site": "公式HP",
+    "km": 2.7
+   },
+   {
+    "name": "美濃戸高原やまのこ村",
+    "url": "https://yamanokomura.com/",
+    "site": "公式HP",
+    "km": 3.0
+   },
+   {
+    "name": "オーレン小屋",
+    "url": "https://www.yamatan.net/hut/orengoya",
+    "site": "Yamatan",
+    "km": 3.4
+   },
+   {
+    "name": "夏沢鉱泉",
+    "url": "https://iodake.jp/natsuzawa/",
+    "site": "公式HP",
+    "km": 3.7
+   }
+  ],
+  "tent_booking": [
+   {
+    "name": "行者小屋",
+    "url": "http://userweb.alles.or.jp/akadake/",
+    "site": "公式HP",
+    "km": 0.9
+   },
+   {
+    "name": "キレット小屋",
+    "url": "https://hakubakan.com/lodge/kiretto/",
+    "site": "公式HP",
+    "km": 1.1
+   },
+   {
+    "name": "オーレン小屋",
+    "url": "https://www.yamatan.net/hut/orengoya",
+    "site": "Yamatan",
+    "km": 3.4
    }
   ]
  },
