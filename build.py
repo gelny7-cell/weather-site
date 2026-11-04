@@ -1164,7 +1164,7 @@ def ski_hours_line(s):
     if not h:
         return ""
     time_ = h["day"] if h["day"] == h["holiday"] else f"平日 {h['day']} ／ 休日 {h['holiday']}"
-    night = f" · ナイター {h['night']}" if h.get("night") else ""
+    night = f" · ナイター {re.sub(r'[((][^))]*[))]', '', h['night'])}" if h.get("night") else ""     # (期間限定)などの注釈は出さない
     return f"{time_}{night}"
 
 
@@ -1176,8 +1176,8 @@ def plan_text(s):
     md = lambda x: f"{int(x[1])}/{int(x[2])}" if x[2].isdigit() else f"{int(x[1])}月{x[2]}"
     text = f"{md(pl['open'])}〜{md(pl['close'])}"
     if pl["season"] == "2026-2027":
-        return f"{text} <small class='muted'>26-27シーズン・積雪による</small>"
-    return f"{text} <small class='muted'>昨シーズンの期間・今季は未発表</small>"
+        return f"{text} <small class='muted'>26-27シーズン</small>"
+    return f"{text} <small class='muted'>昨シーズンの期間</small>"
 
 
 def ski_info(s):
@@ -1194,14 +1194,13 @@ def ski_info(s):
         row("🕘 営業時間", ski_hours_line(s))
     t = s.get("ticket")
     if t:
-        row("🎫 大人1日リフト券", f"{t['adult']:,}円 <small class='muted'>{t['season'][2:4]}-{t['season'][7:9]}シーズン"
-                                     + ("・今季は未発表" if t["season"] != "2026-2027" else "") + "</small>")
+        row("🎫 大人1日リフト券", f"{t['adult']:,}円 <small class='muted'>{t['season'][2:4]}-{t['season'][7:9]}シーズン</small>")
     # キッカー・ハーフパイプ・ジブのパークがあれば 🏂(ウェザーニュースの「スノーパーク ○」。キッズパークは含まない)
     park = " <span class='fac' title='パーク(キッカー・ジブなど)あり' role='img' aria-label='パークあり'>🏂</span>" if s.get("park") else ""
     # ゲレンデで使うゴンドラ・ロープウェイがあれば 🚠(スキー場へ上がるためだけのものは除く)
     gondola = " <span class='fac' title='ゴンドラ・ロープウェイあり' role='img' aria-label='ゴンドラ・ロープウェイあり'>🚠</span>" if s.get("gondola") else ""
     if sp.get("courses") or sp.get("lifts") or gondola or park:
-        crs = (f"{sp['courses']}<span class='fac' title='コース数' role='img' aria-label='コース'>🎿</span>" if sp.get("courses") else "")
+        crs = str(sp["courses"]) if sp.get("courses") else ""
         lft = (f"{sp['lifts']}<span class='fac' title='リフト数' role='img' aria-label='リフト'>🚡</span>" if sp.get("lifts") else "")
         row("コース・リフト", " ／ ".join(x for x in (crs + park if crs else park.strip(), lft) if x) + gondola)
     if sp.get("longest") or sp.get("max_slope"):
@@ -1214,9 +1213,9 @@ def ski_info(s):
     if s.get("treerun") or s.get("sidecountry"):     # 公式サイト・SURF&SNOW・Wikipedia に記載があったものだけ
         row("🌲 非圧雪", " ／ ".join(x for x, k in (("ツリー", "treerun"), ("サイド", "sidecountry")) if s.get(k)))
     if sp.get("level"):
-        row("📊 難易度", " ".join(k for k, v in sp["level"].items() if v))
+        row("📊 難易度", " ".join(f"{k}{v}" for k, v in sp["level"].items()))
     if sp.get("groom"):
-        row("❄️ 圧雪", " ".join(k for k, v in sp["groom"].items() if v))
+        row("❄️ 圧雪", " ".join(f"{k}{v}" for k, v in sp["groom"].items()))
     if not rows:
         return ""
     return (f"<details class='menu info'><summary class='mapbtn'>📋 スキー場詳細</summary>"
@@ -1355,7 +1354,7 @@ def ski_page(ski):
 <li>上部・下部の標高: OpenStreetMap のリフトの位置と地形の標高から求めた値(一部は手作業で補正)。概算です</li>
 <li>スキー場の一覧・標高差: Wikipedia、Wikidata。リフトの位置: © OpenStreetMap contributors</li>
 <li>公式ページ・ゲレンデマップのボタンは、リンク先が確認できたスキー場だけに出しています</li>
-<li>スキー場詳細: コース数・リフト数・最長滑走距離・最大斜度・標高差は、公式サイトに書いてあればその値、なければ <a href='https://surfsnow.jp/'>SURF&amp;SNOW</a>、それもなければウェザーニュースの掲載値です。難易度・圧雪(コースにあるもの)は SURF&amp;SNOW、大人1日リフト券は公式サイトで確かめられたものはその料金(休日・通常料金)、ほかは SURF&amp;SNOW、ウェザーニュースの掲載料金です(2026-27シーズン。未発表のスキー場は2025-26シーズン)。営業期間は SURF&amp;SNOW のオープン予定日・クローズ予定日です(26-27シーズンが未発表のスキー場は昨シーズンの期間)。🎿 はコース数、🚡 はリフト数です。🏂 は、キッカー・ハーフパイプ・ジブなどのパークがあるスキー場です(ウェザーニュースの掲載情報。キッズパークは含みません)。🚠 は、ゲレンデで使うゴンドラ・ロープウェイがあるスキー場です(びわ湖バレイのように、スキー場へ上がるためだけのものは除く)。🌲 非圧雪のツリー(ツリーラン)・サイド(サイドカントリー。ゲートなどから管理区域外へ出られる仕組み)は、公式サイト・SURF&amp;SNOW・Wikipedia・<a href='https://steep.jp/'>STEEP</a> に記載があったスキー場だけ表示しています。サイドカントリーは自己責任の山岳エリアなので、装備と各スキー場のルールを必ず確認してください。料金や施設は変わることがあるので、公式ページで確認してください</li>
+<li>スキー場詳細: コース数・リフト数・最長滑走距離・最大斜度・標高差は、公式サイトに書いてあればその値、なければ <a href='https://surfsnow.jp/'>SURF&amp;SNOW</a>、それもなければウェザーニュースの掲載値です。難易度・圧雪(コースにあるもの)は SURF&amp;SNOW、大人1日リフト券は公式サイトで確かめられたものはその料金(休日・通常料金)、ほかは SURF&amp;SNOW、ウェザーニュースの掲載料金です(2026-27シーズン。未発表のスキー場は2025-26シーズン)。営業期間は SURF&amp;SNOW のオープン予定日・クローズ予定日です(26-27シーズンが未発表のスキー場は昨シーズンの期間)。コース・リフトは「コース数 ／ リフト数🚡」です。難易度・圧雪の数字は割合(%)です。🏂 は、キッカー・ハーフパイプ・ジブなどのパークがあるスキー場です(ウェザーニュースの掲載情報。キッズパークは含みません)。🚠 は、ゲレンデで使うゴンドラ・ロープウェイがあるスキー場です(びわ湖バレイのように、スキー場へ上がるためだけのものは除く)。🌲 非圧雪のツリー(ツリーラン)・サイド(サイドカントリー。ゲートなどから管理区域外へ出られる仕組み)は、公式サイト・SURF&amp;SNOW・Wikipedia・<a href='https://steep.jp/'>STEEP</a> に記載があったスキー場だけ表示しています。サイドカントリーは自己責任の山岳エリアなので、装備と各スキー場のルールを必ず確認してください。料金や施設は変わることがあるので、公式ページで確認してください</li>
 <li>営業時間: ウェザーニュースの掲載情報(2025-26シーズン)。今シーズンの営業日・時間は公式ページで確認してください</li></ul>
 <h2>このページについて</h2>
 <p>標高差の大きいスキー場100か所(営業を終えた芸北国際スキー場を除く)に、志賀高原 焼額山・キューピットバレイ・だいせんホワイトリゾート・スノーウェーブパーク白鳥高原と、SURF&amp;SNOW の中京・北陸・関西のスキー場を加えた一覧です。表の数字はゲレンデ上部の新雪(前日17時〜当日8時、閉場から開場までに積もる雪)の予報(cm)です。表は7日間で、スキー場名を押すと最大16日間の積雪・気温・0℃の高さ・風の詳細が開きます。</p></div>
@@ -1376,14 +1375,14 @@ def surf_hours(s, wh, fh, d, today):
     rows = []
     for hr in range(6, 17, 1 if lead <= 1 else 3):
         v = {k: hours_of(src, k, d, [hr]) for src, keys in (
-            (wh, ("wave_height", "swell_wave_height", "swell_wave_period", "wave_direction")),
+            (wh, ("wave_height", "swell_wave_height", "swell_wave_period", "swell_wave_direction")),
             (fh, ("wind_speed_10m", "wind_direction_10m", "weather_code"))) for k in keys}
         if all(v.values()):
             v = {k: x[0] for k, x in v.items()}
             air, sea = hours_of(fh, "temperature_2m", d, [hr]), hours_of(wh, "sea_surface_temperature", d, [hr])
             rows.append({"hour": hr, "height": v["wave_height"], "swell": v["swell_wave_height"],
                          "air": air[0] if air else None, "sea": sea[0] if sea else None,
-                         "period": v["swell_wave_period"], "wave_dir": v["wave_direction"],
+                         "period": v["swell_wave_period"], "wave_dir": v["swell_wave_direction"],
                          "wind": v["wind_speed_10m"], "wind_dir": v["wind_direction_10m"],
                          "kind": wind_kind(v["wind_direction_10m"], s["facing"]), "code": v["weather_code"]})
     return rows
@@ -1438,7 +1437,7 @@ def build_surf():
     spots = json.loads((ROOT / "data/surf.json").read_text(encoding="utf-8"))
     today = datetime.now(JST).date()
     waves = marine([(s["sea_lat"], s["sea_lon"]) for s in spots], hourly=",".join([
-        "wave_height", "wave_period", "wave_direction", "swell_wave_height", "swell_wave_period",
+        "wave_height", "swell_wave_height", "swell_wave_period", "swell_wave_direction",
         "sea_surface_temperature"]))
     tides = marine([(s["sea_lat"], s["sea_lon"]) for s in spots], minutely_15="sea_level_height_msl")
     winds = forecast([(s["lat"], s["lon"], 0) for s in spots],
@@ -1461,7 +1460,7 @@ def build_surf():
                 hgt = hours_of(w["hourly"], "wave_height", d, hrs)
                 per = hours_of(w["hourly"], "swell_wave_period", d, hrs)     # 周期はうねりの周期(風波を含めない)
                 swh = hours_of(w["hourly"], "swell_wave_height", d, hrs)
-                wdir = hours_of(w["hourly"], "wave_direction", d, hrs)
+                wdir = hours_of(w["hourly"], "swell_wave_direction", d, hrs)     # うねりの向き
                 ws = hours_of(f["hourly"], "wind_speed_10m", d, hrs)
                 wd = hours_of(f["hourly"], "wind_direction_10m", d, hrs)
                 codes = hours_of(f["hourly"], "weather_code", d, hrs)
@@ -1469,21 +1468,21 @@ def build_surf():
                 if min(len(hgt), len(per), len(swh), len(wdir), len(ws), len(wd), len(codes)) < len(hrs) / 2:
                     continue
                 h_, p_, w_ = sum(hgt) / len(hgt), sum(per) / len(per), sum(ws) / len(ws)
+                sw_ = sum(swh) / len(swh)
                 wdeg = mean_dir(wd, ws)
                 kind = wind_kind(wdeg, s["facing"])
-                if h_ < 0.3:
-                    score = 0
-                elif h_ > 3.0:
+                # 判定はうねりの高さで見る(風波だけの日を良い日にしない)。荒れた海は風波も含めた波の高さで
+                if sw_ < 0.2 or h_ > 3.0:
                     score = 0
                 else:
-                    score = 3 if 0.6 <= h_ <= 2.0 and p_ >= 7 else 2
+                    score = 3 if 0.5 <= sw_ <= 2.0 and p_ >= 7 else 2
                     if p_ < 5:
                         score -= 1
                     if kind == "オンショア" and w_ >= 5:
                         score -= 1
                     if kind == "オフショア" and w_ <= 6 and score < 3:
                         score += 1
-                    if h_ > 2.0:
+                    if sw_ < 0.3 or sw_ > 2.0:
                         score = min(score, 1)
                     score = max(score, 0)
                 # 気温・水温は判定に使わないので、値がなくても時間帯は残す(表で列ごと出さない)
@@ -1512,7 +1511,7 @@ def surf_table(s):
     has_tide = all(x.get("tide") for x in every)
 
     def front(deg):             # うねりが浜の正面(向きの差30°以内)から入るなら 🎯
-        return (" <span class='fac' title='うねりが浜の正面から入る' role='img' aria-label='うねりが浜の正面から'>🎯</span>"
+        return ("<span class='fac' title='うねりが浜の正面から入る' role='img' aria-label='うねりが浜の正面から'>🎯</span>"
                 if deg is not None and ang_diff(deg, s["facing"]) <= 30 else "")
 
     def temps(x):
@@ -1526,18 +1525,18 @@ def surf_table(s):
             date_cell = (f"<td rowspan='{len(d['slots'])}' class='dt'>{label}</td>" if i == 0 else "")
             rows += (f"<tr>{date_cell}<td>{sl['slot']}</td><td class='{cls}'><b>{mark}</b></td>"
                      f"<td>{sl['height']:.1f}m</td>"
-                     f"<td>{sl['swell']:.1f}m</td><td>{sl['period']:.1f}秒</td>"
-                     f"<td>{dir_name(sl['wave_dir'])}{front(sl['wave_dir'])}</td>" + (f"<td>{sl['tide']}</td>" if has_tide else "")
+                     f"<td>{sl['swell']:.1f}m({dir_name(sl['wave_dir'])}{front(sl['wave_dir'])})</td><td>{sl['period']:.1f}秒</td>"
+                     + (f"<td>{sl['tide']}</td>" if has_tide else "")
                      + f"<td>{dir_name(sl['wind_dir'])} {sl['wind']:.1f}m/s <small>{sl['kind']}</small></td>"
                      f"<td>{wx(sl['code'])[0]}</td>{temps(sl)}</tr>")
         for x in d.get("hours", []):
             rows += (f"<tr class='hr' hidden><td class='dt'>{x['hour']}時</td><td colspan='2'></td>"
-                     f"<td>{x['height']:.1f}m</td><td>{x['swell']:.1f}m</td><td>{x['period']:.1f}秒</td>"
-                     f"<td>{dir_name(x['wave_dir'])}{front(x['wave_dir'])}</td>" + (f"<td>{x['tide']}</td>" if has_tide else "")
+                     f"<td>{x['height']:.1f}m</td><td>{x['swell']:.1f}m({dir_name(x['wave_dir'])}{front(x['wave_dir'])})</td>"
+                     f"<td>{x['period']:.1f}秒</td>" + (f"<td>{x['tide']}</td>" if has_tide else "")
                      + f"<td>{dir_name(x['wind_dir'])} {x['wind']:.1f}m/s <small>{x['kind']}</small></td>"
                      f"<td>{wx(x['code'])[0]}</td>{temps(x)}</tr>")
     return ("<div class='scroll'><table class='sub'>"
-            "<tr><th class='dt'>日付</th><th></th><th>判定</th><th>波の高さ</th><th>うねり</th><th>周期</th><th>波の向き</th>" + ("<th>潮</th>" if has_tide else "")
+            "<tr><th class='dt'>日付</th><th></th><th>判定</th><th>波の高さ</th><th>うねり</th><th>周期</th>" + ("<th>潮</th>" if has_tide else "")
             + f"<th>風</th><th>天気</th>{'<th>気温</th>' if has_air else ''}{'<th>水温</th>' if has_sea else ''}</tr>{rows}</table></div>")
 
 
@@ -1580,7 +1579,7 @@ def surf_detail(s):
     suit = (f"<p class='muted' title='ウェットスーツの目安(今日の水温 {t:.0f}℃。風が強い日や朝夕は一段厚めに)'>"
             f"🩱 <b>{wetsuit(t).split('(')[0]}</b></p>") if seas else ""
     sun = (f"<p class='muted'>本日の日の出 {s['sun'][0].lstrip('0')} ／ 日の入り {s['sun'][1]}</p>" if s.get("sun") else "")
-    facing = (f"<p class='muted'>🏖️ 浜の向き: <b>{dir_name(s['facing'])}</b>(この向きから入るうねりの時間帯に 🎯)</p>"
+    facing = (f"<p class='muted'>🏖️ 浜の向き: <b>{dir_name(s['facing'])}</b></p>"
               if s.get("facing") is not None else "")
     return (f"{alert_box(s)}{intro(s)}{facing}{sun}{suit}{buttons}{surf_table(s)}"
             + (f"<p class='muted'>波は沖合({s['grid'][0]:.2f}, {s['grid'][1]:.2f})の予報</p>" if s.get("grid") else ""))
@@ -1615,16 +1614,17 @@ def surf_page(spots):
 <h1>サーフィン 波と風</h1>
 {cards}
 <div class='note'><h2>判定の基準</h2><ul>
-<li><b class='r3'>◎</b> 波0.6〜2.0mでうねりの周期7秒以上(オフショアの弱い風なら一段上げる)</li>
-<li><b class='r1'>△</b> うねりの周期5秒未満、5m/s以上のオンショア、2mを超える大きな波(上級者向け)で一段下げる</li>
-<li><b class='r0'>×</b> 0.3m未満(フラット)、または3mを超える荒れた海</li>
+<li>判定は、風波を除いた<b>うねりの高さ</b>で見ています(一覧の数字もうねりの高さ)</li>
+<li><b class='r3'>◎</b> うねり0.5〜2.0mで周期7秒以上(オフショアの弱い風なら一段上げる)</li>
+<li><b class='r1'>△</b> うねりの周期5秒未満、5m/s以上のオンショアで一段下げる。うねり0.3m未満(小さい)・2mを超える(上級者向け)ときは最高でも△</li>
+<li><b class='r0'>×</b> うねり0.2m未満(フラット)、または風波を含めた波が3mを超える荒れた海</li>
 <li>オフショア=陸から海へ吹く風(波の面が整いやすい)、オンショア=海から陸へ吹く風</li>
 <li>波の高さ=風波とうねりを合わせた高さ。うねり・周期=遠くから届く波(うねり)だけの高さと周期(周期が長いほど力のある波)</li>
 <li>気温は浜付近、水温は沖合の海面水温の予報</li>
 <li>潮: その時間帯にある満潮・干潮の時刻。なければ上げ潮・下げ潮(沖合の潮位の予報から求めた目安で、港の潮汐表とは数十分ずれることがあります)</li>
 <li>⚠️ 警報・注意報は、浜のある市町村に気象庁がいま出しているもの</li>
 <li>🚻 トイレ・🚿 シャワー: <a href='https://japan.surfride.net/'>surfride.net</a> の設備の情報で、あるポイントの名前の横に付けています(分からないポイントは付けていません)</li>
-<li>🎯 波の向きが浜の向き(正面)から30°以内の時間帯。うねりがまっすぐ入り、波が立ちやすい目安です</li>
+<li>うねり: 高さ(向き)。🎯 はうねりの向きが浜の向き(正面)から30°以内の時間帯。うねりがまっすぐ入り、波が立ちやすい目安です</li>
 <li>🩱 ウェットスーツの目安: 今日の水温の予報から、25℃以上 ボードショーツ・ラッシュガード、23℃以上 スプリング、20℃以上 シーガル、17℃以上 3/2mm フル、14℃以上 5/3mm フル、11℃以上 5/3mm セミドライ+ブーツ、それ未満 5mm セミドライ+ブーツ・グローブ・キャップ(一般的な目安です)</li>
 <li>📷 ライブカメラ: <a href='https://www.surfers-ocean.com/'>サーファーズオーシャン</a>・<a href='https://japan.surfride.net/'>surfride.net</a> に載っているカメラのうち、ポイントかそのすぐ近くを映すものです(停止中のものは除く)。提供元のサイトが開きます</li>
 <li>一覧は7日間で、その日の朝・昼のよいほうの判定とうねりの高さです。ポイント名を押すと、朝・昼の詳しい予報(最大16日間)が開きます</li>
