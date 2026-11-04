@@ -1200,8 +1200,9 @@ def ski_info(s):
     # ゲレンデで使うゴンドラ・ロープウェイがあれば 🚠(スキー場へ上がるためだけのものは除く)
     gondola = " <span class='fac' title='ゴンドラ・ロープウェイあり' role='img' aria-label='ゴンドラ・ロープウェイあり'>🚠</span>" if s.get("gondola") else ""
     if sp.get("courses") or sp.get("lifts") or gondola or park:
-        row("🎿 コース・リフト", " ／ ".join(x for x in (f"{sp['courses']}コース{park}" if sp.get("courses") else park.strip(),
-                                                        f"リフト{sp['lifts']}基" if sp.get("lifts") else "") if x) + gondola)
+        crs = (f"{sp['courses']}<span class='fac' title='コース数' role='img' aria-label='コース'>🎿</span>" if sp.get("courses") else "")
+        lft = (f"{sp['lifts']}<span class='fac' title='リフト数' role='img' aria-label='リフト'>🚡</span>" if sp.get("lifts") else "")
+        row("コース・リフト", " ／ ".join(x for x in (crs + park if crs else park.strip(), lft) if x) + gondola)
     if sp.get("longest") or sp.get("max_slope"):
         row("📏 最長滑走・最大斜度", " ／ ".join(x for x in (f"{sp['longest']:,}m" if sp.get("longest") else "",
                                                           f"{sp['max_slope']}度" if sp.get("max_slope") else "") if x))
@@ -1210,11 +1211,11 @@ def ski_info(s):
     else:                       # SURF&SNOW にないときは一覧の上部・下部の標高で
         row("⛰️ 標高差", f"{s['top'] - s['base']:,}m <small class='muted'>({s['base']:,}〜{s['top']:,}m)</small>")
     if s.get("treerun") or s.get("sidecountry"):     # 公式サイト・SURF&SNOW・Wikipedia に記載があったものだけ
-        row("🌲 非圧雪の滑走", " ／ ".join(x for x, k in (("ツリーランあり", "treerun"), ("サイドカントリーあり", "sidecountry")) if s.get(k)))
+        row("🌲 非圧雪", " ／ ".join(x for x, k in (("ツリー", "treerun"), ("サイド", "sidecountry")) if s.get(k)))
     if sp.get("level"):
-        row("📊 難易度", " ".join(f"{k}{v}%" for k, v in sp["level"].items()))
+        row("📊 難易度", " ".join(k for k, v in sp["level"].items() if v))
     if sp.get("groom"):
-        row("❄️ 圧雪", " ".join(f"{k}{v}%" for k, v in sp["groom"].items()))
+        row("❄️ 圧雪", " ".join(k for k, v in sp["groom"].items() if v))
     if not rows:
         return ""
     return (f"<details class='menu info'><summary class='mapbtn'>📋 スキー場詳細</summary>"
@@ -1353,7 +1354,7 @@ def ski_page(ski):
 <li>上部・下部の標高: OpenStreetMap のリフトの位置と地形の標高から求めた値(一部は手作業で補正)。概算です</li>
 <li>スキー場の一覧・標高差: Wikipedia、Wikidata。リフトの位置: © OpenStreetMap contributors</li>
 <li>公式ページ・ゲレンデマップのボタンは、リンク先が確認できたスキー場だけに出しています</li>
-<li>スキー場詳細: コース数・リフト数・最長滑走距離・最大斜度・標高差は、公式サイトに書いてあればその値、なければ <a href='https://surfsnow.jp/'>SURF&amp;SNOW</a>、それもなければウェザーニュースの掲載値です。難易度・圧雪の割合は SURF&amp;SNOW、大人1日リフト券は公式サイトで確かめられたものはその料金(休日・通常料金)、ほかは SURF&amp;SNOW、ウェザーニュースの掲載料金です(2026-27シーズン。未発表のスキー場は2025-26シーズン)。営業期間は SURF&amp;SNOW のオープン予定日・クローズ予定日です(26-27シーズンが未発表のスキー場は昨シーズンの期間)。🏂 は、キッカー・ハーフパイプ・ジブなどのパークがあるスキー場です(ウェザーニュースの掲載情報。キッズパークは含みません)。🚠 は、ゲレンデで使うゴンドラ・ロープウェイがあるスキー場です(びわ湖バレイのように、スキー場へ上がるためだけのものは除く)。ツリーラン・サイドカントリー(ゲートなどから管理区域外へ出られる仕組み)は、公式サイト・SURF&amp;SNOW・Wikipedia・<a href='https://steep.jp/'>STEEP</a> に記載があったスキー場だけ表示しています。サイドカントリーは自己責任の山岳エリアなので、装備と各スキー場のルールを必ず確認してください。料金や施設は変わることがあるので、公式ページで確認してください</li>
+<li>スキー場詳細: コース数・リフト数・最長滑走距離・最大斜度・標高差は、公式サイトに書いてあればその値、なければ <a href='https://surfsnow.jp/'>SURF&amp;SNOW</a>、それもなければウェザーニュースの掲載値です。難易度・圧雪(コースにあるもの)は SURF&amp;SNOW、大人1日リフト券は公式サイトで確かめられたものはその料金(休日・通常料金)、ほかは SURF&amp;SNOW、ウェザーニュースの掲載料金です(2026-27シーズン。未発表のスキー場は2025-26シーズン)。営業期間は SURF&amp;SNOW のオープン予定日・クローズ予定日です(26-27シーズンが未発表のスキー場は昨シーズンの期間)。🎿 はコース数、🚡 はリフト数です。🏂 は、キッカー・ハーフパイプ・ジブなどのパークがあるスキー場です(ウェザーニュースの掲載情報。キッズパークは含みません)。🚠 は、ゲレンデで使うゴンドラ・ロープウェイがあるスキー場です(びわ湖バレイのように、スキー場へ上がるためだけのものは除く)。🌲 非圧雪のツリー(ツリーラン)・サイド(サイドカントリー。ゲートなどから管理区域外へ出られる仕組み)は、公式サイト・SURF&amp;SNOW・Wikipedia・<a href='https://steep.jp/'>STEEP</a> に記載があったスキー場だけ表示しています。サイドカントリーは自己責任の山岳エリアなので、装備と各スキー場のルールを必ず確認してください。料金や施設は変わることがあるので、公式ページで確認してください</li>
 <li>営業時間: ウェザーニュースの掲載情報(2025-26シーズン)。今シーズンの営業日・時間は公式ページで確認してください</li></ul>
 <h2>このページについて</h2>
 <p>標高差の大きいスキー場100か所(営業を終えた芸北国際スキー場を除く)に、志賀高原 焼額山・キューピットバレイ・だいせんホワイトリゾート・スノーウェーブパーク白鳥高原と、SURF&amp;SNOW の中京・北陸・関西のスキー場を加えた一覧です。表の数字はゲレンデ上部の新雪(前日17時〜当日8時、閉場から開場までに積もる雪)の予報(cm)です。表は7日間で、スキー場名を押すと最大16日間の積雪・気温・0℃の高さ・風の詳細が開きます。</p></div>
@@ -1574,8 +1575,9 @@ def surf_detail(s):
     buttons = (f"<div class='btnrow'>{star('w', s)} {camlink(s)}{maplink(s['parking'], '駐車場')} {onsenlink(s['lat'], s['lon'])}"
                f"{foodlink(s['lat'], s['lon'], pref, 'surf')}{michilink(s['lat'], s['lon'])}{conbilink(s['lat'], s['lon'])}</div>")
     seas = [sl["sea"] for d in s["days"][:1] for sl in d["slots"] if sl.get("sea") is not None]
-    suit = (f"<p class='muted'>🩱 ウェットスーツの目安: <b>{wetsuit(sum(seas) / len(seas))}</b>"
-            f"(今日の水温 {sum(seas) / len(seas):.0f}℃。風が強い日や朝夕は一段厚めに)</p>") if seas else ""
+    t = sum(seas) / len(seas) if seas else None
+    suit = (f"<p class='muted' title='ウェットスーツの目安(今日の水温 {t:.0f}℃。風が強い日や朝夕は一段厚めに)'>"
+            f"🩱 <b>{wetsuit(t).split('(')[0]}</b></p>") if seas else ""
     sun = (f"<p class='muted'>本日の日の出 {s['sun'][0].lstrip('0')} ／ 日の入り {s['sun'][1]}</p>" if s.get("sun") else "")
     facing = (f"<p class='muted'>🏖️ 浜の向き: <b>{dir_name(s['facing'])}</b>(この向きから入るうねりの時間帯に 🎯)</p>"
               if s.get("facing") is not None else "")
@@ -1746,7 +1748,8 @@ def index_page(mts, ski, spots):
     rec = (f"<div class='scroll'><table class='sub top'>{cols}<tr><th>週末おすすめのスキー場</th>"
            + "".join(f"<th>{day_label(d)}</th>" for d in we) + f"</tr>{rec_rows}</table></div>") if picks else (
         "<p class='muted'>週末に新雪が見込めるスキー場は、いまのところ見当たりません</p>")
-    fav = (f"<div class='favbox' hidden><div class='scroll'><table class='sub top'>{cols}<tr><th></th>"
+    fav = (f"<div class='favbox' hidden><div class='scroll'><table class='sub top'>{cols}"
+           f"<tr><th><a href='snow.html#fav'><span class='favmark'>★</span>お気に入りのスキー場</a></th>"
            + "".join(f"<th>{day_label(d)}</th>" for d in we)
            + f"</tr>{fav_rows}</table></div></div>"
            + "<p class='favhint muted'>スノーボードのページでスキー場の詳細を開き「☆ お気に入り登録」を押すと、ここに表示されます</p>")

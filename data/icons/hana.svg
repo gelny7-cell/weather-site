@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
 <defs><clipPath id="c"><circle cx="32" cy="28" r="19"/></clipPath>
-<linearGradient id="r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ec6fae"/><stop offset="1" stop-color="#b02a72"/></linearGradient></defs>
+<linearGradient id="r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd84a"/><stop offset="1" stop-color="#e3a400"/></linearGradient></defs>
 <g fill="url(#r)">
 <circle cx="32" cy="28" r="25"/>
 <circle cx="32" cy="3" r="4.5"/><circle cx="41.6" cy="4.9" r="4.5"/><circle cx="49.7" cy="10.3" r="4.5"/><circle cx="55.1" cy="18.4" r="4.5"/>
@@ -21,7 +21,7 @@
 </g>
 <circle cx="42" cy="35" r="1.5" fill="#f2b600"/>
 </g>
-<path d="M1 43 H13 V56 H1 L5 49.5 Z M63 43 H51 V56 H63 L59 49.5 Z" fill="#8a1d58"/>
+<path d="M1 43 H13 V56 H1 L5 49.5 Z M63 43 H51 V56 H63 L59 49.5 Z" fill="#a87800"/>
 <rect x="8" y="40" width="48" height="14" rx="2" fill="url(#r)"/>
-<text x="32" y="51.2" text-anchor="middle" font-family="Hiragino Sans,Noto Sans JP,Yu Gothic,Arial,sans-serif" font-size="10" font-weight="900" fill="#fff">花100</text>
+<text x="32" y="51.2" text-anchor="middle" font-family="Hiragino Sans,Noto Sans JP,Yu Gothic,Arial,sans-serif" font-size="10" font-weight="900" fill="#5a3600">花100</text>
 </svg>
