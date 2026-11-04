@@ -1080,6 +1080,7 @@ def build_ski():
         if t is None or b is None:
             continue
         h, bh = t["hourly"], b["hourly"]
+        s["snowfall"] = [(x, v) for x, v in zip(h["time"], h["snowfall"]) if v is not None]   # 上部の1時間ごとの降雪(週末までの合計用)
         for d in sorted({x[:10] for x in h["time"]}):
             if d < today:
                 continue
@@ -1726,8 +1727,11 @@ def index_page(mts, ski, spots):
                f"<tbody><tr><th>週末おすすめの山</th>{we_head}</tr></tbody>{mt_rows}</table></div>")
     # スノー: よく行くスキー場(data/favorites.json)を常に表示する
     upto = we[-1]
-    def until_we(s):            # 名前の下に、今日から週末までに降る雪の合計
-        return f"<br><small class='muted'>週末までの積雪{sum(d['snow'] for d in s['days'] if d['date'] <= upto):.0f}cm</small>"
+    now = datetime.now(JST).strftime("%Y-%m-%dT%H:00")
+    def until_we(s):            # 名前の下に、今から週末最終日の営業終了(17時)までに上部で降る雪の合計(日中も含む)
+        # 1時間ごとの値はその前の1時間の量なので、今の次の時刻〜17時の値を足す
+        snow = sum(v for x, v in s.get("snowfall", []) if now < x <= f"{upto}T17:00")
+        return f"<br><small class='muted'>週末までの積雪{snow:.0f}cm</small>"
     fav_rows = ""
     for s in ski:
         n = s["name"]
