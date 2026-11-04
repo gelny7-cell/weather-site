@@ -754,12 +754,31 @@ def in_bloom(m, dates):
     return any(inside(d) for d in dates)
 
 
+def best_spot(zs, d):
+    """その日にいちばん見ごろの場所の名前(見ごろの真ん中に近い所)。山頂付近・中腹・麓のどこも見ごろでなくても、
+    2か所の見ごろの間の日なら、見ごろは高さとともに連続して移るので、その日が見ごろの真ん中になる間の標高を返す。なければ None"""
+    d = date.fromisoformat(d) if isinstance(d, str) else d
+    mid = lambda z: z["peak"].toordinal() + (z["end"] - z["peak"]).days / 2
+    now = [z for z in zs if season_state(z, d) == 2]
+    if now:
+        return min(now, key=lambda z: abs(d.toordinal() - mid(z)))["name"]
+    by_peak = sorted(zs, key=lambda z: z["peak"])
+    for a, b in zip(by_peak, by_peak[1:]):
+        if a["end"] <= d < b["peak"]:
+            f = min(1, max(0, (d.toordinal() - mid(a)) / max(1, mid(b) - mid(a))))
+            return f"標高{round(a['elev'] + (b['elev'] - a['elev']) * f, -2):,.0f}m付近"
+    return None
+
+
 def season_mark(m, dates, flower=True):
     """指定した日のどれかで桜・紅葉が見ごろ(予想)なら 🌸・🍁(どこが見ごろかを title に)、
     花の百名山の花の時期なら 🌼(flower=False で出さない)"""
     out = ""
     for key, (icon, name, _) in SEASONS.items():
-        where = [z["name"] for z in m.get("season", {}).get(key, []) if any(season_state(z, d) == 2 for d in dates)]
+        zs = m.get("season", {}).get(key, [])
+        where = [z["name"] for z in zs if any(season_state(z, d) == 2 for d in dates)]
+        if not where:           # 2か所の見ごろの間の日は、間の標高が見ごろ
+            where = list(dict.fromkeys(x for d in dates if (x := best_spot(zs, d))))
         if where:
             t = f"{name}の見ごろ(予想): {'・'.join(where)}"
             out += f" <span class='fac' title='{t}' role='img' aria-label='{t}'>{icon}</span>"
@@ -785,10 +804,9 @@ def season_line(m):
                     f"{early}({md(z['peak'])}頃から見ごろ)" if st == 1 else
                     "見ごろ過ぎ" if st == 3 else f"{md(z['peak'])}頃から見ごろ")
             parts.append(f"{z['name']}" + ("" if "標高" in z["name"] else f"({z['elev']:,.0f}m)") + f" {text}")
-        now = [z for z in zs if season_state(z, today) == 2]
-        if now:
-            best = min(now, key=lambda z: abs((today - z["peak"]).days - (z["end"] - z["peak"]).days / 2))
-            tip = f"いまいちばんの見ごろは{best['name']}" if len(zs) > 1 else ""
+        best = best_spot(zs, today)
+        if best:
+            tip = f"いまいちばんの見ごろは{best}" if len(zs) > 1 else ""
         else:
             nxt = [z for z in zs if z["peak"] > today]
             tip = f"次の見ごろは{min(nxt, key=lambda z: z['peak'])['name']}" if nxt and len(zs) > 1 else ""
