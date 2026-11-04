@@ -909,7 +909,7 @@ def mt_detail(m, with_map=True, compact=False):
     link = (routelinks(m) + place + " " + onsenlink(near["lat"], near["lon"])
             + foodlink(near["lat"], near["lon"], m["prefs"][0], "mountain") + michilink(near["lat"], near["lon"])
             + conbilink(near["lat"], near["lon"]) + " " + hutlink(m)) if with_map else ""    # 山小屋は右端
-    sun = (f"<p class='muted'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</p>"
+    sun = (f"<p class='intro'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</p>"
            if m.get("sun") else "")
     # スキー場と同じく、文字をまとめて上に、ボタン(お気に入り登録が先頭)をその下に
     buttons = f"<div class='btnrow'>{star('m', m)} {link}</div>" if with_map else ""
@@ -1524,19 +1524,19 @@ def surf_table(s):
                      if d.get("hours") else day_label(d["date"]))
             date_cell = (f"<td rowspan='{len(d['slots'])}' class='dt'>{label}</td>" if i == 0 else "")
             rows += (f"<tr>{date_cell}<td>{sl['slot']}</td><td class='{cls}'><b>{mark}</b></td>"
-                     f"<td>{sl['height']:.1f}m</td>"
-                     f"<td>{sl['swell']:.1f}m({dir_name(sl['wave_dir'])}{front(sl['wave_dir'])})</td><td>{sl['period']:.1f}秒</td>"
+                     f"<td>{sl['swell']:.1f}m({dir_name(sl['wave_dir'])}{front(sl['wave_dir'])})</td>"
+                     f"<td>{sl['height']:.1f}m</td><td>{sl['period']:.1f}秒</td>"
                      + (f"<td>{sl['tide']}</td>" if has_tide else "")
                      + f"<td>{dir_name(sl['wind_dir'])} {sl['wind']:.1f}m/s <small>{sl['kind']}</small></td>"
                      f"<td>{wx(sl['code'])[0]}</td>{temps(sl)}</tr>")
         for x in d.get("hours", []):
             rows += (f"<tr class='hr' hidden><td class='dt'>{x['hour']}時</td><td colspan='2'></td>"
-                     f"<td>{x['height']:.1f}m</td><td>{x['swell']:.1f}m({dir_name(x['wave_dir'])}{front(x['wave_dir'])})</td>"
+                     f"<td>{x['swell']:.1f}m({dir_name(x['wave_dir'])}{front(x['wave_dir'])})</td><td>{x['height']:.1f}m</td>"
                      f"<td>{x['period']:.1f}秒</td>" + (f"<td>{x['tide']}</td>" if has_tide else "")
                      + f"<td>{dir_name(x['wind_dir'])} {x['wind']:.1f}m/s <small>{x['kind']}</small></td>"
                      f"<td>{wx(x['code'])[0]}</td>{temps(x)}</tr>")
     return ("<div class='scroll'><table class='sub'>"
-            "<tr><th class='dt'>日付</th><th></th><th>判定</th><th>波の高さ</th><th>うねり</th><th>周期</th>" + ("<th>潮</th>" if has_tide else "")
+            "<tr><th class='dt'>日付</th><th></th><th>判定</th><th>うねり</th><th>波の高さ</th><th>周期</th>" + ("<th>潮</th>" if has_tide else "")
             + f"<th>風</th><th>天気</th>{'<th>気温</th>' if has_air else ''}{'<th>水温</th>' if has_sea else ''}</tr>{rows}</table></div>")
 
 
@@ -1576,11 +1576,11 @@ def surf_detail(s):
                f"{foodlink(s['lat'], s['lon'], pref, 'surf')}{michilink(s['lat'], s['lon'])}{conbilink(s['lat'], s['lon'])}</div>")
     seas = [sl["sea"] for d in s["days"][:1] for sl in d["slots"] if sl.get("sea") is not None]
     t = sum(seas) / len(seas) if seas else None
-    suit = (f"<p class='muted' title='ウェットスーツの目安(今日の水温 {t:.0f}℃。風が強い日や朝夕は一段厚めに)'>"
-            f"🩱 <b>{wetsuit(t).split('(')[0]}</b></p>") if seas else ""
-    sun = (f"<p class='muted'>本日の日の出 {s['sun'][0].lstrip('0')} ／ 日の入り {s['sun'][1]}</p>" if s.get("sun") else "")
-    facing = (f"<p class='muted'>🏖️ 浜の向き: <b>{dir_name(s['facing'])}</b></p>"
-              if s.get("facing") is not None else "")
+    # 浜の向き・日の出・ウェットは紹介と同じ文字の形式で
+    suit = (f"<p class='intro' title='今日の水温 {t:.0f}℃から。風が強い日や朝夕は一段厚めに'>"
+            f"ウェット予想:{wetsuit(t).split('(')[0]}</p>") if seas else ""
+    sun = (f"<p class='intro'>本日の日の出 {s['sun'][0].lstrip('0')} ／ 日の入り {s['sun'][1]}</p>" if s.get("sun") else "")
+    facing = (f"<p class='intro'>浜の向き:{dir_name(s['facing'])}</p>" if s.get("facing") is not None else "")
     return (f"{alert_box(s)}{intro(s)}{facing}{sun}{suit}{buttons}{surf_table(s)}"
             + (f"<p class='muted'>波は沖合({s['grid'][0]:.2f}, {s['grid'][1]:.2f})の予報</p>" if s.get("grid") else ""))
 
@@ -1625,7 +1625,7 @@ def surf_page(spots):
 <li>⚠️ 警報・注意報は、浜のある市町村に気象庁がいま出しているもの</li>
 <li>🚻 トイレ・🚿 シャワー: <a href='https://japan.surfride.net/'>surfride.net</a> の設備の情報で、あるポイントの名前の横に付けています(分からないポイントは付けていません)</li>
 <li>うねり: 高さ(向き)。🎯 はうねりの向きが浜の向き(正面)から30°以内の時間帯。うねりがまっすぐ入り、波が立ちやすい目安です</li>
-<li>🩱 ウェットスーツの目安: 今日の水温の予報から、25℃以上 ボードショーツ・ラッシュガード、23℃以上 スプリング、20℃以上 シーガル、17℃以上 3/2mm フル、14℃以上 5/3mm フル、11℃以上 5/3mm セミドライ+ブーツ、それ未満 5mm セミドライ+ブーツ・グローブ・キャップ(一般的な目安です)</li>
+<li>ウェット予想: 今日の水温の予報から、25℃以上 ボードショーツ・ラッシュガード、23℃以上 スプリング、20℃以上 シーガル、17℃以上 3/2mm フル、14℃以上 5/3mm フル、11℃以上 5/3mm セミドライ+ブーツ、それ未満 5mm セミドライ+ブーツ・グローブ・キャップ(一般的な目安です)</li>
 <li>📷 ライブカメラ: <a href='https://www.surfers-ocean.com/'>サーファーズオーシャン</a>・<a href='https://japan.surfride.net/'>surfride.net</a> に載っているカメラのうち、ポイントかそのすぐ近くを映すものです(停止中のものは除く)。提供元のサイトが開きます</li>
 <li>一覧は7日間で、その日の朝・昼のよいほうの判定とうねりの高さです。ポイント名を押すと、朝・昼の詳しい予報(最大16日間)が開きます</li>
 <li>今日〜明後日の日付を押すと、6〜16時の時間ごとの予報が開きます(今日・明日は1時間ごと、明後日は3時間ごと。その時刻の値)</li></ul>
