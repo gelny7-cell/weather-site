@@ -1726,15 +1726,15 @@ def index_page(mts, ski, spots):
                f"<tbody><tr><th>週末おすすめの山</th>{we_head}</tr></tbody>{mt_rows}</table></div>")
     # スノー: よく行くスキー場(data/favorites.json)を常に表示する
     upto = we[-1]
+    def until_we(s):            # 名前の下に、今日から週末までに降る雪の合計
+        return f"<br><small class='muted'>週末までの積雪{sum(d['snow'] for d in s['days'] if d['date'] <= upto):.0f}cm</small>"
     fav_rows = ""
     for s in ski:
         n = s["name"]
         cells = "".join(f"<td>{wx(d['code'])[0]}<br><small class='muted'>新雪</small>{d['snow']:.0f}cm"
                         f"<br><small class='muted'>積雪</small>{d['depth']:.0f}cm</td>"
                         for d in s["days"] if d["date"] in we)
-        until = sum(d["snow"] for d in s["days"] if d["date"] <= upto)
-        more = f"<br><small class='muted'>週末まで {until:.0f}cm</small>" if round(until) else ""
-        fav_rows += link_row(f"<b>{e(n)}</b>{more}",
+        fav_rows += link_row(f"<b>{e(n)}</b>{until_we(s)}",
                              cells, f"snow.html#{s['key']}", f" class='favonly' data-fid='{e(fid('s', s))}' hidden")
     # 週末おすすめのスキー場: 週末の新雪(パウダー期待の日は加点)が多い順に、地方が重ならないよう5か所
     def ski_score(s):
@@ -1752,7 +1752,7 @@ def index_page(mts, ski, spots):
         cells = "".join(f"<td>{wx(d['code'])[0]}<br><small class='muted'>新雪</small>{d['snow']:.0f}cm"
                         + (" <span class='tag'>パウダー</span>" if is_powder(s, d) else "")
                         + f"<br><small class='muted'>積雪</small>{d['depth']:.0f}cm</td>" for d in s["days"] if d["date"] in we)
-        rec_rows += link_row(f"<b>{e(s['name'])}</b><br><small class='muted'>{PREF_SKI_REGION[s['pref']]} · {e(s['pref'])}</small>",
+        rec_rows += link_row(f"<b>{e(s['name'])}</b>{until_we(s)}",
                              cells, f"snow.html#{s['key']}")
     rec = (f"<div class='scroll'><table class='sub top'>{cols}<tr><th>週末おすすめのスキー場</th>"
            + "".join(f"<th>{day_label(d)}</th>" for d in we) + f"</tr>{rec_rows}</table></div>") if picks else (
