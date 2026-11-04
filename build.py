@@ -789,7 +789,7 @@ def season_mark(m, dates, flower=True):
 
 
 def season_line(m):
-    """詳細に出す桜・紅葉の予想(山頂付近・中腹・麓ごと)。どこも見ごろでなければ次の見ごろの場所。見ごろが近いか、見ごろの所があるときだけ"""
+    """詳細に出す桜・紅葉の予想(山頂付近・中腹・麓ごと)見ごろが近いか、見ごろの所があるときだけ"""
     md = lambda x: f"{x.month}/{x.day}"
     today = date.fromisoformat(m["days"][0]["date"]) if m["days"] else datetime.now(JST).date()
     lines = ""
@@ -804,13 +804,7 @@ def season_line(m):
                     f"{early}({md(z['peak'])}頃から見ごろ)" if st == 1 else
                     "見ごろ過ぎ" if st == 3 else f"{md(z['peak'])}頃から見ごろ")
             parts.append(f"{z['name']}" + ("" if "標高" in z["name"] else f"({z['elev']:,.0f}m)") + f" {text}")
-        if best_spot(zs, today):      # いまどこかが見ごろなら、いちばんの見ごろの場所は書かない
-            tip = ""
-        else:
-            nxt = [z for z in zs if z["peak"] > today]
-            tip = f"次の見ごろは{min(nxt, key=lambda z: z['peak'])['name']}" if nxt and len(zs) > 1 else ""
-        lines += (f"<p class='intro'>{icon} {name}(予想): {' / '.join(parts)}"
-                  + (f"。<b class='{key}'>{tip}</b>" if tip else "") + "</p>")
+        lines += f"<p class='intro'>{icon} {name}(予想): {' / '.join(parts)}</p>"
     days = [d["date"] for d in m["days"]]
     if in_bloom(m, days[:1]):
         lines += f"<p class='intro'>🌼 {e(m['flower']['name'])}の花の時期です({e(m['flower']['season'])}ごろ)</p>"
@@ -1833,10 +1827,10 @@ def index_page(mts, ski, spots):
 # ---------------------------------------------------------------- 共通レイアウト
 CSS = """
 :root{color-scheme:light;--bg:#f6f7f5;--card:#fff;--line:#e2e4df;--text:#14171a;--sub:#55595e;--muted:#868a8f;
---accent:#1f6fb2;--r3:#0b7a3b;--r2:#2a78d6;--r1:#b27300;--r0:#c4312f;--sat:#2a6fd6;--sun:#d03b3b;--hl:#e8f1fb;--hyaku:#c4312f;--hyaku-bg:#fdecea;--fav:#f2b600;--koyo:#c4312f;--sakura:#d6337a}
+--accent:#1f6fb2;--r3:#0b7a3b;--r2:#2a78d6;--r1:#b27300;--r0:#c4312f;--sat:#2a6fd6;--sun:#d03b3b;--hl:#e8f1fb;--hyaku:#c4312f;--hyaku-bg:#fdecea;--fav:#f2b600}
 @media (prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#151617;--card:#1e2022;--line:#34373a;--text:#eef0f2;
 --sub:#b9bdc2;--muted:#8c9196;--accent:#6aaee8;--r3:#47c47c;--r2:#5fa3ef;--r1:#e0a43a;--r0:#ef6b69;--sat:#6aa6f0;
---sun:#f07a7a;--hl:#1f2a36;--hyaku:#ff8a87;--hyaku-bg:#3a2222;--fav:#ffd23f;--koyo:#ff8a87;--sakura:#ff8fc0}}
+--sun:#f07a7a;--hl:#1f2a36;--hyaku:#ff8a87;--hyaku-bg:#3a2222;--fav:#ffd23f}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);
 font:15px/1.65 system-ui,-apple-system,"Hiragino Sans","Noto Sans JP","Yu Gothic UI",sans-serif}
 header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
@@ -1879,7 +1873,6 @@ tbody[id],section[id]{scroll-margin-top:56px}   /* 上に固定したメニュ�
 border:1px solid var(--line);background:var(--card);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.12)}
 .star[aria-pressed='true']{border-color:var(--fav);font-weight:600}
 .favmark{color:var(--fav)}
-.intro b.koyo{color:var(--koyo)}.intro b.sakura{color:var(--sakura)}
 .star:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 tr.detail .star{display:table}tr.detail .btnrow .star{display:inline-block;vertical-align:top}h3+.star{margin-top:-2px}
 .favbox h3{font-size:14px;margin:4px 0}
