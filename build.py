@@ -1978,10 +1978,11 @@ document.addEventListener('click',ev=>{
   // 「飲食店」などの一覧は、外を押したら閉じる
   document.querySelectorAll('details.menu[open]').forEach(m=>{if(!m.contains(ev.target))m.open=false;});
 });
-// #fav で来たときは「★お気に入り」の絞り込みを選んだ状態にする(トップページの「★お気に入りの山」から)
-const favChip=location.hash==='#fav'&&document.querySelector(".chip[data-r='fav']");
-if(favChip)favChip.click();
-const target=location.hash&&document.getElementById(location.hash.slice(1));
+// 開いたときは「★お気に入り」の絞り込みを選んだ状態にする(このページにお気に入りがあるとき、または #fav で来たとき)。
+// トップページから特定の場所(#その場所)に来て、そこがお気に入りでなければ「すべて」のまま(隠れないように)
+const target=location.hash&&location.hash!=='#fav'&&document.getElementById(location.hash.slice(1));
+const favChip=document.querySelector(".chip[data-r='fav']");
+if(favChip&&(location.hash==='#fav'||(document.querySelector('tbody.mt[data-fav="1"]')&&(!target||target.dataset.fav))))favChip.click();
 if(target){openDetail(target,true);target.scrollIntoView({block:'start'});}
 """
 
