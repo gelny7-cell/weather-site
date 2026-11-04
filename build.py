@@ -789,7 +789,7 @@ def season_mark(m, dates, flower=True):
 
 
 def season_line(m):
-    """詳細に出す桜・紅葉の予想(山頂付近・中腹・麓ごと)見ごろが近いか、見ごろの所があるときだけ"""
+    """詳細に出す桜・紅葉の予想(山頂付近・中腹・麓ごと)。見ごろが近いか、見ごろの所があるときだけ"""
     md = lambda x: f"{x.month}/{x.day}"
     today = date.fromisoformat(m["days"][0]["date"]) if m["days"] else datetime.now(JST).date()
     lines = ""
