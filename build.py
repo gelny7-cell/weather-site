@@ -1887,7 +1887,9 @@ tr.detail .star{display:table}tr.detail .btnrow .star{display:inline-block;verti
 .comment{background:var(--hl);border-radius:8px;padding:8px 12px;margin:0 0 8px;font-size:14px}
 .sub.mini td,.sub.mini th{text-align:center;padding:4px 6px}.sub.mini td b{display:block}
 .sub.mini td.l{text-align:left}
-@media (min-width:600px){.sub.top{table-layout:fixed}.sub.top col.nmcol{width:40%}}.sub.mini.surf td:not(.l),.sub.mini.surf th{padding:4px 2px}
+@media (min-width:600px){.sub.top{table-layout:fixed}.sub.top col.nmcol{width:40%}}
+/* 週末ページの表は、スマホで横にずらさなくても見えるよう、画面の幅に収めて文字を折り返す */
+@media (max-width:599px){.card{padding:12px 10px}.sub.top,.sub.mini{table-layout:fixed}.sub.top col.nmcol{width:36%}.sub.mini.surf th:first-child{width:30%}.sub.top th,.sub.top td,.sub.mini th,.sub.mini td{white-space:normal;padding:4px 3px;overflow-wrap:anywhere}.sub.top td.l,.sub.mini td.l{min-width:0}}.sub.mini.surf td:not(.l),.sub.mini.surf th{padding:4px 2px}
 .scroll{overflow-x:auto}
 table{border-collapse:collapse;font-variant-numeric:tabular-nums}
 .sub{width:100%}.sub th,.sub td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
