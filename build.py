@@ -1736,7 +1736,14 @@ def index_page(mts, ski, spots):
         return link_row(f"<b>{e(m['name'])}</b>{tags(m)}{season_mark(m, we)}<br><small class='muted'>"
                         f"{m['elev']:,}m · {e(m['prefs'][0])}</small>",
                         cells, f"mountains.html#{m['key']}", attrs)
-    mt_rows = "".join(mt_row(m) for m in good[:10]) or (
+    # 同じエリア(登山ページのエリアのボタンと同じ分け方)は3座まで。上位から順に選ぶ
+    picks, per = [], {}
+    for m in good:
+        if per.get(m["region"], 0) < 3:
+            picks.append(m); per[m["region"]] = per.get(m["region"], 0) + 1
+        if len(picks) == 10:
+            break
+    mt_rows = "".join(mt_row(m) for m in picks) or (
         f"<tbody><tr><td colspan='3'>週末に条件の良い山は見当たりません</td></tr></tbody>")
     we_head = "".join(f"<th>{day_label(d)}</th>" for d in we)
     # お気に入り(☆で登録)の山: 全部の山を隠して入れておき、登録されたものだけ表示する
@@ -1822,7 +1829,7 @@ def index_page(mts, ski, spots):
 <div class='note'><p>{label} の予報から、よさそうな場所をまとめました。</p>
 <p>警報・注意報・火山の印は、今出ているものなので各ページの詳細で表示しています。</p>
 <p>週末おすすめのスキー場: 週末の新雪の合計(パウダー期待の日は10cm分を加点)が多い順に、北海道・東北・関東・新潟・長野・北陸・東海・近畿などの地方が重ならないよう最大5か所。</p>
-<p>週末おすすめの山: 週末の両日が○以上の山(上位10座、判定が良く風の弱い順)。気温は山頂付近の6〜15時の平均、風は同じ時間帯の最大。名前を押すと、各ページでその場所の予報が開きます。</p></div>
+<p>週末おすすめの山: 週末の両日が○以上の山(上位10座、判定が良く風の弱い順。同じエリアは3座まで)。気温は山頂付近の6〜15時の平均、風は同じ時間帯の最大。名前を押すと、各ページでその場所の予報が開きます。</p></div>
 """
 
 
