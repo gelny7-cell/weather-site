@@ -2044,6 +2044,25 @@ body:is(.g-mt,.g-snow,.g-surf) #q{width:100%;max-width:none;margin:0 0 8px;font-
 .slots{flex-basis:100%;font-size:11px;color:var(--sub)}.slots b{font-size:12px;margin:0 2px 0 1px}
 .why{margin:6px 0 0;font-size:13px;color:var(--g-ink);line-height:1.5}.why::before{content:'💬 '}
 .favnote{display:inline-block;margin:0 0 8px 6px;font-size:11px;color:var(--muted);vertical-align:middle}
+/* 詳細の表(スマホ): 1行を1枚のカードに。値の前に列の見出しを小さく出す。パソコンでは今の表のまま */
+@media (max-width:599px){
+.scroll:has(>table.cardify){overflow:visible}
+table.cardify,table.cardify tbody{display:block;width:100%}
+table.cardify tr:has(>th){display:none}
+table.cardify tr{display:grid;grid-template-columns:1fr 1fr;column-gap:10px;row-gap:2px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:0 0 8px}
+table.cardify tr[hidden]{display:none}
+table.cardify td{display:block;padding:1px 0;border:0;white-space:normal;position:static;background:none;box-shadow:none;min-width:0}
+table.cardify td:empty{display:none}
+table.cardify td[data-l]::before{content:attr(data-l);display:inline-block;margin-right:6px;font-size:11px;font-weight:400;color:var(--muted)}
+table.cardify td.dt,table.cardify td.dt:is(*){box-shadow:none!important;background:none!important;position:static}
+table.cardify td.dt{grid-column:1/-1;font-size:15px;font-weight:600;padding-bottom:2px;border-bottom:1px solid var(--line);margin-bottom:3px}
+table.cardify tr[data-dt]::before{content:attr(data-dt);grid-column:1/-1;font-size:13px;color:var(--sub)}
+table.cardify td[class^='r'] b,table.cardify td[class^='r']{font-size:17px;font-weight:700}
+table.cardify tr.hr{grid-template-columns:repeat(3,1fr);background:var(--g-card,var(--hl));border-color:transparent;margin:-4px 0 8px 12px;padding:5px 8px;font-size:12px}
+table.cardify tr.hr td.dt{font-size:12px;border:0;margin:0;padding:0}
+table.cardify tr.hr td[data-l]::before{font-size:10px}
+:is(.g-snow,.g-surf) table.cardify tr.hr{grid-template-columns:1fr 1fr}
+}
 .empty{background:var(--card);border-radius:12px;padding:16px;text-align:center;color:var(--sub)}
 .back{margin:0 0 6px;font-size:14px}.back a{display:inline-flex;align-items:center;gap:2px;text-decoration:none;padding:6px 0}.chev{width:18px;height:18px}.spoth{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
 .spotsub{margin:-2px 0 6px;color:var(--muted);font-size:13px}
@@ -2081,6 +2100,23 @@ const openDetail=(tb,open)=>{const d=tb.querySelector('tr.detail'),b=tb.querySel
       .catch(()=>{lz.dataset.state='';lz.innerHTML="<p class='muted'>詳細を読み込めませんでした。もう一度開くか、ページを再読み込みしてください</p>";});}
   d.hidden=!open;if(b)b.setAttribute('aria-expanded',String(open));};
 paintFavs();
+// 詳細の表: 各値に列の見出しをラベルとして付け(2段の見出し・2行にまたがる日付にも対応)、スマホ幅では1行を1枚のカードにする(CSS)
+const SHORT={'山頂付近の気温':'気温','雷の確率 独自推定':'雷','最大瞬間風速':'最大瞬間','波力 kW/m':'波力','0℃の高さ':'0℃高度'};
+const shortLabel=s=>{s=s.replace(/\\s+/g,' ').trim();s=s.replace(/[(（][^)）]*[)）]/g,'').trim();return SHORT[s]||s;};
+document.querySelectorAll('table.sub').forEach(t=>{
+  const rows=[...t.rows],head=rows.filter(r=>[...r.cells].every(c=>c.tagName==='TH'));if(!head.length)return;
+  const lab=[],occ=[];
+  head.forEach((r,ri)=>{let c=0;[...r.cells].forEach(th=>{while((occ[ri]||[])[c])c++;const cs=th.colSpan||1,rs=th.rowSpan||1,x=shortLabel(th.innerText);
+    for(let a=0;a<rs;a++)for(let b=0;b<cs;b++){(occ[ri+a]=occ[ri+a]||[])[c+b]=1;if(a===0)lab[c+b]=lab[c+b]&&ri>0?lab[c+b]+' '+x:x;}c+=cs;});});
+  const od=[];let dt='';
+  rows.filter(r=>!head.includes(r)).forEach((r,ri)=>{let c=0;
+    if((od[ri]||[])[0])r.dataset.dt=dt;            // 日付が上の行から続いている(サーフィンの昼など)
+    [...r.cells].forEach(td=>{while((od[ri]||[])[c])c++;const cs=td.colSpan||1,rs=td.rowSpan||1;
+      if(lab[c]&&!td.classList.contains('dt'))td.dataset.l=cs>1&&lab[c]!==lab[c+1]?lab[c].replace(/^平均/,''):lab[c];   // 2列をまとめた欄(時間ごとの風)は「風速」
+      if(td.classList.contains('dt')&&rs>1)dt=td.innerText.replace(/[▼▲]/g,'').trim();
+      for(let a=0;a<rs;a++)for(let b=0;b<cs;b++)(od[ri+a]=od[ri+a]||[])[c+b]=1;c+=cs;});});
+  t.classList.add('cardify');
+});
 const setHd=()=>{const h=document.querySelector('header');if(h)document.documentElement.style.setProperty('--hd',h.offsetHeight+'px');};
 setHd();addEventListener('resize',setHd);
 const q=document.getElementById('q');
