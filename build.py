@@ -941,15 +941,7 @@ def mt_detail(m, with_map=True, compact=False):
             + f"<th>降水量</th>{'<th>雷の確率</th>' if has_t else ''}</tr>{rows}</table></div>")
 
 
-DETAILS = {}                    # 別ファイル(d/キー.html)に書き出す詳細
-BUILD_ID = datetime.now(JST).strftime("%Y%m%d%H%M")
 
-
-def lazy(key, html):
-    """詳細を d/キー.html に分けて、開いたときに読み込む印だけを置く(登山・スノーボードのページを軽くするため)。
-    ?v= は一覧と同じ回の詳細を読むため(古いキャッシュを使わない)"""
-    DETAILS[key] = html
-    return f"<div class='lazy' data-src='d/{key}.html?v={BUILD_ID}'></div>"
 
 
 SPOT_PAGES = {}                 # スポットごとの詳細ページ: ファイル名 → (タイトル, 本文, 一覧のページ)
@@ -1481,38 +1473,35 @@ def ski_detail(s, with_map=True, simple=False):
 
 
 def ski_page(ski):
-    days = [d["date"] for d in ski[0]["days"][:TOP_DAYS]]   # 一覧は7日、詳細は全日数
-    head = "".join(f"<th>{day_label2(d, i == 0)}</th>" for i, d in enumerate(days))
-    used = []
-    rows = ""
-    for r in SKI_REGIONS:                       # 地方の順に並べる
-        for s in [x for x in ski if PREF_SKI_REGION[x["pref"]] == r]:
-            if r not in used:
-                used.append(r)
-            cells = ""
-            for d in s["days"][:TOP_DAYS]:
-                icon, label = wx(d["code"])
-                snow_cls = "big" if d["snow"] >= 20 else ("mid" if d["snow"] >= 5 else "muted")
-                cells += (f"<td title='{e(label)} {round(d['tmin'])}〜{round(d['tmax'])}℃'>"
-                          f"<b class='{snow_cls}'>{d['snow']:.0f}</b><small>{icon}</small></td>")
-            powder7 = " data-powder='1'" if any(is_powder(s, d) for d in s["days"][:TOP_DAYS]) else ""
-            rows += (
-                f"<tbody class='mt' id='{s['key']}' data-fid='{e(fid('s', s))}' data-region='{r}' data-name='{e(s['name'] + s.get('yomi', ''))}'{powder7}>"
-                f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
-                f"<span>{e(s['name'])}</span>{hour_marks(s)}{alert_tags(s)}<small>{e(s['pref'])}{status_tag(s, datetime.now(JST).date())}</small>"
-                f"</button></th>{cells}</tr>"
-                f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{lazy(s['key'], ski_detail(s))}</td></tr></tbody>")
-    chips = ("<button class='chip on' data-r=''>すべて</button>"
-             + "<button class='chip' data-r='fav'><span class='favmark'>★</span>お気に入り</button>"
-             + "<button class='chip' data-r='powder'>❄️パウダー期待</button>"
-             + "".join(f"<button class='chip' data-r='{r}'>{r}</button>" for r in used))
-    cards = f"""
-<div class='filters'><input id='q' type='search' placeholder='スキー場名で絞り込み' aria-label='スキー場名で絞り込み'>
-<div class='chips'>{chips}</div></div>
-<div class='gridwrap'><table class='grid'><thead><tr><th class='nm'>スキー場</th>{head}</tr></thead>{rows}</table></div>"""
-    return f"""
-<h1>スノーボード 雪と天気</h1>
-{cards}
+    days = [d["date"] for d in ski[0]["days"]]
+    order = list(SKI_REGIONS)                  # 地域順に並べるとき用
+    items = []
+    stmap = {"open": "o", "before": "b", "after": "a", "unknown": "u", "none": "u"}
+    for s in ski:
+        url = spot_url("s", s)
+        r = PREF_SKI_REGION[s["pref"]]
+        st0 = season_status(s, days[0])[1] if s.get("plan") else ""
+        items.append({"k": s["key"], "f": fid("s", s), "n": s["name"], "y": s.get("yomi", ""), "r": r, "ro": order.index(r),
+                      "p": s["pref"], "u": url, "b": hour_marks(s) + alert_tags(s), "bc": 1 if s.get("bc") else 0,
+                      "ol": (st0 if st0.startswith("営業前") else ""),
+                      "d": [[round(x["snow"]), wx(x["code"])[0], round(x["tmin"]), round(x["tmax"]), round(x["wind_avg"]),
+                             1 if is_powder(s, x) else 0, "" if s.get("bc") else stmap[season_status(s, x["date"])[0]]]
+                            for x in s["days"]]})
+        back = f"<p class='back'><a href='snow.html'><svg class='chev' viewBox='0 0 24 24' aria-hidden='true'><path d='M15 5l-7 7 7 7' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/></svg>スノーボードの一覧</a></p>"
+        SPOT_PAGES[url] = (f"{s['name']}の雪と天気",
+                           f"{back}<div class='ghead'><h1 class='spoth'>{e(s['name'])}{hour_marks(s)}{alert_tags(s)}</h1>"
+                           f"<p class='spotsub'>{e(s['pref'])}{status_tag(s, datetime.now(JST).date())}</p></div>{ski_detail(s)}",
+                           "snow.html")
+    regions = ([("", "全国")] + [(r, "関西" if r == "近畿" else r) for r in SKI_REGIONS if r not in ("中国・四国", "九州")]
+               + [("中国・四国|九州", "中四国・九州")])
+    filters = [("snow", "予想新雪(選んだ日の合計)", [("", "指定なし"), ("5", "5cm以上"), ("10", "10cm以上")]),
+               ("open", "営業状況", [("", "すべて"), ("o", "営業中")])]
+    sorts = [("snow", "新雪量順"), ("powder", "パウダー期待順"), ("region", "地域順"), ("name", "スキー場名順")]
+    data = {"kind": "s", "days": day_info(days), "we": weekend(days), "items": items}
+    return (genre_head("🏂", "スノーボード", "ゲレンデ上部の予報から、前夜〜朝に降る新雪の量とパウダーを予想します(予報値で、ゲレンデの積雪の実測ではありません)")
+            + list_controls("スキー場名で探す", regions, [], filters, sorts)
+            + f"<script type='application/json' id='spots-data'>{spots_json(data)}</script>\n"
+            + f"""
 <details class='note'><summary>判定の基準・データについて</summary><ul>
 <li>新雪: 前日17時〜当日8時(ゲレンデが閉まってから開くまで)に降る雪の量の予報</li>
 <li>積雪: 朝9時に積もっている雪の深さの予報(気象モデルの推定。実際の積雪と大きく違うことがあります)</li>
@@ -1536,7 +1525,7 @@ def ski_page(ski):
 <li>営業時間: ウェザーニュースの掲載情報(2025-26シーズン)。今シーズンの営業日・時間は公式ページで確認してください</li></ul>
 <h2>このページについて</h2>
 <p>標高差の大きいスキー場100か所(営業を終えた芸北国際スキー場を除く)に、志賀高原 焼額山・キューピットバレイ・だいせんホワイトリゾート・スノーウェーブパーク白鳥高原と、SURF&amp;SNOW の中京・北陸・関西のスキー場を加えた一覧です。表の数字はゲレンデ上部の新雪(前日17時〜当日8時、閉場から開場までに積もる雪)の予報(cm)です。表は7日間で、スキー場名を押すと最大16日間の積雪・気温・0℃の高さ・風の詳細が開きます。</p></details>
-"""
+""")
 
 
 # ---------------------------------------------------------------- サーフィン
@@ -1773,33 +1762,30 @@ def surf_detail(s):
 
 
 def surf_page(spots):
-    days = [d["date"] for d in spots[0]["days"][:TOP_DAYS]]   # 一覧は7日、詳細は全日数
-    head = "".join(f"<th>{day_label2(d, i == 0)}</th>" for i, d in enumerate(days))
-    coasts = ["太平洋側", "日本海側"]
-    rows = ""
-    for c in coasts:                            # 海側ごとに並べる
-        for s in sorted([x for x in spots if x.get("coast") == c], key=lambda x: -x["lon"]):   # 東から西へ
-            cells = ""
-            for d in s["days"][:TOP_DAYS]:      # 一覧はその日の朝・昼のよいほうの判定とうねりの高さだけ
-                sl = max(d["slots"], key=lambda x: x["score"])
-                mark, cls = RATE[sl["score"]]
-                cells += (f"<td class='{cls}' title='{sl['slot']} 波{sl['height']:.1f}m うねり{sl['swell']:.1f}m "
-                          f"周期{sl['period']:.1f}秒 {sl['kind']}'><b>{mark}</b><small>{sl['swell']:.1f}m</small></td>")
-            rows += (
-                f"<tbody class='mt' id='{s['key']}' data-fid='{e(fid('w', s))}' data-region='{c}' data-name='{e(s['name'] + s['pref'])}'>"
-                f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
-                f"<span>{e(s['name'])}</span>{facmarks(s)}<small>{e(s['pref'])}</small>"
-                f"</button></th>{cells}</tr>"
-                f"<tr class='detail' hidden><td colspan='{len(days) + 1}'><template>{surf_detail(s)}</template></td></tr></tbody>")
-    chips = ("<button class='chip on' data-r=''>すべて</button><button class='chip' data-r='fav'><span class='favmark'>★</span>お気に入り</button>"
-             + "".join(f"<button class='chip' data-r='{c}'>{c}</button>" for c in coasts if any(x.get("coast") == c for x in spots)))
-    cards = f"""
-<div class='filters'><input id='q' type='search' placeholder='ポイント名・地名で絞り込み' aria-label='ポイント名・地名で絞り込み'>
-<div class='chips'>{chips}</div></div>
-<div class='gridwrap'><table class='grid surf'><thead><tr><th class='nm'>ポイント</th>{head}</tr></thead>{rows}</table></div>"""
-    return f"""
-<h1>サーフィン 波と風</h1>
-{cards}
+    days = [d["date"] for d in spots[0]["days"]]
+    items = []
+    for s in spots:
+        url = spot_url("w", s)
+        pref = re.match(r".+?[都道府県]", s["pref"]).group(0)
+        items.append({"k": s["key"], "f": fid("w", s), "n": s["name"], "y": s.get("yomi", ""), "r": pref, "p": s["pref"],
+                      "lon": s["lon"], "u": url, "b": facmarks(s) + alert_tags(s), "fc": dir_name(s["facing"]),
+                      "d": [[[sl["slot"], sl["score"], round(sl["height"], 1), round(sl["swell"], 1), round(sl["period"], 1),
+                              round(sl["wind"], 1), round(sl["wind_dir"]) if sl["wind_dir"] is not None else None, sl["kind"]]
+                             for sl in x["slots"]] for x in s["days"]]})
+        back = f"<p class='back'><a href='surf.html'><svg class='chev' viewBox='0 0 24 24' aria-hidden='true'><path d='M15 5l-7 7 7 7' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/></svg>サーフィンの一覧</a></p>"
+        SPOT_PAGES[url] = (f"{s['name']}の波と風",
+                           f"{back}<div class='ghead'><h1 class='spoth'>{e(s['name'])}{facmarks(s)}{alert_tags(s)}</h1>"
+                           f"<p class='spotsub'>{e(s['pref'])}</p></div>{surf_detail(s)}", "surf.html")
+    prefs = list(dict.fromkeys(x["r"] for x in sorted(items, key=lambda x: -x["lon"])))     # 東から西へ
+    regions = [("", "全国")] + [(x, x if x == "北海道" else x[:-1]) for x in prefs]
+    filters = [("rate", "評価(朝・昼のよいほう)", [("", "指定なし"), ("2", "◎○のみ"), ("3", "◎のみ")]),
+               ("wind", "風", [("", "指定なし"), ("オフショア", "オフショア"), ("オンショア", "オンショア")])]
+    sorts = [("score", "総合評価順"), ("height", "波高順"), ("period", "周期順"), ("region", "地域順")]
+    data = {"kind": "w", "days": day_info(days), "we": weekend(days), "items": items}
+    return (genre_head("🏄", "サーフィン", "うねりの波力と風向き(オフショア・オンショア)から、朝(6〜11時)・昼(12〜17時)の波を判定します")
+            + list_controls("ポイント名で探す", regions, [], filters, sorts)
+            + f"<script type='application/json' id='spots-data'>{spots_json(data)}</script>\n"
+            + f"""
 <details class='note'><summary>判定の基準・データについて</summary><h2>判定の基準</h2><ul>
 <li>判定は、うねり(風波を除いた遠くから届く波)の<b>波力</b>で見ています。波力 ≈ 0.49 × うねりの高さ² × 周期(kW/m)で、同じ高さでも周期が長いほど力のある波です(例: うねり1m・周期11秒で約5.4)。一覧の数字はうねりの高さです</li>
 <li><b class='r3'>◎</b> 波力3〜12(うねり1m前後で周期8秒以上〜1.5m・10秒くらい)</li>
@@ -1816,11 +1802,11 @@ def surf_page(spots):
 <li>うねり: 高さ(向き)。🎯 はうねりの向きが浜の向き(正面)から30°以内の時間帯。うねりがまっすぐ入り、波が立ちやすい目安です</li>
 <li>ウェット予想: 水温と朝(6〜11時)の気温それぞれから目安を出し、厚い方にしています。水温は沖合の予報なので、岸近くに合わせて1.5℃低く見ています。水温: 25℃以上 ボードショーツ・ラッシュガード、23℃以上 スプリング、20℃以上 シーガル、17℃以上 3/2mm フル、14℃以上 5/3mm フル、11℃以上 5/3mm セミドライ+ブーツ、それ未満 5mm セミドライ+ブーツ・グローブ・キャップ。朝の気温: 27℃以上 ボードショーツ、24℃以上 スプリング、20℃以上 シーガル、14℃以上 3/2mm フル、8℃以上 5/3mm フル、それ未満 5/3mm セミドライ(一般的な目安です)</li>
 <li>📷 ライブカメラ: <a href='https://www.surfers-ocean.com/'>サーファーズオーシャン</a>・<a href='https://japan.surfride.net/'>surfride.net</a> に載っているカメラのうち、ポイントかそのすぐ近くを映すものです(停止中のものは除く)。提供元のサイトが開きます</li>
-<li>一覧は7日間で、その日の朝・昼のよいほうの判定とうねりの高さです。ポイント名を押すと、朝・昼の詳しい予報(最大16日間)が開きます</li>
+<li>一覧は選んだ日の朝・昼のよいほうの判定と、その時間帯のうねり・周期・風です。ポイント名を押すと、朝・昼の詳しい予報(最大16日間)のページに移ります</li>
 <li>今日〜明後日の日付を押すと、6〜16時の時間ごとの予報が開きます(今日・明日は1時間ごと、明後日は3時間ごと。その時刻の値)</li></ul>
 <h2>このページについて</h2>
 <p>朝(6〜11時)と昼(12〜17時)の平均です。波の高さは沖合の予報で、浜では地形や向きにより小さくなることが多いです。</p></details>
-"""
+""")
 
 
 def _size(h):
@@ -1833,165 +1819,9 @@ def _swell(p):
             else "短めの周期の風波まじり" if p >= 5 else "まとまりのない風波")
 
 
-def surf_comments(spots, we):
-    """週末の予報から、海側ごとに2〜3文のコメントを作る(数値からの自動生成)"""
-    out = []
-    for coast in ("太平洋側", "日本海側"):
-        group = [s for s in spots if s.get("coast") == coast]
-        slots = [(s, d["date"], sl) for s in group for d in s["days"] if d["date"] in we for sl in d["slots"]]
-        if not slots:
-            continue
-        s, dt, sl = max(slots, key=lambda x: (x[2]["score"], -abs(x[2]["height"] - 1.2)))
-        dd = date.fromisoformat(dt)
-        when = f"{WEEK[dd.weekday()]}曜の{sl['slot']}"
-        if sl["score"] == 0:
-            text = (f"週末は{'波がほとんどなく' if sl['height'] < 0.3 else '海が荒れて'}、"
-                    "サーフィンには厳しそうです。")
-        else:
-            text = (f"{when}の{s['name']}が{RATE[sl['score']][0]}。{_size(sl['height'])}({sl['height']:.1f}m)の"
-                    f"{dir_name(sl['wave_dir'])}からの{_swell(sl['period'])}(うねり{sl['swell']:.1f}m・周期{sl['period']:.1f}秒)に、"
-                    f"{dir_name(sl['wind_dir'])}の風{sl['wind']:.1f}m/s({sl['kind']})の予報です。")
-        # 土日の波の高さの変化
-        if len(we) == 2:
-            avg = [sum(x[2]["height"] for x in slots if x[1] == d) / max(1, sum(1 for x in slots if x[1] == d))
-                   for d in we]
-            diff = avg[1] - avg[0]
-            text += ("日曜にかけて波は上がり調子。" if diff >= 0.3 else
-                     "日曜にかけて波は下がり気味。" if diff <= -0.3 else "土日とも波の大きさはほぼ同じです。")
-        if any(x[2]["kind"] == "オンショア" and x[2]["wind"] >= 5 for x in slots):
-            text += "オンショアが強まる時間帯は面が乱れそうです。"
-        if any(x[2]["height"] > 2.0 for x in slots):
-            text += "大きめの時間帯もあるので、無理は禁物です。"
-        out.append((coast, text))
-    return out
-
-
-def link_row(name_html, cells_html, page, attrs=""):
-    """トップページの1行(週末だけ)。名前を押すと、各ページでその予報を開いた状態で表示する"""
-    return (f"<tbody{attrs}><tr><td class='l'><a class='xlink' href='{page}'>{name_html}</a></td>"
-            f"{cells_html}</tr></tbody>")
 
 
 # ---------------------------------------------------------------- トップ
-def index_page(mts, ski, spots):
-    days = [d["date"] for d in mts[0]["days"]]
-    we = weekend(days) or days[:2]
-    label = "・".join(f"{date.fromisoformat(d).month}/{date.fromisoformat(d).day}"
-                      f"({WEEK[date.fromisoformat(d).weekday()]})" for d in we)
-    # 登山: 週末の判定の合計が高い山
-    best = sorted(mts, key=lambda m: (-sum(d["score"] for d in m["days"] if d["date"] in we),
-                                      max(d["wind"] for d in m["days"] if d["date"] in we)))
-    good = [m for m in best if all(d["score"] >= 2 for d in m["days"] if d["date"] in we)]
-    def mt_row(m, attrs=""):
-        cells = ""
-        for d in m["days"]:
-            if d["date"] in we:
-                icon, _ = wx(d["code"])
-                cells += (f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b> {icon}"
-                          f"<br><small class='muted'>{round(d['tavg'])}℃ · "
-                          f"{d['wind']:.0f}m/s</small></td>")
-        return link_row(f"<b>{e(m['name'])}</b>{tags(m)}{season_mark(m, we)}<br><small class='muted'>"
-                        f"{m['elev']:,}m · {e(m['prefs'][0])}</small>",
-                        cells, f"mountains.html#{m['key']}", attrs)
-    # 同じエリア(登山ページのエリアのボタンと同じ分け方)は3座まで。上位から順に選ぶ
-    picks, per = [], {}
-    for m in good:
-        if per.get(m["region"], 0) < 3:
-            picks.append(m); per[m["region"]] = per.get(m["region"], 0) + 1
-        if len(picks) == 10:
-            break
-    mt_rows = "".join(mt_row(m) for m in picks) or (
-        f"<tbody><tr><td colspan='3'>週末に条件の良い山は見当たりません</td></tr></tbody>")
-    we_head = "".join(f"<th>{day_label(d)}</th>" for d in we)
-    # お気に入り(☆で登録)の山: 全部の山を隠して入れておき、登録されたものだけ表示する
-    fav_mt = "".join(mt_row(m, f" class='favonly' data-fid='{e(fid('m', m))}' hidden") for m in mts)
-    # お気に入りと天気が良さそうな山は、列の幅がそろうよう1つの表にして、見出しの行を間に挟む
-    # 登山とスノーの表は列の幅をそろえる(広い画面で予報の列がずれないように)
-    cols = "<colgroup><col class='nmcol'>" + "<col>" * len(we) + "</colgroup>"
-    mt_list = (f"<div class='scroll'><table class='sub top'>{cols}"
-               f"<tbody class='favhead' hidden><tr><th><a href='mountains.html#fav'><span class='favmark'>★</span>お気に入りの山</a></th>"
-               f"{we_head}</tr></tbody>{fav_mt}"
-               f"<tbody><tr><th>週末おすすめの山</th>{we_head}</tr></tbody>{mt_rows}</table></div>")
-    # スノー: よく行くスキー場(data/favorites.json)を常に表示する
-    upto = we[-1]
-    now = datetime.now(JST).strftime("%Y-%m-%dT%H:00")
-    def until_we(s):            # 名前の下に、今から週末最終日の営業終了(17時)までに上部で降る雪の合計(日中も含む)
-        # 1時間ごとの値はその前の1時間の量なので、今の次の時刻〜17時の値を足す
-        snow = sum(v for x, v in s.get("snowfall", []) if now < x <= f"{upto}T17:00")
-        return f"<br><small class='muted'>週末までの積雪{snow:.0f}cm</small>"
-    fav_rows = ""
-    for s in ski:
-        n = s["name"]
-        cells = "".join(f"<td>{wx(d['code'])[0]}<br><small class='muted'>新雪</small>{d['snow']:.0f}cm"
-                        f"<br><small class='muted'>積雪</small>{d['depth']:.0f}cm</td>"
-                        for d in s["days"] if d["date"] in we)
-        fav_rows += link_row(f"<b>{e(n)}</b>{until_we(s)}",
-                             cells, f"snow.html#{s['key']}", f" class='favonly' data-fid='{e(fid('s', s))}' hidden")
-    # 週末おすすめのスキー場: 週末の新雪(パウダー期待の日は加点)が多い順に、地方が重ならないよう5か所
-    def ski_score(s):
-        days = [d for d in s["days"] if d["date"] in we]
-        return sum(d["snow"] for d in days) + sum(10 for d in days if is_powder(s, d))
-    picks, used = [], set()
-    # 週末の初日に営業中のところを先に、次に今季未発表・予定なし、最後に営業前・営業終了(同じ段は新雪の多い順)
-    rank = {"open": 0, "unknown": 1, "none": 1, "before": 2, "after": 2}
-    for s in sorted(ski, key=lambda s: (rank[season_status(s, we[0])[0]], -ski_score(s))):
-        r = PREF_SKI_REGION[s["pref"]]
-        if ski_score(s) >= 1 and r not in used and not s.get("bc"):     # バックカントリー(立山室堂)は冬に入れないので候補にしない
-            picks.append(s); used.add(r)
-        if len(picks) == 5:
-            break
-    rec_rows = ""
-    for s in picks:
-        cells = "".join(f"<td>{wx(d['code'])[0]}<br><small class='muted'>新雪</small>{d['snow']:.0f}cm"
-                        + (" <span class='tag'>パウダー</span>" if is_powder(s, d) else "")
-                        + f"<br><small class='muted'>積雪</small>{d['depth']:.0f}cm</td>" for d in s["days"] if d["date"] in we)
-        st = season_status(s, we[0])[1]
-        rec_rows += link_row(f"<b>{e(s['name'])}</b>{until_we(s)}" + (f"<br><small class='muted'>{st}</small>" if st else ""),
-                             cells, f"snow.html#{s['key']}")
-    rec = (f"<div class='scroll'><table class='sub top'>{cols}<tr><th>週末おすすめのスキー場</th>"
-           + "".join(f"<th>{day_label(d)}</th>" for d in we) + f"</tr>{rec_rows}</table></div>") if picks else (
-        "<p class='muted'>週末に新雪が見込めるスキー場は、いまのところ見当たりません</p>")
-    fav = (f"<div class='favbox' hidden><div class='scroll'><table class='sub top'>{cols}"
-           f"<tr><th><a href='snow.html#fav'><span class='favmark'>★</span>お気に入りのスキー場</a></th>"
-           + "".join(f"<th>{day_label(d)}</th>" for d in we)
-           + f"</tr>{fav_rows}</table></div></div>"
-           + "<p class='favhint muted'>スノーボードのページでスキー場の詳細を開き「☆ お気に入り登録」を押すと、ここに表示されます</p>")
-    # サーフ: 予報コメント + 週末4枠(土朝・土昼・日朝・日昼)の判定表
-    surf_comment = "".join(f"<p class='comment'><b>{c}</b> {e(t)}</p>"
-                           for c, t in surf_comments(spots, we))
-    # 日付は2枠(朝・昼)にまたがる1つの見出しにする
-    heads = ("<tr><th rowspan='2'></th>" + "".join(f"<th colspan='2'>{day_label(d)}</th>" for d in we) + "</tr><tr>"
-             + "".join("<th><small>朝</small></th><th><small>昼</small></th>" for _ in we) + "</tr>")
-    surf_rows = ""
-    for s in spots:
-        cells = ""
-        for d in s["days"]:
-            if d["date"] not in we:
-                continue
-            for sl in d["slots"]:
-                mark, cls = RATE[sl["score"]]
-                cells += (f"<td class='{cls}' title='波{sl['height']:.1f}m うねり{sl['swell']:.1f}m 周期{sl['period']:.1f}秒 {sl['kind']}'>"
-                          f"<b>{mark}</b><small class='muted'>{sl['swell']:.1f}m</small></td>")
-        surf_rows += link_row(f"<b>{e(s['name'])}</b>", cells, f"surf.html#{s['key']}",
-                              f" class='favonly' data-fid='{e(fid('w', s))}' hidden")
-    surf_list = (f"{surf_comment}<div class='favbox' hidden><div class='scroll'><table class='sub mini surf'>{heads}"
-                 f"{surf_rows}</table></div></div>"
-                 "<p class='favhint muted'>サーフィンのページでポイントの詳細を開き「☆ お気に入り登録」を押すと、ここに表示されます</p>")
-    return f"""
-<h1>今週末の山と雪と波</h1>
-<section class='card big'><h2><a href='mountains.html'>⛰️ 登山</a></h2>
-{mt_list}
-</section>
-<section class='card'><h2><a href='snow.html'>🏂 スノーボード</a></h2>{rec}{fav}
-</section>
-<section class='card'><h2><a href='surf.html'>🏄 サーフィン</a></h2>{surf_list}
-</section>
-<div class='note'><p>{label} の予報から、よさそうな場所をまとめました。</p>
-<p>警報・注意報・火山の印は、今出ているものなので各ページの詳細で表示しています。</p>
-<p>週末おすすめのスキー場: 週末の新雪の合計(パウダー期待の日は10cm分を加点)が多い順に、北海道・東北・関東・新潟・長野・北陸・東海・近畿などの地方が重ならないよう最大5か所。</p>
-<p>週末おすすめの山: 週末の両日が○以上の山(上位10座、判定が良く風の弱い順。同じエリアは3座まで)。気温は山頂付近の6〜15時の平均、風は同じ時間帯の最大。名前を押すと、各ページでその場所の予報が開きます。</p></div>
-"""
-
 
 # ---------------------------------------------------------------- トップ(ジャンルを選ぶだけ)
 # ジャンルのカード: (ページ, クラス, アイコン, 名前, ひとこと, 写真のファイル名)
@@ -2203,6 +2033,10 @@ body:is(.g-mt,.g-snow,.g-surf) #q{width:100%;max-width:none;margin:0 0 8px;font-
 .sd{display:flex;flex-wrap:wrap;align-items:center;column-gap:6px;row-gap:0;background:var(--g-card);border-radius:8px;padding:4px 8px 5px;min-width:0}
 .sd-l{flex-basis:100%;font-size:11px;line-height:1.5;color:var(--sub);white-space:nowrap}.spot-days.n1 .sd-l{flex-basis:auto;margin-right:4px}.sd-l.sat{color:var(--sat)}.sd-l.sun{color:var(--sun)}
 .sd .mark{font-size:19px;line-height:1.2}.sd-wx{font-size:15px}.sd-v{font-size:12.5px;white-space:nowrap}
+.snow-v{font-size:13px;white-space:nowrap}.snow-v{font-weight:700;font-size:19px;color:var(--g-ink)}.snow-v small{font-size:11px;font-weight:400;margin:0 1px}
+.snow-v.big{color:var(--g)}.tag.pw{margin-left:auto}
+.warr{display:inline-block;margin-right:2px;font-weight:700;color:var(--g)}.sd-v.wind small{font-size:11px}
+.slots{flex-basis:100%;font-size:11px;color:var(--sub)}.slots b{font-size:12px;margin:0 2px 0 1px}
 .empty{background:var(--card);border-radius:12px;padding:16px;text-align:center;color:var(--sub)}
 .back{margin:0 0 6px;font-size:14px}.back a{display:inline-flex;align-items:center;gap:2px;text-decoration:none;padding:6px 0}.chev{width:18px;height:18px}.spoth{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
 .spotsub{margin:-2px 0 6px;color:var(--muted);font-size:13px}
@@ -2316,7 +2150,45 @@ const KINDS={
       if((per[it.r]||0)<3){out.push(it);per[it.r]=(per[it.r]||0)+1;}if(out.length===10)break;}
     return out;},
  },
+ s:{
+  // 営業状況は選んだ最初の日で。予定が分からないものは「未確認」(営業中と推測して出さない)
+  st:(it,days)=>{const c=(it.d[days[0]]||[])[6];return c==='o'?"<span class='st r3'>営業中</span>":c==='b'?`<span class='st'>${it.ol||'営業前'}</span>`:c==='a'?"<span class='st'>営業終了</span>":c==='u'?"<span class='st'>未確認</span>":'';},
+  sub:(it,days)=>`${esc(it.p)}`+(KINDS.s.st(it,days)?' · '+KINDS.s.st(it,days):''),
+  day:(it,i)=>{const d=it.d[i];if(!d)return "<span class='muted'>—</span>";
+    return `<span class='snow-v${d[0]>=10?' big':''}'><small>新雪</small>${d[0]}<small>cm</small></span><span class='sd-wx'>${d[1]}</span>`
+      +`<span class='sd-v'>${d[2]}〜${d[3]}℃ · ${d[4]}m/s</span>`+(d[5]?"<span class='tag pw'>パウダー期待</span>":'');},
+  region:(it,r)=>r.split('|').includes(it.r),
+  filter:{snow:(it,v,days)=>sum(days,i=>(it.d[i]||[0])[0])>=+v,open:(it,v,days)=>(it.d[days[0]]||[])[6]==='o'},
+  key:(it,days)=>[-sum(days,i=>(it.d[i]||[0])[0])],
+  sort:{snow:null,powder:(a,b)=>cmp([-sum(DAYS(),i=>(a.d[i]||[])[5]||0),-sum(DAYS(),i=>(a.d[i]||[0])[0])],[-sum(DAYS(),i=>(b.d[i]||[])[5]||0),-sum(DAYS(),i=>(b.d[i]||[0])[0])]),
+        region:(a,b)=>a.ro-b.ro||sum(DAYS(),i=>(b.d[i]||[0])[0])-sum(DAYS(),i=>(a.d[i]||[0])[0]),name:(a,b)=>(a.y||a.n).localeCompare(b.y||b.n,'ja')},
+  // おすすめ: 営業中→未確認→営業前・終了の順に、新雪(パウダー期待の日は10cm分を加点)の多い順。地方が重ならないよう5か所(今の週末おすすめと同じ規則)
+  rec:(xs,days)=>{const rank={o:0,u:1,'':1,b:2,a:2},sc=it=>sum(days,i=>{const d=it.d[i];return d?d[0]+(d[5]?10:0):0;});
+    const used=new Set(),out=[];
+    for(const it of xs.filter(it=>!it.bc&&sc(it)>=1).sort((a,b)=>cmp([rank[(a.d[days[0]]||[])[6]||''],-sc(a)],[rank[(b.d[days[0]]||[])[6]||''],-sc(b)]))){
+      if(!used.has(it.r)){out.push(it);used.add(it.r);}if(out.length===5)break;}
+    return out;},
+ },
+ w:{
+  best:(it,i)=>{const d=it.d[i];return d&&d.length?d.reduce((a,b)=>b[1]>a[1]?b:a):null;},     // 朝・昼のよいほう(同じなら朝)
+  sub:it=>`${esc(it.p)} · 浜の向き ${esc(it.fc)}`,
+  day:(it,i)=>{const d=it.d[i],b=KINDS.w.best(it,i);if(!b)return "<span class='muted'>—</span>";
+    const both=d.map(s=>`${s[0]}<b class='r${s[1]}'>${MARK[s[1]]}</b>`).join(' ');
+    const arrow=b[6]==null?'':`<span class='warr' style='transform:rotate(${(b[6]+180)%360}deg)' aria-hidden='true'>↑</span>`;
+    return `<b class='r${b[1]} mark'>${MARK[b[1]]}</b><span class='sd-v'>うねり${b[3]}m · ${b[4]}秒</span>`
+      +`<span class='sd-v wind'>${arrow}${b[5]}m/s <small class='${b[7]==='オフショア'?'r3':b[7]==='オンショア'?'r0':''}'>${b[7]}</small></span><span class='slots'>${both}</span>`;},
+  region:(it,r)=>it.r===r,
+  filter:{rate:(it,v,days)=>days.every(i=>{const b=KINDS.w.best(it,i);return b&&b[1]>=+v;}),
+          wind:(it,v,days)=>days.every(i=>{const b=KINDS.w.best(it,i);return b&&b[7]===v;})},
+  key:(it,days)=>[-sum(days,i=>(KINDS.w.best(it,i)||[0,0])[1]),-sum(days,i=>(KINDS.w.best(it,i)||[0,0,0,0])[3])],
+  sort:{score:null,height:(a,b)=>Math.max(...DAYS().map(i=>(KINDS.w.best(b,i)||[0,0,0])[2]))-Math.max(...DAYS().map(i=>(KINDS.w.best(a,i)||[0,0,0])[2])),
+        period:(a,b)=>Math.max(...DAYS().map(i=>(KINDS.w.best(b,i)||[0,0,0,0,0])[4]))-Math.max(...DAYS().map(i=>(KINDS.w.best(a,i)||[0,0,0,0,0])[4])),
+        region:(a,b)=>b.lon-a.lon},
+  // おすすめ: 選んだ日のすべてに○以上の時間帯があるポイントを、判定の良い順に(新しい判定は作らず、並べ方だけ)
+  rec:(xs,days,K)=>xs.filter(it=>days.every(i=>{const b=KINDS.w.best(it,i);return b&&b[1]>=2;})).sort((a,b)=>cmp(K.key(a,days),K.key(b,days))),
+ },
 };
+const DAYS=()=>st.days;
 const cmp=(a,b)=>{for(let i=0;i<a.length;i++){if(a[i]!==b[i])return a[i]-b[i];}return 0;};
 const K=KINDS[G.kind];
 // 旧URL(mountains.html#m12 など)で来たら、その場所の詳細ページへ
@@ -2476,8 +2348,6 @@ def main():
         for i, x in enumerate(items):
             x["key"] = f"{prefix}{i}"
     OUT.mkdir(exist_ok=True)
-    def first(items):                  # トップページは最初の TOP_DAYS 日だけ
-        return [{**x, "days": x["days"][:TOP_DAYS]} for x in items]
     bodies = {"index.html": ("トップ", top_page(updated)),
               "mountains.html": ("登山天気", mountains_page(mts)),
               "snow.html": ("スノーボード", ski_page(ski)),
@@ -2489,10 +2359,7 @@ def main():
         old.unlink()
     for f, (title, body, nav) in SPOT_PAGES.items():
         (OUT / f).write_text(layout(f, title, body, updated, nav), encoding="utf-8")
-    shutil.rmtree(OUT / "d", ignore_errors=True)    # 前回の詳細を消してから書き出す
-    (OUT / "d").mkdir()
-    for key, html in DETAILS.items():
-        (OUT / "d" / f"{key}.html").write_text(html, encoding="utf-8")
+    shutil.rmtree(OUT / "d", ignore_errors=True)    # 以前の詳細の置き場(今はスポットごとのページ)
     (OUT / "manifest.webmanifest").write_text(json.dumps({     # ホーム画面に追加したときの名前・アイコン
         "name": "山と雪と波の天気", "short_name": "山と雪と波", "start_url": "./index.html", "display": "standalone",
         "background_color": "#f6f7f5", "theme_color": "#1f6fb2",
