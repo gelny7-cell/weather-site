@@ -989,8 +989,8 @@ def mountains_page(mts):
 <h1>登山天気</h1>
 <div class='filters'><input id='q' type='search' placeholder='山名で絞り込み(例: 槍、ふじ)' aria-label='山名で絞り込み'>
 <div class='chips'>{chips}</div><div class='chips' id='prefs' hidden>{prefs}</div></div>
-<div class='scroll'><table class='grid' id='mt'><thead><tr><th class='nm'>山名</th>{head}</tr></thead>{rows}</table></div>
-<div class='note'><h2>判定の基準</h2><ul>
+<div class='gridwrap'><table class='grid' id='mt'><thead><tr><th class='nm'>山名</th>{head}</tr></thead>{rows}</table></div>
+<details class='note'><summary>判定の基準・データについて</summary><h2>判定の基準</h2><ul>
 <li><b class='r3'>◎</b> 降水0.5mm未満、風速10m/s未満</li>
 <li><b class='r2'>○</b> 降水3mm未満、風速12m/s未満</li>
 <li><b class='r1'>△</b> 降水10mm未満、風速17m/s未満</li>
@@ -1012,7 +1012,7 @@ def mountains_page(mts):
 <p>日本百名山(<span class='mk hyaku'></span>)・関西百名山(<span class='mk'></span>、山と溪谷社『関西百名山』)・花の百名山(<span class='mk hana'></span>、田中澄江『花の百名山』)と、これらに入っていない都道府県の最高峰・ヤマレコの人気の山(全期間の上位100)の予報です。複数に入る山は1つにまとめ、入っている一覧のバッジを全部付けています。花の百名山の尾瀬沼は燧ヶ岳(燧岳)に、久住山は九重山に、黒檜山は赤城山にまとめています。沼ノ平・雨竜沼・葦毛湿原・五色ヶ原などの湿原・高原は、その場所の標高で予報しています。
 山頂の標高での予報(6〜15時)から、登山に向いた天気かを判定しています。表は7日間で、山名を押すと最大16日間の詳細が開きます。
 詳細で今日から5日後までの日付を押すと、時間ごとの予報(今日は1時間ごと、明日〜5日後は3時間ごと。3時間ごとの行の風速・降水量はその3時間の最大・合計)が開きます。
-日の出・日の入りは本日の時刻で、平地の地平線を基準にしています(山頂ではもう少し早く昇り、遅く沈みます)。</p></div>
+日の出・日の入りは本日の時刻で、平地の地平線を基準にしています(山頂ではもう少し早く昇り、遅く沈みます)。</p></details>
 """
 
 
@@ -1399,11 +1399,11 @@ def ski_page(ski):
     cards = f"""
 <div class='filters'><input id='q' type='search' placeholder='スキー場名で絞り込み' aria-label='スキー場名で絞り込み'>
 <div class='chips'>{chips}</div></div>
-<div class='scroll'><table class='grid'><thead><tr><th class='nm'>スキー場</th>{head}</tr></thead>{rows}</table></div>"""
+<div class='gridwrap'><table class='grid'><thead><tr><th class='nm'>スキー場</th>{head}</tr></thead>{rows}</table></div>"""
     return f"""
 <h1>スノーボード 雪と天気</h1>
 {cards}
-<div class='note'><ul>
+<details class='note'><summary>判定の基準・データについて</summary><ul>
 <li>新雪: 前日17時〜当日8時(ゲレンデが閉まってから開くまで)に降る雪の量の予報</li>
 <li>積雪: 朝9時に積もっている雪の深さの予報(気象モデルの推定。実際の積雪と大きく違うことがあります)</li>
 <li>🌅 早朝営業: 平日か休日の営業開始が7時台以前のスキー場。🌙 ナイター: ナイター営業のあるスキー場(どちらもウェザーニュースの営業時間から。特定日だけのものも含みます)</li>
@@ -1425,7 +1425,7 @@ def ski_page(ski):
 <li>立山室堂(バックカントリー): スキー場ではなく、バックカントリーのエリアとして載せています。積雪・新雪は予報モデルの値で、観測値ではありません。雪崩の危険がある山岳地なので、装備と情報収集は各自で行ってください。立山黒部アルペンルートが閉まる冬(12〜4月)は入れないため、週末おすすめには出しません</li>
 <li>営業時間: ウェザーニュースの掲載情報(2025-26シーズン)。今シーズンの営業日・時間は公式ページで確認してください</li></ul>
 <h2>このページについて</h2>
-<p>標高差の大きいスキー場100か所(営業を終えた芸北国際スキー場を除く)に、志賀高原 焼額山・キューピットバレイ・だいせんホワイトリゾート・スノーウェーブパーク白鳥高原と、SURF&amp;SNOW の中京・北陸・関西のスキー場を加えた一覧です。表の数字はゲレンデ上部の新雪(前日17時〜当日8時、閉場から開場までに積もる雪)の予報(cm)です。表は7日間で、スキー場名を押すと最大16日間の積雪・気温・0℃の高さ・風の詳細が開きます。</p></div>
+<p>標高差の大きいスキー場100か所(営業を終えた芸北国際スキー場を除く)に、志賀高原 焼額山・キューピットバレイ・だいせんホワイトリゾート・スノーウェーブパーク白鳥高原と、SURF&amp;SNOW の中京・北陸・関西のスキー場を加えた一覧です。表の数字はゲレンデ上部の新雪(前日17時〜当日8時、閉場から開場までに積もる雪)の予報(cm)です。表は7日間で、スキー場名を押すと最大16日間の積雪・気温・0℃の高さ・風の詳細が開きます。</p></details>
 """
 
 
@@ -1686,11 +1686,11 @@ def surf_page(spots):
     cards = f"""
 <div class='filters'><input id='q' type='search' placeholder='ポイント名・地名で絞り込み' aria-label='ポイント名・地名で絞り込み'>
 <div class='chips'>{chips}</div></div>
-<div class='scroll'><table class='grid surf'><thead><tr><th class='nm'>ポイント</th>{head}</tr></thead>{rows}</table></div>"""
+<div class='gridwrap'><table class='grid surf'><thead><tr><th class='nm'>ポイント</th>{head}</tr></thead>{rows}</table></div>"""
     return f"""
 <h1>サーフィン 波と風</h1>
 {cards}
-<div class='note'><h2>判定の基準</h2><ul>
+<details class='note'><summary>判定の基準・データについて</summary><h2>判定の基準</h2><ul>
 <li>判定は、うねり(風波を除いた遠くから届く波)の<b>波力</b>で見ています。波力 ≈ 0.49 × うねりの高さ² × 周期(kW/m)で、同じ高さでも周期が長いほど力のある波です(例: うねり1m・周期11秒で約5.4)。一覧の数字はうねりの高さです</li>
 <li><b class='r3'>◎</b> 波力3〜12(うねり1m前後で周期8秒以上〜1.5m・10秒くらい)</li>
 <li><b class='r2'>○</b> 波力2〜3(少し小さめ)、12〜20(大きめ)</li>
@@ -1709,7 +1709,7 @@ def surf_page(spots):
 <li>一覧は7日間で、その日の朝・昼のよいほうの判定とうねりの高さです。ポイント名を押すと、朝・昼の詳しい予報(最大16日間)が開きます</li>
 <li>今日〜明後日の日付を押すと、6〜16時の時間ごとの予報が開きます(今日・明日は1時間ごと、明後日は3時間ごと。その時刻の値)</li></ul>
 <h2>このページについて</h2>
-<p>朝(6〜11時)と昼(12〜17時)の平均です。波の高さは沖合の予報で、浜では地形や向きにより小さくなることが多いです。</p></div>
+<p>朝(6〜11時)と昼(12〜17時)の平均です。波の高さは沖合の予報で、浜では地形や向きにより小さくなることが多いです。</p></details>
 """
 
 
@@ -1952,7 +1952,10 @@ tr.detail .star{display:table}tr.detail .btnrow .star{display:inline-block;verti
 table{border-collapse:collapse;font-variant-numeric:tabular-nums}
 .sub{width:100%}.sub th,.sub td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
 .sub th{color:var(--sub);font-weight:500;font-size:13px}
-.grid{width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.grid{width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:clip}
+/* 一覧の日付の行は、上のメニューの下に固定して残す(--hd はメニューの高さ。JS で測る)。外枠を横スクロールの入れ物にすると固定が効かないので、表は画面の幅に収める(とても狭い画面だけ横スクロール) */
+.gridwrap{overflow-x:clip}.grid thead th{position:sticky;top:var(--hd,50px);z-index:2;background:var(--card)}
+@media (max-width:359px){.gridwrap{overflow-x:auto}}
 .grid th,.grid td{padding:4px 2px;text-align:center;border-bottom:1px solid var(--line)}
 .grid thead th{font-size:12px;color:var(--sub);font-weight:500;padding:8px 2px}
 .grid td b{display:block;font-size:16px;line-height:1.2}.grid td small{font-size:12px}
@@ -1970,11 +1973,20 @@ small{font-size:12px}
 .mk{display:inline-block;width:24px;height:24px;vertical-align:-5px;font-size:0;background:url(kansai.svg) center/contain no-repeat}.mk.hyaku{background-image:url(hyaku.svg)}.mk.hana{background-image:url(hana.svg)}
 .tag.warn{color:var(--r1)}
 .filters{display:flex;flex-direction:column;gap:8px;margin:8px 0 12px}
-#q{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text);max-width:320px}
+#q{font:inherit;font-size:16px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text);max-width:320px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}.chips[hidden]{display:none}
 .chip{font:inherit;font-size:13px;padding:4px 12px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--sub);cursor:pointer}
 .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .note{color:var(--sub);font-size:13px;margin-top:24px}.note ul{padding-left:18px}
+details.note>summary{cursor:pointer;font-size:15px;font-weight:600;color:var(--text);padding:10px 0;list-style:none}
+details.note>summary::-webkit-details-marker{display:none}details.note>summary::after{content:' ▼';font-size:11px}
+details.note[open]>summary::after{content:' ▲'}
+/* スマホ: 指で押しやすい大きさに(目安 40px 以上)。絞り込みのボタンは1列にして横にスワイプ */
+@media (max-width:599px){
+.mapbtn,.star{font-size:13px;padding:9px 14px}.chip{padding:8px 14px}
+.hbtn{display:inline-block;padding:8px 0}.flw{padding:6px 0}
+.chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px 2px}.chips::-webkit-scrollbar{display:none}
+.chip{flex:none}}
 footer{max-width:1000px;margin:0 auto;padding:16px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
 """
 
@@ -2008,6 +2020,8 @@ const openDetail=(tb,open)=>{const d=tb.querySelector('tr.detail'),b=tb.querySel
       .catch(()=>{lz.dataset.state='';lz.innerHTML="<p class='muted'>詳細を読み込めませんでした。もう一度開くか、ページを再読み込みしてください</p>";});}
   d.hidden=!open;if(b)b.setAttribute('aria-expanded',String(open));};
 paintFavs();
+const setHd=()=>{const h=document.querySelector('header');if(h)document.documentElement.style.setProperty('--hd',h.offsetHeight+'px');};
+setHd();addEventListener('resize',setHd);
 const q=document.getElementById('q');
 if(q){
   apply=()=>{const t=q.value.trim();
@@ -2077,7 +2091,9 @@ def layout(file, title, body, updated):
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{title} | 山と雪と波の天気</title>
 <meta name="description" content="日本百名山・関西百名山・花の百名山の登山天気、スキー場の降雪、サーフポイントの波と風の予報をまとめたサイト">
-<style>{CSS}</style></head><body>
+<link rel="icon" href="favicon.png" sizes="32x32"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#1f6fb2">
+<meta name="apple-mobile-web-app-title" content="山と雪と波"><style>{CSS}</style></head><body>
 <header><nav>{nav}</nav></header>
 <main><p class='updated muted'>更新 {updated.month}/{updated.day} {updated:%H:%M} · 次の更新は{next_update(updated)}時すぎの予定</p>{body}<p class='muted'>更新: {updated:%Y年%-m月%-d日 %H:%M}(3時間ごとに自動更新)</p></main>
 <footer>予報は目安です。登山・海に出る前に、気象庁の警報・注意報と現地の情報を必ず確認してください。<br>
@@ -2145,7 +2161,12 @@ def main():
     (OUT / "d").mkdir()
     for key, html in DETAILS.items():
         (OUT / "d" / f"{key}.html").write_text(html, encoding="utf-8")
-    for icon in (ROOT / "data/icons").iterdir():     # ボタンのアイコン
+    (OUT / "manifest.webmanifest").write_text(json.dumps({     # ホーム画面に追加したときの名前・アイコン
+        "name": "山と雪と波の天気", "short_name": "山と雪と波", "start_url": "./index.html", "display": "standalone",
+        "background_color": "#f6f7f5", "theme_color": "#1f6fb2",
+        "icons": [{"src": f"icon-{n}.png", "sizes": f"{n}x{n}", "type": "image/png"} for n in (192, 512)]},
+        ensure_ascii=False), encoding="utf-8")
+    for icon in (ROOT / "data/icons").iterdir():     # ボタンのアイコン・サイトのアイコン
         (OUT / icon.name).write_bytes(icon.read_bytes())
     (OUT / "flowers").mkdir(exist_ok=True)
     for photo in (ROOT / "data/flowers").iterdir():  # 花の百名山の花の写真
