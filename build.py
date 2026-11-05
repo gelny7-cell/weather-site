@@ -1,5 +1,6 @@
 """山と雪と波の天気まとめ。Open-Meteo の予報を取得して public/ に静的なHTMLを書き出す。
 使い方: python build.py  (GitHub Actions で3時間ごとに実行。Python標準ライブラリのみ)"""
+import hashlib
 import html
 import json
 import os
@@ -174,7 +175,7 @@ def fid(kind, x):
 def star(kind, x):
     """詳細の一番上に出す「☆ お気に入り登録」ボタン(押すと登録済みに。登録は見ている人のブラウザに保存する)"""
     return (f"<button type='button' class='star' data-fid='{e(fid(kind, x))}' aria-pressed='false' "
-            f"aria-label='{e(x['name'])}をお気に入りに登録'>☆ お気に入り登録</button>")
+            f"aria-label='{e(x['name'])}をお気に入りに登録'>♡ お気に入りに追加</button>")
 
 
 def hutlink(m):
@@ -951,46 +952,97 @@ def lazy(key, html):
     return f"<div class='lazy' data-src='d/{key}.html?v={BUILD_ID}'></div>"
 
 
+SPOT_PAGES = {}                 # スポットごとの詳細ページ: ファイル名 → (タイトル, 本文, 一覧のページ)
+
+
+def spot_url(kind, x):
+    """スポットの詳細ページのファイル名。お気に入りの目印(名前で作る)から作るので、データの並びが変わっても変わらない"""
+    return f"{kind}-{hashlib.sha1(fid(kind, x).encode()).hexdigest()[:8]}.html"
+
+
+def day_info(days):
+    """一覧の日付のボタン用: [{d: 日付, l: 11/8, w: 土, c: sat/sun/''}]"""
+    out = []
+    for d in days:
+        dt = date.fromisoformat(d)
+        out.append({"d": d, "l": f"{dt.month}/{dt.day}", "w": WEEK[dt.weekday()],
+                    "c": "sat" if dt.weekday() == 5 else ("sun" if dt.weekday() == 6 or dt in holidays() else "")})
+    return out
+
+
+def season_flags(m, d):
+    """その日の季節の印(一覧用): k=紅葉の見ごろ s=桜の見ごろ f=花の百名山の花の時期。判定は season_mark と同じ"""
+    out = ""
+    for key, ch in (("koyo", "k"), ("sakura", "s")):
+        zs = m.get("season", {}).get(key, [])
+        if any(season_state(z, d) == 2 for z in zs) or best_spot(zs, d):
+            out += ch
+    if m.get("flower") and in_bloom(m, [d]):
+        out += "f"
+    return out
+
+
+def spots_json(data):
+    """一覧のデータを、ページに埋め込む JSON にする(</script> で切れないように)"""
+    return json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+
+
+def list_controls(placeholder, regions, subregions, filters, sorts):
+    """3ジャンル共通の一覧の操作部分(仕様書 4): 切替・検索・日付・地域・絞り込み・件数と並び順・一覧"""
+    chip = lambda group, v, label, on=False: (f"<button type='button' class='chip{' on' if on else ''}' data-g='{group}' "
+                                              f"data-v='{e(v)}'>{label}</button>")
+    tabs = "".join(f"<button type='button' class='tab' role='tab' data-tab='{v}' aria-selected='false'>{label}</button>"
+                   for v, label in (("rec", "おすすめ"), ("fav", "お気に入り"), ("all", "全スポット")))
+    reg = "".join(chip("region", v, label, v == "") for v, label in regions)
+    sub = "".join(chip("region", v, label) for v, label in subregions)
+    flt = "".join(f"<div class='fgroup'><span class='flabel'>{label}</span><div class='chips wrap'>"
+                  + "".join(chip("f:" + key, v, l, v == "") for v, l in opts) + "</div></div>"
+                  for key, label, opts in filters)
+    srt = "".join(f"<option value='{v}'>{label}</option>" for v, label in sorts)
+    return f"""<div class='tabs' role='tablist'>{tabs}</div>
+<input id='q' type='search' placeholder='{placeholder}' aria-label='{placeholder}' autocomplete='off'>
+<div class='dates' id='dates' aria-label='日付'></div>
+<div class='chips wrap regions' id='regions' aria-label='地域'>{reg}</div>
+<div class='chips wrap regions sub' id='subregions' hidden>{sub}</div>
+<div class='frow'><button type='button' id='ftoggle' class='fbtn' aria-expanded='false'>絞り込み</button><div id='active' class='active'></div></div>
+<div id='fpanel' class='fpanel' hidden>{flt}</div>
+<div class='listbar'><span id='count'></span><label class='sortl'><span>並び順</span><select id='sort'>{srt}</select></label></div>
+<div id='spots' class='spots'></div>
+<p id='empty' class='empty' hidden>条件に合うスポットがありません。絞り込み条件を変更してください。</p>"""
+
+
+def genre_head(icon, name, desc):
+    """ジャンルの見出し(更新時刻は layout が見出しのすぐ後ろに入れる)"""
+    return f"<div class='ghead'><h1><span class='gicon' aria-hidden='true'>{icon}</span>{name}</h1></div><p class='gdesc2'>{desc}</p>"
+
+
 def mountains_page(mts):
-    days = [d["date"] for d in mts[0]["days"][:TOP_DAYS]]   # 一覧は7日、詳細は全日数
-    regions = ["北海道", "東北", "関東", "上信越", "北アルプス", "南アルプス", "中部"]
-    kinki = ["滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県", "三重県", "福井県"]   # 近畿は県ごと
-    after = ["中国・四国", "九州"]
-    head = "".join(f"<th>{day_label2(d, i == 0)}</th>" for i, d in enumerate(days))
-    rows = ""
+    days = [d["date"] for d in mts[0]["days"]]
+    items = []
     for m in mts:
-        cells = ""
-        for d in m["days"][:TOP_DAYS]:
-            mark, cls = RATE[d["score"]]
-            icon, _ = wx(d["code"])
-            cells += (f"<td class='{cls}' title='{e(wx(d['code'])[1])} 風{d['wind']:.0f}m/s "
-                      f"雨{d['rain']:.0f}mm" + (f" 雷{d['thunder']}%" if d["thunder"] is not None else "") + "'>"
-                      f"<b>{mark}</b><small>{icon}</small></td>")
-        rows += (
-            f"<tbody class='mt' id='{m['key']}' data-fid='{e(fid('m', m))}' data-region='{e(m['region'])}' data-name='{e(m['name'] + m['yomi'])}'"
-            + (f" data-prefs='{e(','.join(m['prefs']))}'" if m["region"] == "近畿" else "")
-            + (" data-hana='1'" if m.get("flower") else "")
-            + (" data-hyaku='1'" if "百名山" in m.get("lists", []) else "")
-            + (" data-kansai='1'" if "関西百名山" in m.get("lists", []) else "") + ">"
-            f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
-            f"<span>{e(m['name'])}</span>"
-            + tags(m) + season_mark(m, days) + alert_tags(m)
-            + f"<small>{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>"
-            f"</button></th>{cells}</tr>"
-            f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{lazy(m['key'], mt_detail(m))}</td></tr></tbody>")
-    chips = ("<button class='chip on' data-r=''>すべて</button><button class='chip' data-r='fav'><span class='favmark'>★</span>お気に入り</button>"
-             "<button class='chip' data-r='hyaku'>日本100名山</button><button class='chip' data-r='kansai'>関西100名山</button>"
-             "<button class='chip' data-r='hana'>花の100名山</button>"
-             + "".join(f"<button class='chip' data-r='{r}'>{r}</button>" for r in regions)
-             + "<button class='chip' data-r='近畿'>関西</button>"
-             + "".join(f"<button class='chip' data-r='{r}'>{r}</button>" for r in after))
-    # 関西の県ごとのボタンは、「関西」を押したときだけ下の段に出す(ボタンが多くなりすぎないように)
-    prefs = "".join(f"<button class='chip' data-r='pref:{p}'>{p.rstrip('県府')}</button>" for p in kinki)
-    return f"""
-<h1>登山天気</h1>
-<div class='filters'><input id='q' type='search' placeholder='山名で絞り込み(例: 槍、ふじ)' aria-label='山名で絞り込み'>
-<div class='chips'>{chips}</div><div class='chips' id='prefs' hidden>{prefs}</div></div>
-<div class='gridwrap'><table class='grid' id='mt'><thead><tr><th class='nm'>山名</th>{head}</tr></thead>{rows}</table></div>
+        url = spot_url("m", m)
+        lists = [c for c, key in (("h", "百名山"), ("k", "関西百名山"), ("a", "花の百名山")) if key in m.get("lists", [])]
+        items.append({"k": m["key"], "f": fid("m", m), "n": m["name"], "y": m["yomi"], "r": m["region"], "p": m["prefs"],
+                      "e": m["elev"], "l": lists, "u": url, "b": tags(m) + alert_tags(m),
+                      "d": [[x["score"], wx(x["code"])[0], round(x["tavg"]), round(x["wind"]), season_flags(m, x["date"])]
+                            for x in m["days"]]})
+        back = "<p class='back'><a href='mountains.html'><svg class='chev' viewBox='0 0 24 24' aria-hidden='true'><path d='M15 5l-7 7 7 7' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/></svg>登山の一覧</a></p>"
+        SPOT_PAGES[url] = (f"{m['name']}の登山天気",
+                           f"{back}<div class='ghead'><h1 class='spoth'>{e(m['name'])}{tags(m)}{alert_tags(m)}</h1>"
+                           f"<p class='spotsub'>{m['elev']:,}m · {e('・'.join(m['prefs']))}</p></div>{mt_detail(m)}",
+                           "mountains.html")
+    regions = ([("", "全国")] + [(r, r) for r in ("北海道", "東北", "関東", "上信越", "北アルプス", "南アルプス", "中部")]
+               + [("近畿", "関西"), ("中国・四国|九州", "中四国・九州")])
+    kinki = ["滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県", "三重県", "福井県"]   # 関西を押すと出す
+    filters = [("cls", "分類", [("", "すべて"), ("h", "日本100名山"), ("k", "関西100名山"), ("a", "花の100名山")]),
+               ("rate", "評価", [("", "指定なし"), ("2", "◎○のみ"), ("3", "◎のみ")])]
+    sorts = [("score", "総合評価順"), ("elev", "標高順"), ("name", "山名順")]
+    data = {"kind": "m", "days": day_info(days), "we": weekend(days), "items": items}
+    return (genre_head("⛰️", "登山", "山頂の高さの予報(6〜15時)から、登山に向いた日かを ◎○△× で判定します")
+            + list_controls("山名で探す(例: 槍、ふじ)", regions, [(f"pref:{x}", x.rstrip("県府")) for x in kinki],
+                            filters, sorts)
+            + f"<script type='application/json' id='spots-data'>{spots_json(data)}</script>\n"
+            + f"""
 <details class='note'><summary>判定の基準・データについて</summary><h2>判定の基準</h2><ul>
 <li><b class='r3'>◎</b> 降水0.5mm未満、風速10m/s未満</li>
 <li><b class='r2'>○</b> 降水3mm未満、風速12m/s未満</li>
@@ -1014,7 +1066,7 @@ def mountains_page(mts):
 山頂の標高での予報(6〜15時)から、登山に向いた天気かを判定しています。表は7日間で、山名を押すと最大16日間の詳細が開きます。
 詳細で今日から5日後までの日付を押すと、時間ごとの予報(今日は1時間ごと、明日〜5日後は3時間ごと。3時間ごとの行の風速・降水量はその3時間の最大・合計)が開きます。
 日の出・日の入りは本日の時刻で、平地の地平線を基準にしています(山頂ではもう少し早く昇り、遅く沈みます)。</p></details>
-"""
+""")
 
 
 # ---------------------------------------------------------------- スノーボード
@@ -1974,10 +2026,10 @@ def top_page(updated):
 # ---------------------------------------------------------------- 共通レイアウト
 CSS = """
 :root{color-scheme:light;--bg:#f6f7f5;--card:#fff;--line:#e2e4df;--text:#14171a;--sub:#55595e;--muted:#868a8f;
---accent:#1f6fb2;--r3:#0b7a3b;--r2:#2a78d6;--r1:#b27300;--r0:#c4312f;--sat:#2a6fd6;--sun:#d03b3b;--hl:#e8f1fb;--hyaku:#c4312f;--hyaku-bg:#fdecea;--fav:#f2b600}
+--accent:#1f6fb2;--r3:#2F855A;--r2:#327EB5;--r1:#B7791F;--r0:#C2413B;--sat:#2a6fd6;--sun:#d03b3b;--hl:#e8f1fb;--hyaku:#c4312f;--hyaku-bg:#fdecea;--fav:#e0245e}
 @media (prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#151617;--card:#1e2022;--line:#34373a;--text:#eef0f2;
 --sub:#b9bdc2;--muted:#8c9196;--accent:#6aaee8;--r3:#47c47c;--r2:#5fa3ef;--r1:#e0a43a;--r0:#ef6b69;--sat:#6aa6f0;
---sun:#f07a7a;--hl:#1f2a36;--hyaku:#ff8a87;--hyaku-bg:#3a2222;--fav:#ffd23f}}
+--sun:#f07a7a;--hl:#1f2a36;--hyaku:#ff8a87;--hyaku-bg:#3a2222;--fav:#ff6b8f}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);
 font:15px/1.65 system-ui,-apple-system,"Hiragino Sans","Noto Sans JP","Yu Gothic UI",sans-serif}
 header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
@@ -2055,7 +2107,7 @@ table{border-collapse:collapse;font-variant-numeric:tabular-nums}
 tr.detail td{background:var(--hl);text-align:left;padding:8px}
 small{font-size:12px}
 .sat{color:var(--sat)}.sun{color:var(--sun)}
-.r3{color:var(--r3)}.r2{color:var(--r2)}.r1{color:var(--r1)}.r0{color:var(--muted)}
+.r3{color:var(--r3)}.r2{color:var(--r2)}.r1{color:var(--r1)}.r0{color:var(--r0)}
 .big{font-weight:700;color:var(--r2)}.mid{font-weight:600}
 .tag{display:inline-block;font-size:11px;padding:0 6px;border-radius:99px;background:var(--hl);color:var(--accent)}
 .mk{display:inline-block;width:24px;height:24px;vertical-align:-5px;font-size:0;background:url(kansai.svg) center/contain no-repeat}.mk.hyaku{background-image:url(hyaku.svg)}.mk.hana{background-image:url(hana.svg)}
@@ -2064,7 +2116,7 @@ small{font-size:12px}
 #q{font:inherit;font-size:16px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text);max-width:320px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}.chips[hidden]{display:none}
 .chip{font:inherit;font-size:13px;padding:4px 12px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--sub);cursor:pointer}
-.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip.on{background:var(--accent);border-color:var(--accent);color:var(--on-g,#fff)}
 .note{color:var(--sub);font-size:13px;margin-top:24px}.note ul{padding-left:18px}
 details.note>summary{cursor:pointer;font-size:15px;font-weight:600;color:var(--text);padding:10px 0;list-style:none}
 details.note>summary::-webkit-details-marker{display:none}details.note>summary::after{content:' ▼';font-size:11px}
@@ -2076,13 +2128,13 @@ details.note[open]>summary::after{content:' ▲'}
 .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px 2px}.chips::-webkit-scrollbar{display:none}
 .chip{flex:none}}
 /* ジャンルの色(仕様書): メイン・背景・薄いカード・文字 */
-.g-mt{--g:#315D43;--g-bg:#EAF1E9;--g-card:#F1F4F0;--g-ink:#244832}
-.g-snow{--g:#367FB6;--g-bg:#EAF3FA;--g-card:#EDF4FA;--g-ink:#244866}
-.g-surf{--g:#C65A3B;--g-bg:#FBEDE7;--g-card:#FFF3ED;--g-ink:#713D30}
+.g-mt{--g:#315D43;--g-bg:#EAF1E9;--g-card:#F1F4F0;--g-ink:#244832;--on-g:#fff}
+.g-snow{--g:#367FB6;--g-bg:#EAF3FA;--g-card:#EDF4FA;--g-ink:#244866;--on-g:#fff}
+.g-surf{--g:#C65A3B;--g-bg:#FBEDE7;--g-card:#FFF3ED;--g-ink:#713D30;--on-g:#fff}
 @media (prefers-color-scheme:dark){
-.g-mt{--g:#7FB894;--g-bg:#1C2620;--g-card:#202B24;--g-ink:#CFE3D5}
-.g-snow{--g:#7DB6E3;--g-bg:#1A2430;--g-card:#1E2935;--g-ink:#CFE2F2}
-.g-surf{--g:#E8957C;--g-bg:#2C201C;--g-card:#33241F;--g-ink:#F3D5CB}}
+.g-mt{--g:#7FB894;--g-bg:#1C2620;--g-card:#202B24;--g-ink:#CFE3D5;--on-g:#10170f}
+.g-snow{--g:#7DB6E3;--g-bg:#1A2430;--g-card:#1E2935;--g-ink:#CFE2F2;--on-g:#0d1620}
+.g-surf{--g:#E8957C;--g-bg:#2C201C;--g-card:#33241F;--g-ink:#F3D5CB;--on-g:#1f120e}}
 /* トップ: サイト名と3ジャンルの大きなカード(スマホで1画面に収める) */
 .hero{text-align:center;padding:8px 0 14px}.hero h1{font-size:28px;margin:0;letter-spacing:.04em}
 .hero .catch{margin:2px 0 4px;color:var(--sub);font-size:15px}.hero .muted{margin:0}
@@ -2102,6 +2154,59 @@ box-shadow:0 2px 8px rgba(0,0,0,.08);transition:transform .15s}
 .garrow{position:relative;z-index:1;align-self:center;flex:none;width:34px;height:34px;padding:6px;margin-right:12px;border-radius:50%;background:var(--card);color:var(--g);box-shadow:0 1px 3px rgba(0,0,0,.15)}
 
 @media (min-width:720px){.genres{grid-template-columns:repeat(3,1fr)}.gcard{min-height:240px}}
+/* ジャンルのページ: 背景とボタンの色をジャンルの色に */
+body.g-mt,body.g-snow,body.g-surf{background:var(--g-bg);--accent:var(--g)}
+.ghead h1{display:flex;align-items:center;gap:10px;margin:0;color:var(--g-ink)}
+.ghead .gicon{width:36px;height:36px;font-size:20px}
+.gdesc2{margin:2px 0 10px;font-size:13px;color:var(--sub)}
+/* 切替(おすすめ/お気に入り/全スポット) */
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;margin:0 0 10px;background:var(--card);border:1px solid var(--line);border-radius:12px}
+.tab{font:inherit;font-size:14px;font-weight:600;padding:9px 4px;border:0;border-radius:9px;background:none;color:var(--sub);cursor:pointer}
+.tab[aria-selected='true']{background:var(--g);color:var(--on-g)}
+body:is(.g-mt,.g-snow,.g-surf) #q{width:100%;max-width:none;margin:0 0 8px;font-size:16px}
+.chips.scrollx{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -16px 8px;padding:0 16px 2px}
+.chips.scrollx::-webkit-scrollbar{display:none}.chips.scrollx .chip{flex:none}
+.chips.wrap{flex-wrap:wrap}
+/* 地域: 折り返して全部見せる(横にずらさなくても選べる) */
+.chips.regions{gap:5px;margin:0 0 8px;padding:0;overflow:visible;flex-wrap:wrap}.chips.regions .chip{padding:5px 7px;font-size:12px;line-height:1.4}
+.chips.regions.sub{padding:6px 8px;background:var(--g-card);border-radius:10px}.fpanel .chips{flex-wrap:wrap;overflow:visible;margin:0;padding:0}
+/* 日付: 「土日」と、カレンダーのようなマス目(8列) */
+.dates{display:flex;gap:6px;margin:0 0 8px;align-items:stretch}
+.dates .we{flex:none;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:4px 10px;line-height:1.2;font-weight:600}
+.dates .we small{font-size:10px;font-weight:400}
+.dates{flex-direction:column}.dhint{margin:0;font-size:11px;color:var(--muted)}
+.cal{flex:1;display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.cal .chip{padding:3px 0;border-radius:8px;line-height:1.15;text-align:center;font-size:13px;min-width:0}
+.cal .chip span{display:block}.cal .chip small{display:block;font-size:10px}
+.chip .sat{color:var(--sat)}.chip .sun{color:var(--sun)}.chip.on .sat,.chip.on .sun{color:var(--on-g,#fff)}
+.frow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 8px}
+.fbtn{font:inherit;font-size:13px;padding:7px 14px;border-radius:99px;border:1px solid var(--g);background:var(--card);color:var(--g);cursor:pointer}
+.fbtn::after{content:' ▼';font-size:10px}.fbtn[aria-expanded='true']::after{content:' ▲'}
+.active{display:flex;gap:6px;flex-wrap:wrap}
+.achip,.aclear{font:inherit;font-size:12px;padding:4px 10px;border-radius:99px;border:0;background:var(--g-card);color:var(--g-ink);cursor:pointer}
+.aclear{background:none;text-decoration:underline;color:var(--sub)}
+.fpanel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:0 0 10px}
+.fgroup+.fgroup{margin-top:8px}.flabel{display:block;font-size:12px;color:var(--sub);margin-bottom:4px}
+.listbar{display:flex;justify-content:space-between;align-items:center;margin:4px 0 8px;font-size:13px;color:var(--sub)}
+.sortl{display:flex;align-items:center;gap:6px}.sortl[hidden]{display:none}
+.sortl select{font:inherit;font-size:13px;padding:5px 8px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--text)}
+/* スポットのカード: 上段に名前・印・ハート、中段に標高・県、下段に選んだ日の判定 */
+.spots{display:grid;gap:8px}
+.spot{position:relative;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 12px 10px}
+.spot-top{display:flex;align-items:center;gap:4px;padding-right:40px;min-height:26px}
+.spot-link{font-weight:700;font-size:16px;color:var(--text);text-decoration:none}
+.spot-link::after{content:'';position:absolute;inset:0}       /* カードのどこを押しても詳細へ */
+.spot .mk,.spot .tag{position:relative}
+.heart{position:absolute;top:4px;right:4px;z-index:2;width:44px;height:44px;border:0;background:none;font-size:22px;line-height:1;color:var(--fav);cursor:pointer}
+.spot-sub{font-size:12px;color:var(--muted);margin:0 0 6px}
+.spot-days{display:grid;grid-template-columns:repeat(var(--n,1),1fr);gap:6px}.spot-days.n2{--n:2}
+.sd{display:flex;flex-wrap:wrap;align-items:center;column-gap:6px;row-gap:0;background:var(--g-card);border-radius:8px;padding:4px 8px 5px;min-width:0}
+.sd-l{flex-basis:100%;font-size:11px;line-height:1.5;color:var(--sub);white-space:nowrap}.spot-days.n1 .sd-l{flex-basis:auto;margin-right:4px}.sd-l.sat{color:var(--sat)}.sd-l.sun{color:var(--sun)}
+.sd .mark{font-size:19px;line-height:1.2}.sd-wx{font-size:15px}.sd-v{font-size:12.5px;white-space:nowrap}
+.empty{background:var(--card);border-radius:12px;padding:16px;text-align:center;color:var(--sub)}
+.back{margin:0 0 6px;font-size:14px}.back a{display:inline-flex;align-items:center;gap:2px;text-decoration:none;padding:6px 0}.chev{width:18px;height:18px}.spoth{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.spotsub{margin:-2px 0 6px;color:var(--muted);font-size:13px}
+@media (min-width:720px){.spots{grid-template-columns:1fr 1fr}}
 footer{max-width:1000px;margin:0 auto;padding:16px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
 """
 
@@ -2117,7 +2222,7 @@ const isFav=f=>favs.includes(f);
 let apply=()=>{},region='';
 // 詳細は開くまで <template> に入れておき(ページを軽くするため)、初めて開いたときに組み立てる
 const paintStars=root=>root.querySelectorAll('.star').forEach(b=>{const on=isFav(b.dataset.fid);
-  b.innerHTML=on?"<span class='favmark'>★</span> お気に入り登録済み":'☆ お気に入り登録';b.setAttribute('aria-pressed',String(on));});
+  b.innerHTML=on?"<span class='favmark'>♥</span> お気に入り":'♡ お気に入りに追加';b.setAttribute('aria-pressed',String(on));});
 const paintFavs=()=>{
   paintStars(document);
   document.querySelectorAll('tbody.mt[data-fid]').forEach(b=>{b.dataset.fav=isFav(b.dataset.fid)?'1':'';});
@@ -2162,6 +2267,7 @@ document.addEventListener('click',ev=>{
     paintStars(document);
     document.querySelectorAll(`[data-fid="${CSS.escape(f)}"]`).forEach(b=>{if(b.matches('tbody.mt'))b.dataset.fav=isFav(f)?'1':'';});
     if(region==='fav')apply();
+    if(window.onFav)window.onFav();
     return;}
   const hb=ev.target.closest('.hbtn');
   if(hb){const open=hb.getAttribute('aria-expanded')!=='true';
@@ -2183,6 +2289,103 @@ if(favChip&&(location.hash==='#fav'||(document.querySelector('tbody.mt[data-fav=
 if(target){openDetail(target,true);target.scrollIntoView({block:'start'});}
 """
 
+LIST_JS = r"""
+// ---- 一覧(3ジャンル共通): 切替・日付・検索・地域・絞り込み・並び順を組み合わせて、カードを描き直す
+(()=>{
+const el=document.getElementById('spots-data');if(!el)return;
+const G=JSON.parse(el.textContent);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const MARK=['×','△','○','◎'];
+const FLAG={k:['🍁','紅葉の見ごろ(予想)'],s:['🌸','桜の見ごろ(予想)'],f:['🌼','花の百名山の花の時期']};
+const sum=(a,f)=>a.reduce((s,x)=>s+f(x),0);
+// ジャンルごとの違い(表示・絞り込み・並び順・おすすめ)。判定の値はデータのまま使う
+const KINDS={
+ m:{
+  sub:(it,days)=>{const fl=[...new Set(days.flatMap(i=>[...((it.d[i]||[])[4]||'')]))];
+    return `${it.e.toLocaleString()}m · ${esc(it.p.join('・'))}`+fl.map(c=>` <span class='fac' title='${FLAG[c][1]}' role='img' aria-label='${FLAG[c][1]}'>${FLAG[c][0]}</span>`).join('');},
+  day:(it,i)=>{const d=it.d[i];if(!d)return "<span class='muted'>—</span>";
+    return `<b class='r${d[0]} mark'>${MARK[d[0]]}</b><span class='sd-wx'>${d[1]}</span><span class='sd-v'>${d[2]}℃ · ${d[3]}m/s</span>`;},
+  region:(it,r)=>r.startsWith('pref:')?it.p.includes(r.slice(5)):r.split('|').includes(it.r),
+  filter:{cls:(it,v)=>it.l.includes(v),rate:(it,v,days)=>days.every(i=>it.d[i]&&it.d[i][0]>=+v)},
+  key:(it,days)=>[-sum(days,i=>(it.d[i]||[0])[0]),Math.max(...days.map(i=>(it.d[i]||[0,0,0,99])[3]))],
+  sort:{score:null,elev:(a,b)=>b.e-a.e,name:(a,b)=>a.y.localeCompare(b.y,'ja')},
+  // おすすめ: 選んだ日がすべて○以上の山を、判定の合計が高く風の弱い順に。同じエリアは3座まで、10座(今の週末おすすめと同じ規則)
+  rec:(xs,days,K)=>{const per={},out=[];
+    for(const it of xs.filter(it=>days.every(i=>it.d[i]&&it.d[i][0]>=2)).sort((a,b)=>cmp(K.key(a,days),K.key(b,days)))){
+      if((per[it.r]||0)<3){out.push(it);per[it.r]=(per[it.r]||0)+1;}if(out.length===10)break;}
+    return out;},
+ },
+};
+const cmp=(a,b)=>{for(let i=0;i<a.length;i++){if(a[i]!==b[i])return a[i]-b[i];}return 0;};
+const K=KINDS[G.kind];
+// 旧URL(mountains.html#m12 など)で来たら、その場所の詳細ページへ
+const h=location.hash.slice(1);
+if(h&&h!=='fav'){const it=G.items.find(x=>x.k===h);if(it){location.replace(it.u);return;}}
+const weIdx=G.we.map(d=>G.days.findIndex(x=>x.d===d)).filter(i=>i>=0);
+const st={tab:'',days:weIdx.length?weIdx.slice():[0],region:'',q:'',f:{},sort:$('sort').value};
+// 日付のボタン: 土日 + 予報のある日すべて
+$('dates').innerHTML=`<div class='cal'>`+G.days.map((d,i)=>`<button type='button' class='chip day' data-g='date' data-v='${i}' aria-label='${d.l}(${d.w})'><span class='${d.c}'>${(i===0||d.l.endsWith('/1'))?d.l:d.l.split('/')[1]}<small>${d.w}</small></span></button>`).join('')+`</div><p class='dhint'>日付は2日まで選べます(押すと選ぶ・外す)</p>`;
+const mine=()=>G.items.filter(it=>isFav(it.f));
+st.tab=(location.hash==='#fav'||mine().length)?'fav':'rec';      // お気に入りがあればお気に入りで開く
+const label={rec:'おすすめ',fav:'お気に入り',all:'スポット一覧'};
+const card=it=>{const on=isFav(it.f);
+  return `<article class='spot'><div class='spot-top'><a class='spot-link' href='${it.u}'>${esc(it.n)}</a>${it.b||''}`
+   +`<button type='button' class='heart' data-hfid='${esc(it.f)}' aria-pressed='${on}' aria-label='${esc(it.n)}をお気に入り${on?'から外す':'に追加'}'>${on?'♥':'♡'}</button></div>`
+   +`<div class='spot-sub'>${K.sub(it,st.days)}</div>`
+   +`<div class='spot-days n${st.days.length}'>${st.days.map(i=>`<div class='sd'><span class='sd-l ${G.days[i].c}'>${G.days[i].l}(${G.days[i].w})</span>${K.day(it,i)}</div>`).join('')}</div></article>`;};
+const chipsOn=()=>document.querySelectorAll('.chip[data-g]').forEach(c=>{const g=c.dataset.g,v=c.dataset.v;
+  c.classList.toggle('on',g==='date'?st.days.includes(+v):g==='region'?(v===st.region||(v==='近畿'&&st.region.startsWith('pref:'))):g.startsWith('f:')?(st.f[g.slice(2)]||'')===v:false);});
+const render=()=>{
+  let xs=st.tab==='fav'?mine():G.items;
+  if(st.q)xs=xs.filter(it=>(it.n+it.y).includes(st.q));
+  if(st.region)xs=xs.filter(it=>K.region(it,st.region));
+  for(const [k,v] of Object.entries(st.f))if(v)xs=xs.filter(it=>K.filter[k](it,v,st.days));
+  if(st.tab==='rec')xs=K.rec(xs,st.days,K);
+  else{const s=K.sort[st.sort];xs=xs.slice().sort(s||((a,b)=>cmp(K.key(a,st.days),K.key(b,st.days))));}
+  $('spots').innerHTML=xs.map(card).join('');
+  $('empty').hidden=xs.length>0;
+  $('count').textContent=`${label[st.tab]} ${xs.length}件`;
+  document.querySelector('.sortl').hidden=st.tab==='rec';
+  document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===st.tab)));
+  $('subregions').hidden=!(st.region==='近畿'||st.region.startsWith('pref:'));
+  chipsOn();
+  // 選んでいる条件(地域・絞り込み・検索)をチップで出す。押すと外れる
+  const act=[];
+  if(st.q)act.push(['q','「'+esc(st.q)+'」']);
+  if(st.region)act.push(['region',esc(document.querySelector(`.chip[data-g='region'][data-v='${CSS.escape(st.region)}']`).textContent)]);
+  for(const [k,v] of Object.entries(st.f))if(v)act.push(['f:'+k,esc(document.querySelector(`.chip[data-g='f:${k}'][data-v='${CSS.escape(v)}']`).textContent)]);
+  $('active').innerHTML=act.map(([g,l])=>`<button type='button' class='achip' data-clear='${g}'>${l} ×</button>`).join('')
+    +(act.length>1?"<button type='button' class='aclear' data-clear='all'>条件をクリア</button>":'');
+};
+document.addEventListener('click',ev=>{
+  const tb=ev.target.closest('.tab');if(tb){st.tab=tb.dataset.tab;render();return;}
+  const hb=ev.target.closest('.heart');
+  if(hb){const f=hb.dataset.hfid;favs=isFav(f)?favs.filter(x=>x!==f):favs.concat([f]);
+    try{localStorage.setItem(FKEY,JSON.stringify(favs));}catch(e){}render();return;}
+  const c=ev.target.closest('.chip[data-g]');
+  if(c){const g=c.dataset.g,v=c.dataset.v;
+    if(g==='date'){const i=+v,k=st.days.indexOf(i);        // 押した日を選ぶ・外す(2日まで。3日目は古い方と入れ替え。0日にはしない)
+      if(k>=0){if(st.days.length>1)st.days.splice(k,1);}else{st.days.push(i);if(st.days.length>2)st.days.shift();}
+      st.days.sort((a,b)=>a-b);}
+    else if(g==='region')st.region=v;else st.f[g.slice(2)]=v;
+    render();return;}
+  const x=ev.target.closest('[data-clear]');
+  if(x){const g=x.dataset.clear;
+    if(g==='q'||g==='all'){st.q='';$('q').value='';}
+    if(g==='region'||g==='all')st.region='';
+    if(g.startsWith('f:'))delete st.f[g.slice(2)];if(g==='all')st.f={};
+    render();return;}
+  const ft=ev.target.closest('#ftoggle');
+  if(ft){const p=$('fpanel');p.hidden=!p.hidden;ft.setAttribute('aria-expanded',String(!p.hidden));}
+});
+$('q').addEventListener('input',()=>{st.q=$('q').value.trim();render();});
+$('sort').addEventListener('change',()=>{st.sort=$('sort').value;render();});
+window.onFav=render;
+render();
+})();
+"""
+
 PAGES = [("index.html", "トップ"), ("mountains.html", "登山"), ("snow.html", "スノーボード"),
          ("surf.html", "サーフィン")]
 
@@ -2200,23 +2403,31 @@ def next_update(updated):
     return (updated.hour // 3 + 1) * 3 % 24
 
 
-def layout(file, title, body, updated):
+GENRE_CLASS = {"mountains.html": "g-mt", "snow.html": "g-snow", "surf.html": "g-surf"}
+
+
+def layout(file, title, body, updated, nav=None):
+    """ページの共通の枠。nav は上のメニューで選んだ表示にするページ(詳細ページはそのジャンルの一覧)"""
+    nav = nav or file
     bottom_line = f"<p class='muted'>更新: {updated:%Y年%-m月%-d日 %H:%M}(3時間ごとに自動更新)</p>"
     top_line = f"<p class='updated muted'>更新 {updated.month}/{updated.day} {updated:%H:%M} · 次の更新は{next_update(updated)}時すぎの予定</p>"
-    nav = "".join(f"<a href='{f}' class='{'on' if f == file else ''}'>{n}</a>" for f, n in PAGES)
+    menu = "".join(f"<a href='{f}' class='{'on' if f == nav else ''}'>{n}</a>" for f, n in PAGES)
+    if file != "index.html" and "</h1>" in body:      # 更新時刻はジャンル名(見出し)のすぐ後ろに
+        body = body.replace("</h1>", "</h1>" + top_line, 1) if "class='ghead'" not in body else body.replace("</div>", "</div>" + top_line, 1)
+        top_line = ""
     return f"""<!doctype html><html lang="ja"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{title} | 山と雪と波の天気</title>
 <meta name="description" content="日本百名山・関西百名山・花の百名山の登山天気、スキー場の降雪、サーフポイントの波と風の予報をまとめたサイト">
 <link rel="icon" href="favicon.png" sizes="32x32"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#1f6fb2">
-<meta name="apple-mobile-web-app-title" content="山と雪と波"><style>{CSS}</style></head><body>
-<header><nav>{nav}</nav></header>
-<main>{'' if file == 'index.html' else top_line}{body}{'' if file == 'index.html' else bottom_line}</main>
+<meta name="apple-mobile-web-app-title" content="山と雪と波"><style>{CSS}</style></head><body class='{GENRE_CLASS.get(nav, "")}'>
+<header><nav>{menu}</nav></header>
+<main>{body}{'' if file == 'index.html' else bottom_line}</main>
 <footer>予報は目安です。登山・海に出る前に、気象庁の警報・注意報と現地の情報を必ず確認してください。<br>
 気象データ: <a href="https://open-meteo.com/">Open-Meteo.com</a>(<a href="https://creativecommons.org/licenses/by/4.0/deed.ja">CC BY 4.0</a>) · ゲレンデ積雪: SURF&amp;SNOW · リフトの位置: © OpenStreetMap contributors ·
 山の一覧・座標: Wikipedia「日本百名山」「花の百名山」、Wikidata、ヤマレコ「関西百名山」、YAMAP MAGAZINE「花の百名山」 · 花の写真: Wikimedia Commons、iNaturalist(撮影者・ライセンスは各写真の下)</footer>
-<script>const DEFAULT_FAVS={json.dumps(default_favs(), ensure_ascii=False)};{JS}</script></body></html>"""
+<script>const DEFAULT_FAVS={json.dumps(default_favs(), ensure_ascii=False)};{JS}{LIST_JS}</script></body></html>"""
 
 
 def check_output(mts, ski, spots):
@@ -2274,6 +2485,10 @@ def main():
     check_output(mts, ski, spots)
     for f, (title, body) in bodies.items():
         (OUT / f).write_text(layout(f, title, body, updated), encoding="utf-8")
+    for old in OUT.glob("[msw]-*.html"):            # 前回の詳細ページを消してから書き出す
+        old.unlink()
+    for f, (title, body, nav) in SPOT_PAGES.items():
+        (OUT / f).write_text(layout(f, title, body, updated, nav), encoding="utf-8")
     shutil.rmtree(OUT / "d", ignore_errors=True)    # 前回の詳細を消してから書き出す
     (OUT / "d").mkdir()
     for key, html in DETAILS.items():
