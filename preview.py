@@ -13,7 +13,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         name = self.path.split("?")[0].lstrip("/") or "index.html"
         path = (PUBLIC / name).resolve()
-        if path.parent != PUBLIC.resolve() or not path.is_file():   # public/ 直下のファイルだけ
+        if PUBLIC.resolve() not in path.parents or not path.is_file():   # public/ の中のファイルだけ(詳細の d/ も)
             self.send_error(404)
             return
         body = path.read_bytes()

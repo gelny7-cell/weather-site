@@ -2,6 +2,7 @@
 使い方: python build.py  (GitHub Actions で3時間ごとに実行。Python標準ライブラリのみ)"""
 import html
 import json
+import shutil
 import math
 import re
 import time
@@ -938,6 +939,17 @@ def mt_detail(m, with_map=True, compact=False):
             + f"<th>降水量</th>{'<th>雷の確率</th>' if has_t else ''}</tr>{rows}</table></div>")
 
 
+DETAILS = {}                    # 別ファイル(d/キー.html)に書き出す詳細
+BUILD_ID = datetime.now(JST).strftime("%Y%m%d%H%M")
+
+
+def lazy(key, html):
+    """詳細を d/キー.html に分けて、開いたときに読み込む印だけを置く(登山・スノーボードのページを軽くするため)。
+    ?v= は一覧と同じ回の詳細を読むため(古いキャッシュを使わない)"""
+    DETAILS[key] = html
+    return f"<div class='lazy' data-src='d/{key}.html?v={BUILD_ID}'></div>"
+
+
 def mountains_page(mts):
     days = [d["date"] for d in mts[0]["days"][:TOP_DAYS]]   # 一覧は7日、詳細は全日数
     regions = ["北海道", "東北", "関東", "上信越", "北アルプス", "南アルプス", "中部"]
@@ -964,7 +976,7 @@ def mountains_page(mts):
             + tags(m) + season_mark(m, days) + alert_tags(m)
             + f"<small>{m['elev']:,}m · {e('・'.join(m['prefs']))}</small>"
             f"</button></th>{cells}</tr>"
-            f"<tr class='detail' hidden><td colspan='{len(days) + 1}'><template>{mt_detail(m)}</template></td></tr></tbody>")
+            f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{lazy(m['key'], mt_detail(m))}</td></tr></tbody>")
     chips = ("<button class='chip on' data-r=''>すべて</button><button class='chip' data-r='fav'><span class='favmark'>★</span>お気に入り</button>"
              "<button class='chip' data-r='hyaku'>日本100名山</button><button class='chip' data-r='kansai'>関西100名山</button>"
              "<button class='chip' data-r='hana'>花の100名山</button>"
@@ -1347,7 +1359,7 @@ def ski_page(ski):
                 f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
                 f"<span>{e(s['name'])}</span>{hour_marks(s)}{alert_tags(s)}<small>{e(s['pref'])}</small>"
                 f"</button></th>{cells}</tr>"
-                f"<tr class='detail' hidden><td colspan='{len(days) + 1}'><template>{ski_detail(s)}</template></td></tr></tbody>")
+                f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{lazy(s['key'], ski_detail(s))}</td></tr></tbody>")
     chips = ("<button class='chip on' data-r=''>すべて</button>"
              + "<button class='chip' data-r='fav'><span class='favmark'>★</span>お気に入り</button>"
              + "<button class='chip' data-r='powder'>❄️パウダー期待</button>"
@@ -1914,7 +1926,7 @@ table{border-collapse:collapse;font-variant-numeric:tabular-nums}
 tr.detail td{background:var(--hl);text-align:left;padding:8px}
 small{font-size:12px}
 .sat{color:var(--sat)}.sun{color:var(--sun)}
-.r3{color:var(--r3)}.r2{color:var(--r2)}.r1{color:var(--r1)}.r0{color:var(--r0)}
+.r3{color:var(--r3)}.r2{color:var(--r2)}.r1{color:var(--r1)}.r0{color:var(--muted)}
 .big{font-weight:700;color:var(--r2)}.mid{font-weight:600}
 .tag{display:inline-block;font-size:11px;padding:0 6px;border-radius:99px;background:var(--hl);color:var(--accent)}
 .mk{display:inline-block;width:24px;height:24px;vertical-align:-5px;font-size:0;background:url(kansai.svg) center/contain no-repeat}.mk.hyaku{background-image:url(hyaku.svg)}.mk.hana{background-image:url(hana.svg)}
@@ -1951,6 +1963,11 @@ const paintFavs=()=>{
 };
 const openDetail=(tb,open)=>{const d=tb.querySelector('tr.detail'),b=tb.querySelector('.nm button');if(!d)return;
   const t=d.querySelector('template');if(t&&open){t.replaceWith(t.content.cloneNode(true));paintStars(d);}
+  const lz=d.querySelector('.lazy');
+  if(lz&&open&&!lz.dataset.state){lz.dataset.state='1';lz.innerHTML="<p class='muted'>読み込み中…</p>";
+    fetch(lz.dataset.src).then(r=>{if(!r.ok)throw 0;return r.text();})
+      .then(h=>{lz.outerHTML=h;paintStars(d);if(location.hash==='#'+tb.id)tb.scrollIntoView({block:'start'});})
+      .catch(()=>{lz.dataset.state='';lz.innerHTML="<p class='muted'>詳細を読み込めませんでした。もう一度開くか、ページを再読み込みしてください</p>";});}
   d.hidden=!open;if(b)b.setAttribute('aria-expanded',String(open));};
 paintFavs();
 const q=document.getElementById('q');
@@ -2026,6 +2043,41 @@ def layout(file, title, body, updated):
 <script>const DEFAULT_FAVS={json.dumps(default_favs(), ensure_ascii=False)};{JS}</script></body></html>"""
 
 
+def check_output(mts, ski, spots):
+    """公開する前の値のチェック。おかしければ例外にして、公開をやめ前回のサイトを残す(Actions の実行は失敗になる)"""
+    bad = []
+    for what, items, src in (("登山", mts, "mountains"), ("スノーボード", ski, "ski"), ("サーフィン", spots, "surf")):
+        total = len(json.loads((ROOT / f"data/{src}.json").read_text(encoding="utf-8")))
+        if len(items) < total * 0.8:
+            bad.append(f"{what}: 予報が取れたのが{len(items)}/{total}地点")
+        if min(len(x["days"]) for x in items) < 5:
+            bad.append(f"{what}: 日数が5日未満")
+    def rng(what, name, key, v, lo, hi):
+        if v is not None and not lo <= v <= hi:
+            bad.append(f"{what} {name} {key}={v}")
+    for m in mts:
+        for d in m["days"]:
+            for k in ("tmin", "tmax"):
+                rng("登山", m["name"], k, d[k], -50, 45)
+            rng("登山", m["name"], "wind", d["wind"], 0, 80)
+            rng("登山", m["name"], "rain", d["rain"], 0, 1000)
+    for s in ski:
+        for d in s["days"]:
+            for k in ("tmin", "tmax"):
+                rng("スノーボード", s["name"], k, d[k], -50, 45)
+            rng("スノーボード", s["name"], "gust", d["gust"], 0, 80)
+            for k in ("snow", "snow_base", "depth", "rain"):
+                rng("スノーボード", s["name"], k, d[k], 0, 2000)
+    for s in spots:
+        for d in s["days"]:
+            for x in d["slots"]:
+                rng("サーフィン", s["name"], "height", x["height"], 0, 15)
+                rng("サーフィン", s["name"], "wind", x["wind"], 0, 80)
+                rng("サーフィン", s["name"], "air", x["air"], -50, 45)
+    if bad:
+        raise RuntimeError("値のチェックで異常があったので公開しません:\n" + "\n".join(bad[:30]))
+
+
 def main():
     updated = datetime.now(JST)
     mts, ski, spots = build_mountains(), build_ski(), build_surf()
@@ -2043,8 +2095,13 @@ def main():
               "mountains.html": ("登山天気", mountains_page(mts)),
               "snow.html": ("スノーボード", ski_page(ski)),
               "surf.html": ("サーフィン", surf_page(spots))}
+    check_output(mts, ski, spots)
     for f, (title, body) in bodies.items():
         (OUT / f).write_text(layout(f, title, body, updated), encoding="utf-8")
+    shutil.rmtree(OUT / "d", ignore_errors=True)    # 前回の詳細を消してから書き出す
+    (OUT / "d").mkdir()
+    for key, html in DETAILS.items():
+        (OUT / "d" / f"{key}.html").write_text(html, encoding="utf-8")
     for icon in (ROOT / "data/icons").iterdir():     # ボタンのアイコン
         (OUT / icon.name).write_bytes(icon.read_bytes())
     (OUT / "flowers").mkdir(exist_ok=True)
