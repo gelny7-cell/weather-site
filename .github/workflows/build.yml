@@ -4,6 +4,7 @@ name: build-and-deploy
 on:
   schedule:
     - cron: "15 */3 * * *"     # UTC。日本時間でも3時間ごと
+    - cron: "0 11 * * 5"       # 金曜 20:00(日本時間)。スキー場の営業予定(オープン・クローズ)を見直す
   push:
     branches: [main]
   workflow_dispatch:            # 手動実行(Actions の画面から)
@@ -26,6 +27,8 @@ jobs:
         with:
           python-version: "3.12"
       - run: python build.py
+        env:                    # 金曜20時の回だけ、営業予定を SURF&SNOW で見直す
+          PLAN_REFRESH: ${{ github.event.schedule == '0 11 * * 5' && '1' || '' }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: public

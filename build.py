@@ -2,6 +2,7 @@
 使い方: python build.py  (GitHub Actions で3時間ごとに実行。Python標準ライブラリのみ)"""
 import html
 import json
+import os
 import shutil
 import math
 import re
@@ -1066,8 +1067,10 @@ def attach_report(ski):
     (OUT / "snow_report.json").write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
 
 
-PLAN_HOUR = 6       # SURF&SNOW のオープン予定日を取り直す更新(日本時間の時)。1日1回
 SEASON = "2026-2027"
+# 営業予定(オープン・クローズ)を SURF&SNOW で見直すのは週1回(金曜20時の定期実行。ワークフローが PLAN_REFRESH=1 を渡す)。
+# ほかの回は、公開中のサイトの plan.json(前回見直した結果)を使う
+PLAN_REFRESH = os.environ.get("PLAN_REFRESH") == "1"
 
 
 def parse_plan(h):
@@ -1084,30 +1087,38 @@ def parse_plan(h):
 
 
 def attach_plan(ski):
-    """今季の予定日がまだないスキー場は、SURF&SNOW のページを1日1回見直し、今季の予定が出ていれば使う。
-    取り直さない回は、公開中のサイトの plan.json(前回までに見つけた分)を使う。data の値(公式で確かめたもの)が今季なら触らない"""
-    stale = [s for s in ski if not s.get("bc") and (s.get("plan") or {}).get("season") != SEASON
-             and s.get("spec", {}).get("src", "").startswith("surfsnow:")]
+    """営業予定を SURF&SNOW の今季の予定で更新する(オープン・クローズの変更も反映)。
+    公式サイトで確かめた予定(data の src が「公式」)は残し、クローズ日が未発表のときだけ SURF&SNOW の値で埋める"""
+    targets = [s for s in ski if not s.get("bc") and s.get("spec", {}).get("src", "").startswith("surfsnow:")]
     found = None
-    try:
-        found = fetch(SITE_URL + "plan.json", {})[0]
-    except Exception as ex:
-        print(f"前回の営業予定の取得に失敗: {type(ex).__name__}")
-    if datetime.now(JST).hour == PLAN_HOUR or found is None:    # 前回の分が読めないときも取り直す
-        found = found or {}
-        for s in stale:
-            rid = s["spec"]["src"][9:]
+    if not PLAN_REFRESH:
+        try:
+            found = fetch(SITE_URL + "plan.json", {})[0]
+            if not isinstance(found, dict) or any(not re.fullmatch(r"r\d{4}", k) for k in found):
+                found = None        # 古い形(スキー場の名前で記録)なら取り直す
+        except Exception as ex:
+            print(f"前回の営業予定の取得に失敗: {type(ex).__name__}")
+    if found is None:               # 週1回の見直し、または前回の分が読めないとき
+        found = {}
+        for rid in sorted({s["spec"]["src"][9:] for s in targets}):
             try:
                 req = urllib.request.Request(f"https://surfsnow.jp/guide/htm/{rid}s.htm", headers={"User-Agent": "Mozilla/5.0"})
                 pl = parse_plan(urllib.request.urlopen(req, timeout=30).read().decode("utf-8", "ignore"))
                 if pl and pl["season"] == SEASON:
-                    found[s["name"]] = pl
+                    found[rid] = pl
             except Exception as ex:
                 print(f"営業予定の取得に失敗({rid}): {type(ex).__name__}")
             time.sleep(1)
-    for s in stale:
-        if s["name"] in found:
-            s["plan"] = found[s["name"]]
+        print(f"営業予定を見直し: 今季の予定 {len(found)}か所")
+    for s in targets:
+        pl, now = found.get(s["spec"]["src"][9:]), s.get("plan") or {}
+        if not pl:
+            continue
+        if now.get("season") == SEASON and now.get("src", "").startswith("公式"):
+            if not now.get("close") and pl.get("close"):
+                s["plan"] = {**now, "close": pl["close"]}
+        else:
+            s["plan"] = pl
     OUT.mkdir(exist_ok=True)
     (OUT / "plan.json").write_text(json.dumps(found, ensure_ascii=False), encoding="utf-8")
 
@@ -1468,7 +1479,7 @@ def ski_page(ski):
 <li>上部・下部の標高: OpenStreetMap のリフトの位置と地形の標高から求めた値(一部は手作業で補正)。概算です</li>
 <li>スキー場の一覧・標高差: Wikipedia、Wikidata。リフトの位置: © OpenStreetMap contributors</li>
 <li>公式ページ・ゲレンデマップのボタンは、リンク先が確認できたスキー場だけに出しています</li>
-<li>スキー場詳細: コース数・リフト数・最長滑走距離・最大斜度・標高差は、公式サイトに書いてあればその値、なければ <a href='https://surfsnow.jp/'>SURF&amp;SNOW</a>、それもなければウェザーニュースの掲載値です。難易度・圧雪(コースにあるもの)は SURF&amp;SNOW、大人1日リフト券は公式サイトで確かめられたものはその料金(休日・通常料金)、ほかは SURF&amp;SNOW、ウェザーニュースの掲載料金です(2026-27シーズン。未発表のスキー場は2025-26シーズン)。営業期間は、各スキー場の公式サイトで今季の発表を確かめられたものはその日付、ほかは SURF&amp;SNOW のオープン予定日・クローズ予定日です(SURF&amp;SNOW は毎朝見直し、26-27シーズンが未発表のスキー場は昨シーズンの期間)。一覧の「営業中」「営業前」「営業終了」「今季未発表」は、この予定日による目安です。雪不足などで変わることがあるので、公式ページで確認してください。週末おすすめは、週末に営業中のスキー場を先に並べています。コース・リフトは「コース数 ／ リフト数」です。難易度・圧雪の数字は割合(%)です。🏂 は、キッカー・ハーフパイプ・ジブなどのパークがあるスキー場です(ウェザーニュースの掲載情報。キッズパークは含みません)。🚠 は、ゲレンデで使うゴンドラ・ロープウェイがあるスキー場です(びわ湖バレイのように、スキー場へ上がるためだけのものは除く)。🌲 非圧雪のツリー(ツリーラン)・サイド(サイドカントリー。ゲートなどから管理区域外へ出られる仕組み)は、公式サイト・SURF&amp;SNOW・Wikipedia・<a href='https://steep.jp/'>STEEP</a> に記載があったスキー場だけ表示しています。サイドカントリーは自己責任の山岳エリアなので、装備と各スキー場のルールを必ず確認してください。料金や施設は変わることがあるので、公式ページで確認してください</li>
+<li>スキー場詳細: コース数・リフト数・最長滑走距離・最大斜度・標高差は、公式サイトに書いてあればその値、なければ <a href='https://surfsnow.jp/'>SURF&amp;SNOW</a>、それもなければウェザーニュースの掲載値です。難易度・圧雪(コースにあるもの)は SURF&amp;SNOW、大人1日リフト券は公式サイトで確かめられたものはその料金(休日・通常料金)、ほかは SURF&amp;SNOW、ウェザーニュースの掲載料金です(2026-27シーズン。未発表のスキー場は2025-26シーズン)。営業期間は、各スキー場の公式サイトで今季の発表を確かめられたものはその日付、ほかは SURF&amp;SNOW のオープン予定日・クローズ予定日です(SURF&amp;SNOW は毎週金曜20時に見直し、26-27シーズンが未発表のスキー場は昨シーズンの期間)。一覧の「営業中」「営業前」「営業終了」「今季未発表」は、この予定日による目安です。雪不足などで変わることがあるので、公式ページで確認してください。週末おすすめは、週末に営業中のスキー場を先に並べています。コース・リフトは「コース数 ／ リフト数」です。難易度・圧雪の数字は割合(%)です。🏂 は、キッカー・ハーフパイプ・ジブなどのパークがあるスキー場です(ウェザーニュースの掲載情報。キッズパークは含みません)。🚠 は、ゲレンデで使うゴンドラ・ロープウェイがあるスキー場です(びわ湖バレイのように、スキー場へ上がるためだけのものは除く)。🌲 非圧雪のツリー(ツリーラン)・サイド(サイドカントリー。ゲートなどから管理区域外へ出られる仕組み)は、公式サイト・SURF&amp;SNOW・Wikipedia・<a href='https://steep.jp/'>STEEP</a> に記載があったスキー場だけ表示しています。サイドカントリーは自己責任の山岳エリアなので、装備と各スキー場のルールを必ず確認してください。料金や施設は変わることがあるので、公式ページで確認してください</li>
 <li>立山室堂(バックカントリー): スキー場ではなく、バックカントリーのエリアとして載せています。積雪・新雪は予報モデルの値で、観測値ではありません。雪崩の危険がある山岳地なので、装備と情報収集は各自で行ってください。立山黒部アルペンルートが閉まる冬(12〜4月)は入れないため、週末おすすめには出しません</li>
 <li>営業時間: ウェザーニュースの掲載情報(2025-26シーズン)。今シーズンの営業日・時間は公式ページで確認してください</li></ul>
 <h2>このページについて</h2>
