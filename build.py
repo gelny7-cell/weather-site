@@ -807,7 +807,7 @@ def season_line(m):
             text = (f"{icon}見ごろ({md(z['end'] - timedelta(days=1))}頃まで)" if st == 2 else
                     f"{early}({md(z['peak'])}頃から見ごろ)" if st == 1 else
                     "見ごろ過ぎ" if st == 3 else f"{md(z['peak'])}頃から見ごろ")
-            parts.append(f"{z['name']}" + ("" if "標高" in z["name"] else f"({z['elev']:,.0f}m)") + f" {text}")
+            parts.append(f"{z['name']} {text}")
         lines += f"<p class='intro'>{icon} {name}(予想): {' / '.join(parts)}</p>"
     days = [d["date"] for d in m["days"]]
     if in_bloom(m, days[:1]):
@@ -1766,7 +1766,7 @@ def surf_page(spots):
     items = []
     for s in spots:
         url = spot_url("w", s)
-        pref = re.match(r".+?[都道府県]", s["pref"]).group(0)
+        pref = re.match(r"北海道|東京都|京都府|大阪府|.{2,3}?県", s["pref"]).group(0)
         items.append({"k": s["key"], "f": fid("w", s), "n": s["name"], "y": s.get("yomi", ""), "r": pref, "p": s["pref"],
                       "lon": s["lon"], "u": url, "b": facmarks(s) + alert_tags(s), "fc": dir_name(s["facing"]),
                       "d": [[[sl["slot"], sl["score"], round(sl["height"], 1), round(sl["swell"], 1), round(sl["period"], 1),
@@ -1845,9 +1845,9 @@ def top_page(updated):
         pos = {"mountain": "center 35%", "snow": "center 40%"}.get(photo, "center")   # 写真の見せたい所(富士山と稜線、日の出とシュプール)
         bg = (f"<span class='gphoto' style=\"background-image:url('top/{photo}.jpg');background-position:{pos}\"></span>" if has_photo
               else f"<span class='gart'>{GENRE_ART[cls]}</span>")
-        cards += (f"<a class='gcard {cls}{' has-photo' if has_photo else ''}' href='{page}'>{bg}"
-                  f"<span class='gbody'><span class='gname'><span class='gicon' aria-hidden='true'>{icon}</span>{name}</span>"
-                  f"<span class='gdesc'>{desc}</span></span><svg class='garrow' viewBox='0 0 24 24' aria-hidden='true'><path d='M9 5l7 7-7 7' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/></svg></a>")
+        body = ("" if has_photo else f"<span class='gbody'><span class='gname'><span class='gicon' aria-hidden='true'>{icon}</span>{name}</span>"
+                                       f"<span class='gdesc'>{desc}</span></span>")
+        cards += (f"<a class='gcard {cls}{' has-photo' if has_photo else ''}' href='{page}' aria-label='{name}'>{bg}{body}</a>")
     return (f"<section class='hero'><h1>山と雪と波</h1><p class='catch'>週末のコンディションをチェック</p>"
             f"<p class='muted'>更新 {updated.month}/{updated.day} {updated:%H:%M} · 次の更新は{next_update(updated)}時すぎの予定</p></section>"
             f"<nav class='genres' aria-label='ジャンル'>{cards}</nav>")
@@ -1975,7 +1975,7 @@ box-shadow:0 2px 8px rgba(0,0,0,.08);transition:transform .15s}
 .gcard:active{transform:scale(.98)}.gcard:focus-visible{outline:3px solid var(--g);outline-offset:2px}
 .gart{position:absolute;inset:0;color:var(--g);-webkit-mask-image:linear-gradient(to right,transparent 0,#000 55%);mask-image:linear-gradient(to right,transparent 0,#000 55%)}.gart svg{position:absolute;inset:0;width:100%;height:100%}
 .gphoto{position:absolute;inset:0;background-size:cover;background-repeat:no-repeat}
-.gcard.has-photo{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5)}.gcard.has-photo::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.65),rgba(0,0,0,.15) 55%,rgba(0,0,0,0) 80%)}
+
 .gbody{position:relative;z-index:1;padding:14px 16px;flex:1;min-width:0}
 .gname{display:flex;align-items:center;gap:8px;font-size:24px;font-weight:700;line-height:1.2}
 .gicon{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--g);font-size:22px}
@@ -2284,7 +2284,7 @@ def layout(file, title, body, updated, nav=None):
     bottom_line = f"<p class='muted'>更新: {updated:%Y年%-m月%-d日 %H:%M}(3時間ごとに自動更新)</p>"
     top_line = f"<p class='updated muted'>更新 {updated.month}/{updated.day} {updated:%H:%M} · 次の更新は{next_update(updated)}時すぎの予定</p>"
     menu = "".join(f"<a href='{f}' class='{'on' if f == nav else ''}'>{n}</a>" for f, n in PAGES)
-    if file != "index.html" and "</h1>" in body:      # 更新時刻はジャンル名(見出し)のすぐ後ろに
+    if file in GENRE_CLASS and "</h1>" in body:      # 更新時刻は一覧のジャンル名(見出し)のすぐ後ろに。詳細ページには出さない
         body = body.replace("</h1>", "</h1>" + top_line, 1) if "class='ghead'" not in body else body.replace("</div>", "</div>" + top_line, 1)
         top_line = ""
     return f"""<!doctype html><html lang="ja"><head><meta charset="utf-8">
