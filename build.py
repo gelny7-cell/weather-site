@@ -2146,10 +2146,10 @@ const KINDS={
   filter:{cls:(it,v)=>it.l.includes(v),rate:(it,v,days)=>days.every(i=>it.d[i]&&it.d[i][0]>=+v)},
   key:(it,days)=>[-sum(days,i=>(it.d[i]||[0])[0]),Math.max(...days.map(i=>(it.d[i]||[0,0,0,99])[3]))],
   sort:{score:null,elev:(a,b)=>b.e-a.e,name:(a,b)=>a.y.localeCompare(b.y,'ja')},
-  // おすすめ: 選んだ日がすべて○以上の山を、判定の合計が高く風の弱い順に。同じエリアは3座まで、10座(今の週末おすすめと同じ規則)
+  // おすすめ: 選んだ日がすべて○以上の山を、判定の合計が高く風の弱い順に。同じエリアは5座まで、15座
   rec:(xs,days,K)=>{const per={},out=[];
     for(const it of xs.filter(it=>days.every(i=>it.d[i]&&it.d[i][0]>=2)).sort((a,b)=>cmp(K.key(a,days),K.key(b,days)))){
-      if((per[it.r]||0)<3){out.push(it);per[it.r]=(per[it.r]||0)+1;}if(out.length===10)break;}
+      if((per[it.r]||0)<5){out.push(it);per[it.r]=(per[it.r]||0)+1;}if(out.length===15)break;}
     return out;},
  },
  s:{
