@@ -1550,6 +1550,9 @@ def surf_table(s):
         return ("<span class='fac' title='うねりが浜の正面から入る' role='img' aria-label='うねりが浜の正面から'>🎯</span>"
                 if deg is not None and ang_diff(deg, s["facing"]) <= 30 else "")
 
+    def power(x):               # うねりの波力(kW/m)。判定と同じ式(0.49×うねりの高さ²×周期)
+        return f"<td>{0.49 * x['swell'] ** 2 * x['period']:.1f}</td>"
+
     def temps(x):
         return ((f"<td>{x['air']:.0f}℃</td>" if has_air else "")
                 + (f"<td>{x['sea']:.0f}℃</td>" if has_sea else ""))
@@ -1561,18 +1564,18 @@ def surf_table(s):
             date_cell = (f"<td rowspan='{len(d['slots'])}' class='dt'>{label}</td>" if i == 0 else "")
             rows += (f"<tr>{date_cell}<td>{sl['slot']}</td><td class='{cls}'><b>{mark}</b></td>"
                      f"<td>{sl['swell']:.1f}m({dir_name(sl['wave_dir'])}{front(sl['wave_dir'])})</td>"
-                     f"<td>{sl['height']:.1f}m</td><td>{sl['period']:.1f}秒</td>"
+                     f"<td>{sl['height']:.1f}m</td><td>{sl['period']:.1f}秒</td>{power(sl)}"
                      + (f"<td>{sl['tide']}</td>" if has_tide else "")
                      + f"<td>{dir_name(sl['wind_dir'])} {sl['wind']:.1f}m/s <small>{sl['kind']}</small></td>"
                      f"<td>{wx(sl['code'])[0]}</td>{temps(sl)}</tr>")
         for x in d.get("hours", []):
             rows += (f"<tr class='hr' hidden><td class='dt'>{x['hour']}時</td><td colspan='2'></td>"
                      f"<td>{x['swell']:.1f}m({dir_name(x['wave_dir'])}{front(x['wave_dir'])})</td><td>{x['height']:.1f}m</td>"
-                     f"<td>{x['period']:.1f}秒</td>" + (f"<td>{x['tide']}</td>" if has_tide else "")
+                     f"<td>{x['period']:.1f}秒</td>{power(x)}" + (f"<td>{x['tide']}</td>" if has_tide else "")
                      + f"<td>{dir_name(x['wind_dir'])} {x['wind']:.1f}m/s <small>{x['kind']}</small></td>"
                      f"<td>{wx(x['code'])[0]}</td>{temps(x)}</tr>")
     return ("<div class='scroll'><table class='sub'>"
-            "<tr><th class='dt'>日付</th><th></th><th>判定</th><th>うねり</th><th>波の高さ</th><th>周期</th>" + ("<th>潮</th>" if has_tide else "")
+            "<tr><th class='dt'>日付</th><th></th><th>判定</th><th>うねり</th><th>波の高さ</th><th>周期</th><th>波力<br><small>kW/m</small></th>" + ("<th>潮</th>" if has_tide else "")
             + f"<th>風</th><th>天気</th>{'<th>気温</th>' if has_air else ''}{'<th>水温</th>' if has_sea else ''}</tr>{rows}</table></div>")
 
 
