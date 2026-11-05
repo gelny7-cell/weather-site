@@ -1138,7 +1138,7 @@ def build_ski():
                 "feel": min(wind_chill(th[k], wh[k]) for k in th if k in wh),
                 "wind_dir": mean_dir([wd[k] for k in wd if k in wh], [wh[k] for k in wd if k in wh]) if wd else None,
                 "hours": ski_hours(h, bh, d, today),
-                "road": min(morning) if len(morning) == 6 else None,
+                "road": min(morning) if len(morning) == 6 and not s.get("bc") else None,   # バックカントリー(標高2,450mの室堂)は路面の列を出さない
                 "ice": bool(thawed and frozen and min(frozen) <= -2 and night < 3),
             })
     ski = align(ski, "スノーボード")
@@ -1305,7 +1305,7 @@ def ski_detail(s, with_map=True, simple=False):
     if with_map:                # 公式ページ・ゲレンデマップ(分かるスキー場だけ)・駐車場の地図
         link = ((sitelink(s["site"], "🏠 公式ページ") + " " if s.get("site") else "")
                 + (sitelink(s["map"], "🗺️ ゲレンデマップ") + " " if s.get("map") else "")
-                + camlink(s) + maplink(s['name'] + ' 第1駐車場', '駐車場') + " " + onsenlink(s["lat"], s["lon"]) + foodlink(s["lat"], s["lon"], s["pref"], "ski") + michilink(s["lat"], s["lon"]) + conbilink(s["lat"], s["lon"]) + " ")
+                + camlink(s) + maplink(s.get('parking') or s['name'] + ' 第1駐車場', '駐車場') + " " + onsenlink(s["lat"], s["lon"]) + foodlink(s["lat"], s["lon"], s["pref"], "ski") + michilink(s["lat"], s["lon"]) + conbilink(s["lat"], s["lon"]) + " ")
     rp = s.get("report")
     obs = ""
     if rp:                      # スキー場が報告したゲレンデの積雪(SURF&SNOW)。報告のない日は出さない
@@ -1378,6 +1378,7 @@ def ski_page(ski):
 <li>スキー場の一覧・標高差: Wikipedia、Wikidata。リフトの位置: © OpenStreetMap contributors</li>
 <li>公式ページ・ゲレンデマップのボタンは、リンク先が確認できたスキー場だけに出しています</li>
 <li>スキー場詳細: コース数・リフト数・最長滑走距離・最大斜度・標高差は、公式サイトに書いてあればその値、なければ <a href='https://surfsnow.jp/'>SURF&amp;SNOW</a>、それもなければウェザーニュースの掲載値です。難易度・圧雪(コースにあるもの)は SURF&amp;SNOW、大人1日リフト券は公式サイトで確かめられたものはその料金(休日・通常料金)、ほかは SURF&amp;SNOW、ウェザーニュースの掲載料金です(2026-27シーズン。未発表のスキー場は2025-26シーズン)。営業期間は SURF&amp;SNOW のオープン予定日・クローズ予定日です(26-27シーズンが未発表のスキー場は昨シーズンの期間)。コース・リフトは「コース数 ／ リフト数」です。難易度・圧雪の数字は割合(%)です。🏂 は、キッカー・ハーフパイプ・ジブなどのパークがあるスキー場です(ウェザーニュースの掲載情報。キッズパークは含みません)。🚠 は、ゲレンデで使うゴンドラ・ロープウェイがあるスキー場です(びわ湖バレイのように、スキー場へ上がるためだけのものは除く)。🌲 非圧雪のツリー(ツリーラン)・サイド(サイドカントリー。ゲートなどから管理区域外へ出られる仕組み)は、公式サイト・SURF&amp;SNOW・Wikipedia・<a href='https://steep.jp/'>STEEP</a> に記載があったスキー場だけ表示しています。サイドカントリーは自己責任の山岳エリアなので、装備と各スキー場のルールを必ず確認してください。料金や施設は変わることがあるので、公式ページで確認してください</li>
+<li>立山室堂(バックカントリー): スキー場ではなく、バックカントリーのエリアとして載せています。積雪・新雪は予報モデルの値で、観測値ではありません。雪崩の危険がある山岳地なので、装備と情報収集は各自で行ってください。立山黒部アルペンルートが閉まる冬(12〜4月)は入れないため、週末おすすめには出しません</li>
 <li>営業時間: ウェザーニュースの掲載情報(2025-26シーズン)。今シーズンの営業日・時間は公式ページで確認してください</li></ul>
 <h2>このページについて</h2>
 <p>標高差の大きいスキー場100か所(営業を終えた芸北国際スキー場を除く)に、志賀高原 焼額山・キューピットバレイ・だいせんホワイトリゾート・スノーウェーブパーク白鳥高原と、SURF&amp;SNOW の中京・北陸・関西のスキー場を加えた一覧です。表の数字はゲレンデ上部の新雪(前日17時〜当日8時、閉場から開場までに積もる雪)の予報(cm)です。表は7日間で、スキー場名を押すと最大16日間の積雪・気温・0℃の高さ・風の詳細が開きます。</p></div>
@@ -1769,7 +1770,7 @@ def index_page(mts, ski, spots):
     picks, used = [], set()
     for s in sorted(ski, key=ski_score, reverse=True):
         r = PREF_SKI_REGION[s["pref"]]
-        if ski_score(s) >= 1 and r not in used:
+        if ski_score(s) >= 1 and r not in used and not s.get("bc"):     # バックカントリー(立山室堂)は冬に入れないので候補にしない
             picks.append(s); used.add(r)
         if len(picks) == 5:
             break
