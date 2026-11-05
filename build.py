@@ -2164,10 +2164,11 @@ const KINDS={
   key:(it,days)=>[-sum(days,i=>(it.d[i]||[0])[0])],
   sort:{snow:null,powder:(a,b)=>cmp([-sum(DAYS(),i=>(a.d[i]||[])[5]||0),-sum(DAYS(),i=>(a.d[i]||[0])[0])],[-sum(DAYS(),i=>(b.d[i]||[])[5]||0),-sum(DAYS(),i=>(b.d[i]||[0])[0])]),
         region:(a,b)=>a.ro-b.ro||sum(DAYS(),i=>(b.d[i]||[0])[0])-sum(DAYS(),i=>(a.d[i]||[0])[0]),name:(a,b)=>(a.y||a.n).localeCompare(b.y||b.n,'ja')},
-  // おすすめ: 選んだ日に営業前・営業終了のところは入れず、営業中→未確認の順に、新雪(パウダー期待の日は10cm分を加点)の多い順。同じ地方は5か所まで、15か所(登山と同じ)
+  emptyRec:'選んだ日に営業中のスキー場で、新雪が見込めるところはまだありません。「全スポット」で予報を見られます。',
+  // おすすめ: 選んだ日すべてに営業中(営業予定日の範囲)のスキー場だけを、新雪(パウダー期待の日は10cm分を加点)の多い順。同じ地方は5か所まで、15か所(登山と同じ)
   rec:(xs,days)=>{const rank={o:0,u:1,'':1,b:2,a:2},sc=it=>sum(days,i=>{const d=it.d[i];return d?d[0]+(d[5]?10:0):0;});
     const per={},out=[];
-    for(const it of xs.filter(it=>!it.bc&&sc(it)>=1&&days.every(i=>!['b','a'].includes((it.d[i]||[])[6]))).sort((a,b)=>cmp([rank[(a.d[days[0]]||[])[6]||''],-sc(a)],[rank[(b.d[days[0]]||[])[6]||''],-sc(b)]))){
+    for(const it of xs.filter(it=>!it.bc&&sc(it)>=1&&days.every(i=>(it.d[i]||[])[6]==='o')).sort((a,b)=>cmp([rank[(a.d[days[0]]||[])[6]||''],-sc(a)],[rank[(b.d[days[0]]||[])[6]||''],-sc(b)]))){
       if((per[it.r]||0)<5){out.push(it);per[it.r]=(per[it.r]||0)+1;}if(out.length===15)break;}
     return out;},
  },
@@ -2219,6 +2220,7 @@ const render=()=>{
   else{const s=K.sort[st.sort];xs=xs.slice().sort(s||((a,b)=>cmp(K.key(a,st.days),K.key(b,st.days))));}
   $('spots').innerHTML=xs.map(card).join('');
   $('empty').hidden=xs.length>0;
+  $('empty').textContent=st.tab==='rec'&&K.emptyRec?K.emptyRec:'条件に合うスポットがありません。絞り込み条件を変更してください。';
   $('count').textContent=`${label[st.tab]} ${xs.length}件`;
   document.querySelector('.sortl').hidden=st.tab==='rec';
   document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===st.tab)));
