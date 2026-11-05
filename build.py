@@ -1216,6 +1216,38 @@ def plan_text(s):
     return f"{text} <small class='muted'>昨シーズンの期間</small>"
 
 
+def season_status(s, day):
+    """その日の営業状況(SURF&SNOW のオープン予定日・クローズ予定日による目安)。(状態, 表示の文字) を返す。
+    状態は open(営業中)/before(営業前)/after(営業終了)/unknown(今季未発表)/none(予定なし・バックカントリー)。
+    旬の日付は、オープンを旬の初日、クローズを旬の最終日として比べる"""
+    pl = s.get("plan")
+    if not pl or s.get("bc"):
+        return "none", ""
+    if pl["season"] != "2026-2027":
+        return "unknown", "今季未発表"
+    def when(x, first):     # 年はシーズンから決める(7〜12月は1年目、1〜6月は2年目。データの年がずれているものがあるため)
+        m = int(x[1])
+        y = int(pl["season"][:4]) + (m <= 6)
+        if x[2].isdigit():
+            return date(y, m, int(x[2]))
+        last = (date(y + m // 12, m % 12 + 1, 1) - timedelta(days=1)).day     # その月の最終日
+        a, b = {"上旬": (1, 10), "中旬": (11, 20), "下旬": (21, last)}.get(x[2], (1, last))
+        return date(y, m, a if first else b)
+    md = lambda x: f"{int(x[1])}/{int(x[2])}" if x[2].isdigit() else f"{int(x[1])}月{x[2]}"
+    day = date.fromisoformat(day) if isinstance(day, str) else day
+    if day < when(pl["open"], True):
+        return "before", f"営業前 {md(pl['open'])}〜"
+    if day > when(pl["close"], False):
+        return "after", "営業終了"
+    return "open", "営業中"
+
+
+def status_tag(s, day):
+    """一覧・詳細に添える営業状況(営業中は緑、ほかは灰色)"""
+    st, text = season_status(s, day)
+    return f" · <span class='st{' r3' if st == 'open' else ''}'>{text}</span>" if text else ""
+
+
 def ski_info(s):
     """「スキー場詳細」ボタン。押すと営業時間・リフト券・コースのデータが開く(分かる項目だけ)。
     データは公式サイトに書いてあればその値、なければ SURF&SNOW の値(data の spec)"""
@@ -1225,7 +1257,7 @@ def ski_info(s):
     if s.get("about"):         # 詳しい紹介(公式サイト・Wikipedia・SURF&SNOW の情報をもとに書いたもの)
         rows.append(f"<p class='about'>{e(s['about'])}</p>")
     if s.get("plan"):
-        row("📅 営業期間", plan_text(s))
+        row("📅 営業期間", plan_text(s) + status_tag(s, datetime.now(JST).date()))
     if s.get("hours"):
         row("🕘 営業時間", ski_hours_line(s))
     t = s.get("ticket")
@@ -1357,7 +1389,7 @@ def ski_page(ski):
             rows += (
                 f"<tbody class='mt' id='{s['key']}' data-fid='{e(fid('s', s))}' data-region='{r}' data-name='{e(s['name'] + s.get('yomi', ''))}'{powder7}>"
                 f"<tr class='main'><th class='nm'><button type='button' aria-expanded='false'>"
-                f"<span>{e(s['name'])}</span>{hour_marks(s)}{alert_tags(s)}<small>{e(s['pref'])}</small>"
+                f"<span>{e(s['name'])}</span>{hour_marks(s)}{alert_tags(s)}<small>{e(s['pref'])}{status_tag(s, datetime.now(JST).date())}</small>"
                 f"</button></th>{cells}</tr>"
                 f"<tr class='detail' hidden><td colspan='{len(days) + 1}'>{lazy(s['key'], ski_detail(s))}</td></tr></tbody>")
     chips = ("<button class='chip on' data-r=''>すべて</button>"
@@ -1389,7 +1421,7 @@ def ski_page(ski):
 <li>上部・下部の標高: OpenStreetMap のリフトの位置と地形の標高から求めた値(一部は手作業で補正)。概算です</li>
 <li>スキー場の一覧・標高差: Wikipedia、Wikidata。リフトの位置: © OpenStreetMap contributors</li>
 <li>公式ページ・ゲレンデマップのボタンは、リンク先が確認できたスキー場だけに出しています</li>
-<li>スキー場詳細: コース数・リフト数・最長滑走距離・最大斜度・標高差は、公式サイトに書いてあればその値、なければ <a href='https://surfsnow.jp/'>SURF&amp;SNOW</a>、それもなければウェザーニュースの掲載値です。難易度・圧雪(コースにあるもの)は SURF&amp;SNOW、大人1日リフト券は公式サイトで確かめられたものはその料金(休日・通常料金)、ほかは SURF&amp;SNOW、ウェザーニュースの掲載料金です(2026-27シーズン。未発表のスキー場は2025-26シーズン)。営業期間は SURF&amp;SNOW のオープン予定日・クローズ予定日です(26-27シーズンが未発表のスキー場は昨シーズンの期間)。コース・リフトは「コース数 ／ リフト数」です。難易度・圧雪の数字は割合(%)です。🏂 は、キッカー・ハーフパイプ・ジブなどのパークがあるスキー場です(ウェザーニュースの掲載情報。キッズパークは含みません)。🚠 は、ゲレンデで使うゴンドラ・ロープウェイがあるスキー場です(びわ湖バレイのように、スキー場へ上がるためだけのものは除く)。🌲 非圧雪のツリー(ツリーラン)・サイド(サイドカントリー。ゲートなどから管理区域外へ出られる仕組み)は、公式サイト・SURF&amp;SNOW・Wikipedia・<a href='https://steep.jp/'>STEEP</a> に記載があったスキー場だけ表示しています。サイドカントリーは自己責任の山岳エリアなので、装備と各スキー場のルールを必ず確認してください。料金や施設は変わることがあるので、公式ページで確認してください</li>
+<li>スキー場詳細: コース数・リフト数・最長滑走距離・最大斜度・標高差は、公式サイトに書いてあればその値、なければ <a href='https://surfsnow.jp/'>SURF&amp;SNOW</a>、それもなければウェザーニュースの掲載値です。難易度・圧雪(コースにあるもの)は SURF&amp;SNOW、大人1日リフト券は公式サイトで確かめられたものはその料金(休日・通常料金)、ほかは SURF&amp;SNOW、ウェザーニュースの掲載料金です(2026-27シーズン。未発表のスキー場は2025-26シーズン)。営業期間は SURF&amp;SNOW のオープン予定日・クローズ予定日です(26-27シーズンが未発表のスキー場は昨シーズンの期間)。一覧の「営業中」「営業前」「営業終了」「今季未発表」は、この予定日による目安です。雪不足などで変わることがあるので、公式ページで確認してください。週末おすすめは、週末に営業中のスキー場を先に並べています。コース・リフトは「コース数 ／ リフト数」です。難易度・圧雪の数字は割合(%)です。🏂 は、キッカー・ハーフパイプ・ジブなどのパークがあるスキー場です(ウェザーニュースの掲載情報。キッズパークは含みません)。🚠 は、ゲレンデで使うゴンドラ・ロープウェイがあるスキー場です(びわ湖バレイのように、スキー場へ上がるためだけのものは除く)。🌲 非圧雪のツリー(ツリーラン)・サイド(サイドカントリー。ゲートなどから管理区域外へ出られる仕組み)は、公式サイト・SURF&amp;SNOW・Wikipedia・<a href='https://steep.jp/'>STEEP</a> に記載があったスキー場だけ表示しています。サイドカントリーは自己責任の山岳エリアなので、装備と各スキー場のルールを必ず確認してください。料金や施設は変わることがあるので、公式ページで確認してください</li>
 <li>立山室堂(バックカントリー): スキー場ではなく、バックカントリーのエリアとして載せています。積雪・新雪は予報モデルの値で、観測値ではありません。雪崩の危険がある山岳地なので、装備と情報収集は各自で行ってください。立山黒部アルペンルートが閉まる冬(12〜4月)は入れないため、週末おすすめには出しません</li>
 <li>営業時間: ウェザーニュースの掲載情報(2025-26シーズン)。今シーズンの営業日・時間は公式ページで確認してください</li></ul>
 <h2>このページについて</h2>
@@ -1790,7 +1822,9 @@ def index_page(mts, ski, spots):
         days = [d for d in s["days"] if d["date"] in we]
         return sum(d["snow"] for d in days) + sum(10 for d in days if is_powder(s, d))
     picks, used = [], set()
-    for s in sorted(ski, key=ski_score, reverse=True):
+    # 週末の初日に営業中のところを先に、次に今季未発表・予定なし、最後に営業前・営業終了(同じ段は新雪の多い順)
+    rank = {"open": 0, "unknown": 1, "none": 1, "before": 2, "after": 2}
+    for s in sorted(ski, key=lambda s: (rank[season_status(s, we[0])[0]], -ski_score(s))):
         r = PREF_SKI_REGION[s["pref"]]
         if ski_score(s) >= 1 and r not in used and not s.get("bc"):     # バックカントリー(立山室堂)は冬に入れないので候補にしない
             picks.append(s); used.add(r)
@@ -1801,7 +1835,8 @@ def index_page(mts, ski, spots):
         cells = "".join(f"<td>{wx(d['code'])[0]}<br><small class='muted'>新雪</small>{d['snow']:.0f}cm"
                         + (" <span class='tag'>パウダー</span>" if is_powder(s, d) else "")
                         + f"<br><small class='muted'>積雪</small>{d['depth']:.0f}cm</td>" for d in s["days"] if d["date"] in we)
-        rec_rows += link_row(f"<b>{e(s['name'])}</b>{until_we(s)}",
+        st = season_status(s, we[0])[1]
+        rec_rows += link_row(f"<b>{e(s['name'])}</b>{until_we(s)}" + (f"<br><small class='muted'>{st}</small>" if st else ""),
                              cells, f"snow.html#{s['key']}")
     rec = (f"<div class='scroll'><table class='sub top'>{cols}<tr><th>週末おすすめのスキー場</th>"
            + "".join(f"<th>{day_label(d)}</th>" for d in we) + f"</tr>{rec_rows}</table></div>") if picks else (
@@ -1864,7 +1899,7 @@ nav a.on{color:var(--text);border-color:var(--accent);font-weight:600}
 main{max-width:1000px;margin:0 auto;padding:20px 16px 48px}
 h1{font-size:22px;margin:4px 0 6px}h2{font-size:17px;margin:24px 0 8px}h3{font-size:16px;margin:0 0 8px}
 h3 small,li small{color:var(--muted);font-weight:400}
-.muted{color:var(--muted);font-size:13px}
+.muted{color:var(--muted);font-size:13px}.st{color:var(--muted)}.st.r3{color:var(--r3)}.updated{margin:0 0 8px}
 a{color:var(--accent)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:12px 0}
 .card h2{margin-top:0}.card h2 a{text-decoration:none;color:var(--text)}
@@ -2031,6 +2066,11 @@ def default_favs():
             + [f"s:{n}" for n in favs.get("ski", [])] + [f"w:{n}" for n in favs.get("surf", [])])
 
 
+def next_update(updated):
+    """次の定期更新の時(日本時間の0・3・6…時の15分に始まる。GitHub の定期実行は遅れることがある)"""
+    return (updated.hour // 3 + 1) * 3 % 24
+
+
 def layout(file, title, body, updated):
     nav = "".join(f"<a href='{f}' class='{'on' if f == file else ''}'>{n}</a>" for f, n in PAGES)
     return f"""<!doctype html><html lang="ja"><head><meta charset="utf-8">
@@ -2039,9 +2079,9 @@ def layout(file, title, body, updated):
 <meta name="description" content="日本百名山・関西百名山・花の百名山の登山天気、スキー場の降雪、サーフポイントの波と風の予報をまとめたサイト">
 <style>{CSS}</style></head><body>
 <header><nav>{nav}</nav></header>
-<main>{body}<p class='muted'>更新: {updated:%Y年%-m月%-d日 %H:%M}(3時間ごとに自動更新)</p></main>
+<main><p class='updated muted'>更新 {updated.month}/{updated.day} {updated:%H:%M} · 次の更新は{next_update(updated)}時すぎの予定</p>{body}<p class='muted'>更新: {updated:%Y年%-m月%-d日 %H:%M}(3時間ごとに自動更新)</p></main>
 <footer>予報は目安です。登山・海に出る前に、気象庁の警報・注意報と現地の情報を必ず確認してください。<br>
-気象データ: <a href="https://open-meteo.com/">Open-Meteo.com</a>(CC BY 4.0) · ゲレンデ積雪: SURF&amp;SNOW · リフトの位置: © OpenStreetMap contributors ·
+気象データ: <a href="https://open-meteo.com/">Open-Meteo.com</a>(<a href="https://creativecommons.org/licenses/by/4.0/deed.ja">CC BY 4.0</a>) · ゲレンデ積雪: SURF&amp;SNOW · リフトの位置: © OpenStreetMap contributors ·
 山の一覧・座標: Wikipedia「日本百名山」「花の百名山」、Wikidata、ヤマレコ「関西百名山」、YAMAP MAGAZINE「花の百名山」 · 花の写真: Wikimedia Commons、iNaturalist(撮影者・ライセンスは各写真の下)</footer>
 <script>const DEFAULT_FAVS={json.dumps(default_favs(), ensure_ascii=False)};{JS}</script></body></html>"""
 
