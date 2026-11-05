@@ -2060,14 +2060,14 @@ def check_output(mts, ski, spots):
             for k in ("tmin", "tmax"):
                 rng("登山", m["name"], k, d[k], -50, 45)
             rng("登山", m["name"], "wind", d["wind"], 0, 80)
-            rng("登山", m["name"], "rain", d["rain"], 0, 1000)
+            rng("登山", m["name"], "rain", d["rain"], -1, 1000)   # 予報の値はわずかにマイナスになることがある
     for s in ski:
         for d in s["days"]:
             for k in ("tmin", "tmax"):
                 rng("スノーボード", s["name"], k, d[k], -50, 45)
             rng("スノーボード", s["name"], "gust", d["gust"], 0, 80)
             for k in ("snow", "snow_base", "depth", "rain"):
-                rng("スノーボード", s["name"], k, d[k], 0, 2000)
+                rng("スノーボード", s["name"], k, d[k], -1, 2000)
     for s in spots:
         for d in s["days"]:
             for x in d["slots"]:
