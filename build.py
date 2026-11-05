@@ -1941,6 +1941,36 @@ def index_page(mts, ski, spots):
 """
 
 
+# ---------------------------------------------------------------- トップ(ジャンルを選ぶだけ)
+# ジャンルのカード: (ページ, クラス, アイコン, 名前, ひとこと, 写真のファイル名)
+GENRES = [("mountains.html", "g-mt", "⛰️", "登山", "山頂の天気・風・体感温度から登山日和を判定", "mountain"),
+          ("snow.html", "g-snow", "🏂", "スノーボード", "予想新雪・パウダー期待・営業状況", "snow"),
+          ("surf.html", "g-surf", "🏄", "サーフィン", "うねり・周期・風向きから波を判定", "surf")]
+# 写真が届くまでの仮の絵(ジャンルの色で描く山・雪山・波)
+GENRE_ART = {
+    "g-mt": "<svg viewBox='0 0 200 100' preserveAspectRatio='xMidYMax slice' aria-hidden='true'><path d='M0 100 L55 38 L80 62 L120 18 L200 100Z' fill='currentColor' opacity='.35'/><path d='M0 100 L70 55 L105 78 L150 45 L200 100Z' fill='currentColor' opacity='.6'/></svg>",
+    "g-snow": "<svg viewBox='0 0 200 100' preserveAspectRatio='xMidYMax slice' aria-hidden='true'><path d='M20 100 L100 22 L180 100Z' fill='currentColor' opacity='.45'/><path d='M100 22 L80 42 L92 40 L100 50 L108 40 L120 42Z' fill='#fff' opacity='.9'/><g fill='#fff' opacity='.8'><circle cx='40' cy='25' r='2.5'/><circle cx='160' cy='18' r='2'/><circle cx='150' cy='50' r='2.5'/><circle cx='30' cy='60' r='2'/><circle cx='70' cy='15' r='1.8'/></g></svg>",
+    "g-surf": "<svg viewBox='0 0 200 100' preserveAspectRatio='xMidYMax slice' aria-hidden='true'><circle cx='150' cy='38' r='16' fill='currentColor' opacity='.35'/><path d='M0 70 Q25 55 50 70 T100 70 T150 70 T200 70 V100 H0Z' fill='currentColor' opacity='.45'/><path d='M0 82 Q25 70 50 82 T100 82 T150 82 T200 82 V100 H0Z' fill='currentColor' opacity='.7'/></svg>",
+}
+
+
+def top_page(updated):
+    """トップページ: サイト名・ひとこと・更新時刻と、3ジャンルの大きなカード。
+    写真(data/top/<名前>.jpg)があれば背景に使い、なければジャンルの色の絵で表示する"""
+    cards = ""
+    for page, cls, icon, name, desc, photo in GENRES:
+        has_photo = (ROOT / "data/top" / f"{photo}.jpg").exists()
+        pos = {"mountain": "center 35%", "snow": "center 40%"}.get(photo, "center")   # 写真の見せたい所(富士山と稜線、日の出とシュプール)
+        bg = (f"<span class='gphoto' style=\"background-image:url('top/{photo}.jpg');background-position:{pos}\"></span>" if has_photo
+              else f"<span class='gart'>{GENRE_ART[cls]}</span>")
+        cards += (f"<a class='gcard {cls}{' has-photo' if has_photo else ''}' href='{page}'>{bg}"
+                  f"<span class='gbody'><span class='gname'><span class='gicon' aria-hidden='true'>{icon}</span>{name}</span>"
+                  f"<span class='gdesc'>{desc}</span></span><svg class='garrow' viewBox='0 0 24 24' aria-hidden='true'><path d='M9 5l7 7-7 7' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/></svg></a>")
+    return (f"<section class='hero'><h1>山と雪と波</h1><p class='catch'>週末のコンディションをチェック</p>"
+            f"<p class='muted'>更新 {updated.month}/{updated.day} {updated:%H:%M} · 次の更新は{next_update(updated)}時すぎの予定</p></section>"
+            f"<nav class='genres' aria-label='ジャンル'>{cards}</nav>")
+
+
 # ---------------------------------------------------------------- 共通レイアウト
 CSS = """
 :root{color-scheme:light;--bg:#f6f7f5;--card:#fff;--line:#e2e4df;--text:#14171a;--sub:#55595e;--muted:#868a8f;
@@ -2045,6 +2075,33 @@ details.note[open]>summary::after{content:' ▲'}
 .hbtn{display:inline-block;padding:8px 0}.flw{padding:6px 0}
 .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px 2px}.chips::-webkit-scrollbar{display:none}
 .chip{flex:none}}
+/* ジャンルの色(仕様書): メイン・背景・薄いカード・文字 */
+.g-mt{--g:#315D43;--g-bg:#EAF1E9;--g-card:#F1F4F0;--g-ink:#244832}
+.g-snow{--g:#367FB6;--g-bg:#EAF3FA;--g-card:#EDF4FA;--g-ink:#244866}
+.g-surf{--g:#C65A3B;--g-bg:#FBEDE7;--g-card:#FFF3ED;--g-ink:#713D30}
+@media (prefers-color-scheme:dark){
+.g-mt{--g:#7FB894;--g-bg:#1C2620;--g-card:#202B24;--g-ink:#CFE3D5}
+.g-snow{--g:#7DB6E3;--g-bg:#1A2430;--g-card:#1E2935;--g-ink:#CFE2F2}
+.g-surf{--g:#E8957C;--g-bg:#2C201C;--g-card:#33241F;--g-ink:#F3D5CB}}
+/* トップ: サイト名と3ジャンルの大きなカード(スマホで1画面に収める) */
+.hero{text-align:center;padding:8px 0 14px}.hero h1{font-size:28px;margin:0;letter-spacing:.04em}
+.hero .catch{margin:2px 0 4px;color:var(--sub);font-size:15px}.hero .muted{margin:0}
+.genres{display:grid;gap:12px}
+.gcard{position:relative;display:flex;align-items:flex-end;min-height:max(130px,calc((100svh - 260px) / 3));border-radius:16px;overflow:hidden;
+text-decoration:none;color:var(--g-ink);background:var(--g-bg);border:1px solid color-mix(in srgb,var(--g) 25%,transparent);
+box-shadow:0 2px 8px rgba(0,0,0,.08);transition:transform .15s}
+.gcard:active{transform:scale(.98)}.gcard:focus-visible{outline:3px solid var(--g);outline-offset:2px}
+.gart{position:absolute;inset:0;color:var(--g);-webkit-mask-image:linear-gradient(to right,transparent 0,#000 55%);mask-image:linear-gradient(to right,transparent 0,#000 55%)}.gart svg{position:absolute;inset:0;width:100%;height:100%}
+.gphoto{position:absolute;inset:0;background-size:cover;background-repeat:no-repeat}
+.gcard.has-photo{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5)}.gcard.has-photo::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.65),rgba(0,0,0,.15) 55%,rgba(0,0,0,0) 80%)}
+.gbody{position:relative;z-index:1;padding:14px 16px;flex:1;min-width:0}
+.gname{display:flex;align-items:center;gap:8px;font-size:24px;font-weight:700;line-height:1.2}
+.gicon{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--g);font-size:22px}
+.gcard.has-photo .gicon{background:color-mix(in srgb,var(--g) 85%,transparent)}
+.gdesc{display:block;margin-top:4px;font-size:13px;opacity:.85}
+.garrow{position:relative;z-index:1;align-self:center;flex:none;width:34px;height:34px;padding:6px;margin-right:12px;border-radius:50%;background:var(--card);color:var(--g);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+
+@media (min-width:720px){.genres{grid-template-columns:repeat(3,1fr)}.gcard{min-height:240px}}
 footer{max-width:1000px;margin:0 auto;padding:16px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
 """
 
@@ -2126,7 +2183,7 @@ if(favChip&&(location.hash==='#fav'||(document.querySelector('tbody.mt[data-fav=
 if(target){openDetail(target,true);target.scrollIntoView({block:'start'});}
 """
 
-PAGES = [("index.html", "週末"), ("mountains.html", "登山"), ("snow.html", "スノーボード"),
+PAGES = [("index.html", "トップ"), ("mountains.html", "登山"), ("snow.html", "スノーボード"),
          ("surf.html", "サーフィン")]
 
 
@@ -2144,6 +2201,8 @@ def next_update(updated):
 
 
 def layout(file, title, body, updated):
+    bottom_line = f"<p class='muted'>更新: {updated:%Y年%-m月%-d日 %H:%M}(3時間ごとに自動更新)</p>"
+    top_line = f"<p class='updated muted'>更新 {updated.month}/{updated.day} {updated:%H:%M} · 次の更新は{next_update(updated)}時すぎの予定</p>"
     nav = "".join(f"<a href='{f}' class='{'on' if f == file else ''}'>{n}</a>" for f, n in PAGES)
     return f"""<!doctype html><html lang="ja"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -2153,7 +2212,7 @@ def layout(file, title, body, updated):
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#1f6fb2">
 <meta name="apple-mobile-web-app-title" content="山と雪と波"><style>{CSS}</style></head><body>
 <header><nav>{nav}</nav></header>
-<main><p class='updated muted'>更新 {updated.month}/{updated.day} {updated:%H:%M} · 次の更新は{next_update(updated)}時すぎの予定</p>{body}<p class='muted'>更新: {updated:%Y年%-m月%-d日 %H:%M}(3時間ごとに自動更新)</p></main>
+<main>{'' if file == 'index.html' else top_line}{body}{'' if file == 'index.html' else bottom_line}</main>
 <footer>予報は目安です。登山・海に出る前に、気象庁の警報・注意報と現地の情報を必ず確認してください。<br>
 気象データ: <a href="https://open-meteo.com/">Open-Meteo.com</a>(<a href="https://creativecommons.org/licenses/by/4.0/deed.ja">CC BY 4.0</a>) · ゲレンデ積雪: SURF&amp;SNOW · リフトの位置: © OpenStreetMap contributors ·
 山の一覧・座標: Wikipedia「日本百名山」「花の百名山」、Wikidata、ヤマレコ「関西百名山」、YAMAP MAGAZINE「花の百名山」 · 花の写真: Wikimedia Commons、iNaturalist(撮影者・ライセンスは各写真の下)</footer>
@@ -2208,7 +2267,7 @@ def main():
     OUT.mkdir(exist_ok=True)
     def first(items):                  # トップページは最初の TOP_DAYS 日だけ
         return [{**x, "days": x["days"][:TOP_DAYS]} for x in items]
-    bodies = {"index.html": ("今週末", index_page(first(mts), first(ski), first(spots))),
+    bodies = {"index.html": ("トップ", top_page(updated)),
               "mountains.html": ("登山天気", mountains_page(mts)),
               "snow.html": ("スノーボード", ski_page(ski)),
               "surf.html": ("サーフィン", surf_page(spots))}
@@ -2226,6 +2285,10 @@ def main():
         ensure_ascii=False), encoding="utf-8")
     for icon in (ROOT / "data/icons").iterdir():     # ボタンのアイコン・サイトのアイコン
         (OUT / icon.name).write_bytes(icon.read_bytes())
+    if (ROOT / "data/top").exists():                 # トップのジャンルのカードの写真
+        (OUT / "top").mkdir(exist_ok=True)
+        for photo in (ROOT / "data/top").glob("*.jpg"):
+            (OUT / "top" / photo.name).write_bytes(photo.read_bytes())
     (OUT / "flowers").mkdir(exist_ok=True)
     for photo in (ROOT / "data/flowers").iterdir():  # 花の百名山の花の写真
         (OUT / "flowers" / photo.name).write_bytes(photo.read_bytes())
