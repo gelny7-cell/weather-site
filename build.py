@@ -175,7 +175,8 @@ def fid(kind, x):
 def star(kind, x):
     """詳細の一番上に出す「☆ お気に入り登録」ボタン(押すと登録済みに。登録は見ている人のブラウザに保存する)"""
     return (f"<button type='button' class='star' data-fid='{e(fid(kind, x))}' aria-pressed='false' "
-            f"aria-label='{e(x['name'])}をお気に入りに登録'>♡ お気に入りに追加</button>")
+            f"aria-label='{e(x['name'])}をお気に入りに登録'>♡ お気に入りに追加</button>"
+            "<small class='favnote'>この端末のブラウザに保存</small>")
 
 
 def hutlink(m):
@@ -938,7 +939,7 @@ def mt_detail(m, with_map=True, compact=False):
             + ("<th>展望</th>" if has_v else "") + "<th>山頂付近の気温</th>"
             + ("" if compact else "<th>体感温度</th>") + "<th>平均風速</th>"
             + ("" if compact else "<th>最大風速</th>")
-            + f"<th>降水量</th>{'<th>雷の確率</th>' if has_t else ''}</tr>{rows}</table></div>")
+            + f"<th>降水量</th>{'<th>雷の確率<br><small>独自推定</small></th>' if has_t else ''}</tr>{rows}</table></div>")
 
 
 
@@ -1016,7 +1017,8 @@ def mountains_page(mts):
         lists = [c for c, key in (("h", "百名山"), ("k", "関西百名山"), ("a", "花の百名山")) if key in m.get("lists", [])]
         items.append({"k": m["key"], "f": fid("m", m), "n": m["name"], "y": m["yomi"], "r": m["region"], "p": m["prefs"],
                       "e": m["elev"], "l": lists, "u": url, "b": tags(m) + alert_tags(m),
-                      "d": [[x["score"], wx(x["code"])[0], round(x["tavg"]), round(x["wind"]), season_flags(m, x["date"])]
+                      "d": [[x["score"], wx(x["code"])[0], round(x["tavg"]), round(x["wind"]), season_flags(m, x["date"]),
+                             round(x["rain"], 1), round(x["feel"]), x["view"] if x.get("view") is not None else -1]
                             for x in m["days"]]})
         back = "<p class='back'><a href='mountains.html'><svg class='chev' viewBox='0 0 24 24' aria-hidden='true'><path d='M15 5l-7 7 7 7' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/></svg>登山の一覧</a></p>"
         SPOT_PAGES[url] = (f"{m['name']}の登山天気",
@@ -1041,7 +1043,7 @@ def mountains_page(mts):
 <li><b class='r1'>△</b> 降水10mm未満、風速17m/s未満</li>
 <li><b class='r0'>×</b> それ以上、または雷の確率50%以上。山頂付近の積雪(5cm以上)や登山道の凍結が予想される日も一律 ×(雪山登山は対象外)</li>
 <li>体感温度(山頂付近の6〜15時の最低): 5℃未満は最高でも○、0℃未満は最高でも△、-5℃未満は ×(汗や雨で濡れた体は風で冷え、0℃より上でも低体温症になることがあるため)</li></ul>
-<p>雷の確率: 米国の予報モデル(GFS)を条件を少しずつ変えて31通り計算したうち、6〜15時に「大気が不安定で雨が降る」時間がある割合です。20%以上で判定は最高でも△、50%以上で×。山では早めの下山を。</p>
+<p>雷の確率(独自推定。気象庁の発表ではありません): 米国の予報モデル(GFS)を条件を少しずつ変えて31通り計算したうち、6〜15時に「大気が不安定で雨が降る」時間がある割合です。20%以上で判定は最高でも△、50%以上で×。山では早めの下山を。</p>
 <p>🏠 山小屋: 山頂から4km以内の、山中の山小屋と登山口にある小屋(ヤマレコの登録をもとに、温泉旅館・休憩所・廃業した小屋・避難小屋は除く)。⛺ テント場: 山小屋併設のテント場と、管理棟のあるテント場(剱沢・雷鳥沢など)、避難小屋の横のテント場(登山口のキャンプ場や、小屋も管理棟もない野営指定地は含めません)。<span class='hinan'>避</span> 避難小屋: 山頂から4km以内の避難小屋の数(ヤマレコの登録)。緊急時に使うためのもので、多くは無人です(夏だけ管理人がいる小屋もあります)。冬は雪に埋まって使えないこともあります。宿泊の計画には入れないでください。「山小屋」のボタンは、山頂か登山口の近くの小屋・宿の予約先です。予約サイト(Yamatan・モンベル・RESERVA・南アルプス市の予約)で予約できる小屋を先に、それ以外は公式ホームページ(長野県山小屋情報ポータル・OpenStreetMap などの登録)を並べています。その後ろの ⛺ は、山頂から4km以内のテント場のうち、予約先(Yamatan、またはテント場を管理する小屋の予約先・公式HP)が分かるものです。</p>
 <p>展望: 6〜12時の雲の量の平均で、◎20%未満・○50%未満・△80%未満・×それ以上(霧の時間があれば×)。眺めの目安です。</p>
 <p>🌼 花の百名山の花: 一言紹介の後ろに、その山の花と咲く時期を載せています。時期は、iNaturalist の観察記録(花が咲いていると記録されたもの)と GBIF の標本の採集日から、山に近い記録を優先して(50km → 100km → 200km)、記録の60%が入る最も短い期間を旬単位で求めました。記録した場所との高さの差(100mで2.5日)と緯度の差(1度で3日)は補正しています。記録が少ない花や、遠くの記録しかない花、実や葉の記録が混ざって時期がずれた花は YAMAP MAGAZINE「花の百名山」の開花時期のままです。今日〜表の最後の日が開花時期に入ると 🌼 を付けています。その年の雪どけや天気で前後します。花の名前を押すと写真が開きます(写真の下に撮影者・ライセンス・元のページ。Wikimedia Commons・iNaturalist の再利用が許可された写真。ツクシフウロは撮影者の許可を得た提供写真)。</p>
@@ -1487,7 +1489,8 @@ def ski_page(ski):
                       "p": s["pref"], "u": url, "b": hour_marks(s) + alert_tags(s), "bc": 1 if s.get("bc") else 0,
                       "ol": (st0 if st0.startswith("営業前") else ""),
                       "d": [[round(x["snow"]), wx(x["code"])[0], round(x["tmin"]), round(x["tmax"]), round(x["wind_avg"]),
-                             1 if is_powder(s, x) else 0, "" if s.get("bc") else stmap[season_status(s, x["date"])[0]]]
+                             1 if is_powder(s, x) else 0, "" if s.get("bc") else stmap[season_status(s, x["date"])[0]],
+                             1 if x.get("ice") else 0]
                             for x in s["days"]]})
         back = f"<p class='back'><a href='snow.html'><svg class='chev' viewBox='0 0 24 24' aria-hidden='true'><path d='M15 5l-7 7 7 7' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/></svg>スノーボードの一覧</a></p>"
         SPOT_PAGES[url] = (f"{s['name']}の雪と天気",
@@ -1779,7 +1782,7 @@ def surf_page(spots):
                            f"{back}<div class='ghead'><h1 class='spoth'>{e(s['name'])}{facmarks(s)}{alert_tags(s)}</h1>"
                            f"<p class='spotsub'>{e(s['pref'])}</p></div>{surf_detail(s)}", "surf.html")
     prefs = list(dict.fromkeys(x["r"] for x in sorted(items, key=lambda x: -x["lon"])))     # 東から西へ
-    regions = [("", "全国")] + [(x, x if x == "北海道" else x[:-1]) for x in prefs]
+    regions = [("", "すべて")] + [(x, x if x == "北海道" else x[:-1]) for x in prefs]
     filters = [("rate", "評価(朝・昼のよいほう)", [("", "指定なし"), ("2", "◎○のみ"), ("3", "◎のみ")]),
                ("wind", "風", [("", "指定なし"), ("オフショア", "オフショア"), ("オンショア", "オンショア")])]
     sorts = [("score", "総合評価順"), ("height", "波高順"), ("period", "周期順"), ("region", "地域順")]
@@ -1851,7 +1854,7 @@ def top_page(updated):
                                        f"<span class='gdesc'>{desc}</span></span>")
         cards += (f"<a class='gcard {cls}{' has-photo' if has_photo else ''}' href='{page}' aria-label='{name}'>{bg}{body}</a>")
     return (f"<section class='hero'><h1>山と雪と波</h1><p class='catch'>週末のコンディションをチェック</p>"
-            f"<p class='muted'>更新 {updated.month}/{updated.day} {updated:%H:%M} · 次の更新は{next_update(updated)}時すぎの予定</p></section>"
+            f"<p class='muted'>サイト更新 {updated.month}/{updated.day} {updated:%H:%M} · 次の更新は{next_update(updated)}時すぎの予定</p></section>"
             f"<nav class='genres' aria-label='ジャンル'>{cards}</nav>")
 
 
@@ -2039,6 +2042,8 @@ body:is(.g-mt,.g-snow,.g-surf) #q{width:100%;max-width:none;margin:0 0 8px;font-
 .snow-v.big{color:var(--g)}.tag.pw{margin-left:auto}
 .warr{display:inline-block;margin-right:2px;font-weight:700;color:var(--g)}.sd-v.wind small{font-size:11px}
 .slots{flex-basis:100%;font-size:11px;color:var(--sub)}.slots b{font-size:12px;margin:0 2px 0 1px}
+.why{margin:6px 0 0;font-size:13px;color:var(--g-ink);line-height:1.5}.why::before{content:'💬 '}
+.favnote{display:inline-block;margin:0 0 8px 6px;font-size:11px;color:var(--muted);vertical-align:middle}
 .empty{background:var(--card);border-radius:12px;padding:16px;text-align:center;color:var(--sub)}
 .back{margin:0 0 6px;font-size:14px}.back a{display:inline-flex;align-items:center;gap:2px;text-decoration:none;padding:6px 0}.chev{width:18px;height:18px}.spoth{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
 .spotsub{margin:-2px 0 6px;color:var(--muted);font-size:13px}
@@ -2135,9 +2140,26 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 const MARK=['×','△','○','◎'];
 const FLAG={k:['🍁','紅葉の見ごろ(予想)'],s:['🌸','桜の見ごろ(予想)'],f:['🌼','花の百名山の花の時期']};
 const sum=(a,f)=>a.reduce((s,x)=>s+f(x),0);
+// 一言コメント用: 天気アイコンの分け方と、日の呼び方(土曜・日曜、ほかは日付)
+const SUN=['☀️','🌤️','⛅'],CLOUD=['☁️','🌫️'];
+const sky=ic=>ic==='☀️'?'快晴':SUN.includes(ic)?'晴れ':CLOUD.includes(ic)?'曇り':'雨や雪';
+const dname=i=>G.days[i].w==='土'?'土曜':G.days[i].w==='日'?'日曜':G.days[i].l;
+const both=days=>days.length===2?(days.every(i=>['土','日'].includes(G.days[i].w))?'土日とも':'2日とも'):'';
 // ジャンルごとの違い(表示・絞り込み・並び順・おすすめ)。判定の値はデータのまま使う
 const KINDS={
  m:{
+  // 一言コメント: 天気・風・雨・展望・体感温度から(判定と同じ値を言い回しにするだけ)
+  why:(it,days)=>{const ds=days.map(i=>it.d[i]).filter(Boolean);if(!ds.length)return '';
+    // 快晴と晴れは同じ「晴れ」として2日を比べる。1文目は天気(+風が弱ければ「風も弱め」)、2文目は強風→冷え込み→展望のどれか1つ
+    const cat=d=>SUN.includes(d[1])?'晴れ':sky(d[1]),c=ds.map(cat),wmax=Math.max(...ds.map(d=>d[3])),fmin=Math.min(...ds.map(d=>d[6]));
+    const calm=wmax<=6,dry=sum(ds,d=>d[5])<0.5;
+    let s1;
+    if(ds.length===2&&c[0]!==c[1])s1=`${dname(days[0])}は${c[0]}、${dname(days[1])}は${c[1]}`+(c.includes('曇り')&&dry?'で雨の心配は少なめ':'');
+    else if(c[0]==='晴れ')s1=both(days)+(ds.every(d=>d[1]==='☀️')?'快晴':'晴れ')+(calm?'で風も弱め':'の予報');
+    else if(c[0]==='曇り')s1=both(days)+'曇りだが'+(dry?'雨の心配は少なめ':'崩れは小さめ');
+    else s1=both(days)+'雨や雪の時間あり';
+    const s2=wmax>=10?`風がやや強め(最大${wmax}m/s)なので防風の備えを`:fmin<5?`体感${fmin}℃前後まで冷えるので防寒をしっかり`:ds.every(d=>d[7]>=2)?'展望も期待できそう':'';
+    return s1+(s2?'。'+s2:'');},
   sub:(it,days)=>{const fl=[...new Set(days.flatMap(i=>[...((it.d[i]||[])[4]||'')]))];
     return `${it.e.toLocaleString()}m · ${esc(it.p.join('・'))}`+fl.map(c=>` <span class='fac' title='${FLAG[c][1]}' role='img' aria-label='${FLAG[c][1]}'>${FLAG[c][0]}</span>`).join('');},
   day:(it,i)=>{const d=it.d[i];if(!d)return "<span class='muted'>—</span>";
@@ -2153,6 +2175,15 @@ const KINDS={
     return out;},
  },
  s:{
+  // 一言コメント: 新雪・パウダー期待・天気・風・アイスバーンから
+  why:(it,days)=>{const ds=days.map(i=>it.d[i]).filter(Boolean);if(!ds.length)return '';
+    const tot=sum(ds,d=>d[0]),k=ds.findIndex(d=>d[5]),out=[];
+    if(k>=0)out.push(`${dname(days[k])}朝に新雪${ds[k][0]}cm。気温も低くパウダー期待`);
+    else if(tot>=5){const j=ds.length-1;out.push((ds.length===2?'2日で':'')+`新雪${tot}cm`);
+      if(SUN.includes(ds[j][1]))out.push(`${dname(days[j])}は晴れて気持ちよく滑れそう`);}
+    else out.push('新雪は少なめ'+(ds.every(d=>SUN.includes(d[1])&&d[4]<=6)?'だが、晴れて風も穏やか':''));
+    if(ds.some(d=>d[7]))out.push('アイスバーンに注意');
+    return out.join('。');},
   // 営業状況は選んだ最初の日で。予定が分からないものは「未確認」(営業中と推測して出さない)
   st:(it,days)=>{const c=(it.d[days[0]]||[])[6];return c==='o'?"<span class='st r3'>営業中</span>":c==='b'?`<span class='st'>${it.ol||'営業前'}</span>`:c==='a'?"<span class='st'>営業終了</span>":c==='u'?"<span class='st'>未確認</span>":'';},
   sub:(it,days)=>`${esc(it.p)}`+(KINDS.s.st(it,days)?' · '+KINDS.s.st(it,days):''),
@@ -2173,6 +2204,16 @@ const KINDS={
     return out;},
  },
  w:{
+  // 一言コメント: 一番良い時間帯・うねり・周期・風から
+  why:(it,days)=>{const B=days.map(i=>KINDS.w.best(it,i));if(B.some(b=>!b))return '';
+    let bi=0;B.forEach((b,j)=>{if(b[1]>B[bi][1]||(b[1]===B[bi][1]&&b[3]>B[bi][3]))bi=j;});const b=B[bi];
+    const off=B.some(x=>x[7]==='オフショア');
+    if(b[3]<0.8&&b[7]==='オフショア')return 'サイズは小さめだが、オフショアで面がきれいそう';
+    if(B.length===2&&B.every(x=>x[1]>=2)&&Math.abs(B[0][3]-B[1][3])<=0.3)
+      return `${both(days)}うねり${((B[0][3]+B[1][3])/2).toFixed(1)}m前後・周期${Math.round((B[0][4]+B[1][4])/2)}秒`
+        +(off?`。${B.find(x=>x[7]==='オフショア')[0]}はオフショア`:'');
+    return `${dname(days[bi])}の${b[0]}が${MARK[b[1]]}。うねり${b[3]}m・周期${Math.round(b[4])}秒`
+      +(b[7]==='オフショア'?'でオフショア':b[5]<=4?'で風も弱め':'');},
   best:(it,i)=>{const d=it.d[i];return d&&d.length?d.reduce((a,b)=>b[1]>a[1]?b:a):null;},     // 朝・昼のよいほう(同じなら朝)
   sub:it=>`${esc(it.p)} · 浜の向き ${esc(it.fc)}`,
   day:(it,i)=>{const d=it.d[i],b=KINDS.w.best(it,i);if(!b)return "<span class='muted'>—</span>";
@@ -2208,7 +2249,8 @@ const card=it=>{const on=isFav(it.f);
   return `<article class='spot'><div class='spot-top'><a class='spot-link' href='${it.u}'>${esc(it.n)}</a>${it.b||''}`
    +`<button type='button' class='heart' data-hfid='${esc(it.f)}' aria-pressed='${on}' aria-label='${esc(it.n)}をお気に入り${on?'から外す':'に追加'}'>${on?'♥':'♡'}</button></div>`
    +`<div class='spot-sub'>${K.sub(it,st.days)}</div>`
-   +`<div class='spot-days n${st.days.length}'>${st.days.map(i=>`<div class='sd'><span class='sd-l ${G.days[i].c}'>${G.days[i].l}(${G.days[i].w})</span>${K.day(it,i)}</div>`).join('')}</div></article>`;};
+   +`<div class='spot-days n${st.days.length}'>${st.days.map(i=>`<div class='sd'><span class='sd-l ${G.days[i].c}'>${G.days[i].l}(${G.days[i].w})</span>${K.day(it,i)}</div>`).join('')}</div>`
+   +(st.tab==='rec'&&K.why?(w=>w?`<p class='why'>${esc(w)}</p>`:'')(K.why(it,st.days)):'')+`</article>`;};
 const chipsOn=()=>document.querySelectorAll('.chip[data-g]').forEach(c=>{const g=c.dataset.g,v=c.dataset.v;
   c.classList.toggle('on',g==='date'?st.days.includes(+v):g==='region'?(v===st.region||(v==='近畿'&&st.region.startsWith('pref:'))):g.startsWith('f:')?(st.f[g.slice(2)]||'')===v:false);});
 const render=()=>{
@@ -2220,7 +2262,9 @@ const render=()=>{
   else{const s=K.sort[st.sort];xs=xs.slice().sort(s||((a,b)=>cmp(K.key(a,st.days),K.key(b,st.days))));}
   $('spots').innerHTML=xs.map(card).join('');
   $('empty').hidden=xs.length>0;
-  $('empty').textContent=st.tab==='rec'&&K.emptyRec?K.emptyRec:'条件に合うスポットがありません。絞り込み条件を変更してください。';
+  $('empty').textContent=st.tab==='rec'&&K.emptyRec?K.emptyRec
+    :st.tab==='fav'&&!mine().length?'♡を押すとここに並びます。お気に入りは、この端末のこのブラウザに保存されます(ほかの端末には引き継がれません)。'
+    :'条件に合うスポットがありません。絞り込み条件を変更してください。';
   $('count').textContent=`${label[st.tab]} ${xs.length}件`;
   document.querySelector('.sortl').hidden=st.tab==='rec';
   document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===st.tab)));
@@ -2267,7 +2311,9 @@ PAGES = [("index.html", "トップ"), ("mountains.html", "登山"), ("snow.html"
 
 
 def default_favs():
-    """☆をまだ押していない人に最初から入れておくお気に入り(data/favorites.json の山・スキー場)"""
+    """最初から入れておくお気に入り。初めて開いた人は「おすすめ」で開くよう、今は入れない
+    (以前は data/favorites.json の山・スキー場・ポイントを入れていた。戻すときはこの return を外す)"""
+    return []
     favs = json.loads((ROOT / "data/favorites.json").read_text(encoding="utf-8"))
     mts = json.loads((ROOT / "data/mountains.json").read_text(encoding="utf-8"))
     return ([fid("m", m) for n in favs.get("mountain", []) for m in mts if m["name"] == n]
@@ -2285,8 +2331,8 @@ GENRE_CLASS = {"mountains.html": "g-mt", "snow.html": "g-snow", "surf.html": "g-
 def layout(file, title, body, updated, nav=None):
     """ページの共通の枠。nav は上のメニューで選んだ表示にするページ(詳細ページはそのジャンルの一覧)"""
     nav = nav or file
-    bottom_line = f"<p class='muted'>更新: {updated:%Y年%-m月%-d日 %H:%M}(3時間ごとに自動更新)</p>"
-    top_line = f"<p class='updated muted'>更新 {updated.month}/{updated.day} {updated:%H:%M} · 次の更新は{next_update(updated)}時すぎの予定</p>"
+    bottom_line = f"<p class='muted'>サイト更新: {updated:%Y年%-m月%-d日 %H:%M}(3時間ごとに自動更新)</p>"
+    top_line = f"<p class='updated muted'>サイト更新 {updated.month}/{updated.day} {updated:%H:%M} · 次の更新は{next_update(updated)}時すぎの予定</p>"
     menu = "".join(f"<a href='{f}' class='{'on' if f == nav else ''}'>{n}</a>" for f, n in PAGES)
     if file in GENRE_CLASS and "</h1>" in body:      # 更新時刻は一覧のジャンル名(見出し)のすぐ後ろに。詳細ページには出さない
         body = body.replace("</h1>", "</h1>" + top_line, 1) if "class='ghead'" not in body else body.replace("</div>", "</div>" + top_line, 1)
