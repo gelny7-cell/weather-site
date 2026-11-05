@@ -1301,7 +1301,9 @@ def ski_hours_line(s):
     h = s.get("hours")
     if not h:
         return ""
-    time_ = h["day"] if h["day"] == h["holiday"] else f"平日 {h['day']} ／ 休日 {h['holiday']}"
+    clean = lambda x: re.sub(r"\s*[((][^))]*時期により変動[))]", "", x)     # 「(時期により変動)」は出さない
+    day, hol = clean(h["day"]), clean(h["holiday"])
+    time_ = day if day == hol else f"平日 {day} ／ 休日 {hol}"
     night = f" · ナイター {re.sub(r'[((][^))]*[))]', '', h['night'])}" if h.get("night") else ""     # (期間限定)などの注釈は出さない
     return f"{time_}{night}"
 
