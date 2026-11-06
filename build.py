@@ -967,7 +967,7 @@ def day_info(days):
 
 
 def season_flags(m, d):
-    """その日の季節の印(一覧用): k=紅葉の見ごろ s=桜の見ごろ f=花の百名山の花の時期。判定は season_mark と同じ"""
+    """その日の季節の印(一覧用。雷の t はこの前に付ける): k=紅葉の見ごろ s=桜の見ごろ f=花の百名山の花の時期。判定は season_mark と同じ"""
     out = ""
     for key, ch in (("koyo", "k"), ("sakura", "s")):
         zs = m.get("season", {}).get(key, [])
@@ -1020,7 +1020,7 @@ def mountains_page(mts):
         lists = [c for c, key in (("h", "百名山"), ("k", "関西百名山"), ("a", "花の百名山")) if key in m.get("lists", [])]
         items.append({"k": m["key"], "f": fid("m", m), "n": m["name"], "y": m["yomi"], "r": m["region"], "p": m["prefs"],
                       "e": m["elev"], "l": lists, "u": url, "b": tags(m) + alert_tags(m),
-                      "d": [[x["score"], wx(x["code"])[0], round(x["tavg"]), round(x["wind"]), season_flags(m, x["date"]),
+                      "d": [[x["score"], wx(x["code"])[0], round(x["tavg"]), round(x["wind"]), ("t" if x.get("thunder") else "") + season_flags(m, x["date"]),
                              round(x["rain"], 1), round(x["feel"]), x["view"] if x.get("view") is not None else -1]
                             for x in m["days"]]})
         back = "<p class='back'><a href='mountains.html'><svg class='chev' viewBox='0 0 24 24' aria-hidden='true'><path d='M15 5l-7 7 7 7' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/></svg>登山の一覧</a></p>"
@@ -2183,7 +2183,7 @@ const G=JSON.parse(el.textContent);
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const MARK=['×','△','○','◎'];
-const FLAG={k:['🍁','紅葉の見ごろ(予想)'],s:['🌸','桜の見ごろ(予想)'],f:['🌼','花の百名山の花の時期']};
+const FLAG={t:['⚡','雷の可能性あり(独自推定)'],k:['🍁','紅葉の見ごろ(予想)'],s:['🌸','桜の見ごろ(予想)'],f:['🌼','花の百名山の花の時期']};
 const sum=(a,f)=>a.reduce((s,x)=>s+f(x),0);
 // 一言コメント用: 天気アイコンの分け方と、日の呼び方(土曜・日曜、ほかは日付)
 const SUN=['☀️','🌤️','⛅'],CLOUD=['☁️','🌫️'];
@@ -2205,7 +2205,7 @@ const KINDS={
     else s1=both(days)+'雨や雪の時間あり';
     const s2=wmax>=10?`風がやや強め(最大${wmax}m/s)なので防風の備えを`:fmin<5?`体感${fmin}℃前後まで冷えるので防寒をしっかり`:ds.every(d=>d[7]>=2)?'展望も期待できそう':'';
     return s1+(s2?'。'+s2:'');},
-  sub:(it,days)=>{const fl=[...new Set(days.flatMap(i=>[...((it.d[i]||[])[4]||'')]))];
+  sub:(it,days)=>{const fl=[...new Set(days.flatMap(i=>[...((it.d[i]||[])[4]||'')]))].sort((a,b)=>'tksf'.indexOf(a)-'tksf'.indexOf(b));
     return `${it.e.toLocaleString()}m · ${esc(it.p.join('・'))}`+fl.map(c=>` <span class='fac' title='${FLAG[c][1]}' role='img' aria-label='${FLAG[c][1]}'>${FLAG[c][0]}</span>`).join('');},
   day:(it,i)=>{const d=it.d[i];if(!d)return "<span class='muted'>—</span>";
     return `<b class='r${d[0]} mark'>${MARK[d[0]]}</b><span class='sd-wx'>${d[1]}</span><span class='sd-v'>${d[2]}℃ · ${d[3]}m/s</span>`;},
