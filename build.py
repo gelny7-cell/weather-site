@@ -2543,7 +2543,7 @@ def layout(file, title, body, updated, nav=None):
 <link rel="icon" href="favicon.png" sizes="32x32"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#1f6fb2">
 <meta name="apple-mobile-web-app-title" content="山と雪と波"><style>{CSS}</style></head><body class='{GENRE_CLASS.get(nav, "")}'>
-{'' if file == 'index.html' else f'<header><nav>{menu}</nav></header>'}
+<header><nav>{menu}</nav></header>
 <main>{body}{'' if file == 'index.html' else bottom_line}</main>
 {'' if file == 'index.html' else FOOTER}
 <script>const DEFAULT_FAVS={json.dumps(default_favs(), ensure_ascii=False)};{JS}{LIST_JS}</script></body></html>"""
