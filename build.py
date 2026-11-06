@@ -1971,8 +1971,7 @@ def top_page(updated):
         body = ("" if has_photo else f"<span class='gbody'><span class='gname'><span class='gicon' aria-hidden='true'>{icon}</span>{name}</span>"
                                        f"<span class='gdesc'>{desc}</span></span>")
         cards += (f"<a class='gcard {cls}{' has-photo' if has_photo else ''}' href='{page}' aria-label='{name}'>{bg}{body}</a>")
-    return (f"<section class='hero'><h1>山と雪と波</h1>"
-            f"<p class='muted'>サイト更新 {updated.month}/{updated.day} {updated:%H:%M} · 次の更新は{next_update(updated)}時すぎの予定</p></section>"
+    return (f"<section class='hero'><h1>山と雪と波</h1></section>"
             f"<nav class='genres' aria-label='ジャンル'>{cards}</nav>")
 
 
