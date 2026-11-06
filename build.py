@@ -885,14 +885,17 @@ def build_mountains():
 
 def mt_detail(m, with_map=True, compact=False):
     """山の日ごとの詳細(登山口の地図ボタン付き)。判定は日付のすぐ右。
-    compact=True はトップページ用で、最大風速と雷の確率を出さない"""
-    has_t = not compact and all(d["thunder"] is not None for d in m["days"])   # 雷の確率がない日があれば列ごと出さない
+    compact=True はトップページ用で、最大風速と雷の印を出さない"""
     has_v = all(d.get("view") is not None for d in m["days"])                  # 展望も同じ
     rows = ""
     for d in m["days"]:
         hours = d.get("hours")
         label = (f"<button type='button' class='hbtn' aria-expanded='false'>{day_label(d['date'])}</button>"
                  if hours else day_label(d["date"]))
+        t = d.get("thunder")        # 雷の確率(独自推定)は列にせず、1%以上なら日付の横(紅葉・桜の印の左)に ⚡
+        if t and not compact:
+            tt = f"雷の確率 {t}%(独自推定)"
+            label += f" <span class='fac' title='{tt}' role='img' aria-label='{tt}'>⚡</span>"
         label += season_mark(m, [d["date"]], flower=False)    # 花の時期は月単位なので日ごとには付けない
         rows += (f"<tr><td class='dt'>{label}</td>"
                  f"<td class='{RATE[d['score']][1]}'><b>{RATE[d['score']][0]}</b></td>"
@@ -904,17 +907,17 @@ def mt_detail(m, with_map=True, compact=False):
                  + ("" if compact else f"<td>{round(d['feel'])}℃</td>")
                  + f"<td>{d['wind_avg']:.0f}m/s</td>"
                  + ("" if compact else f"<td>{d['wind']:.0f}m/s</td>")
-                 + f"<td>{d['rain']:.1f}mm</td>" + (f"<td>{d['thunder']}%</td>" if has_t else "") + "</tr>")
+                 + f"<td>{d['rain']:.1f}mm</td></tr>")
         for x in hours or []:
             when = f"{x['hour']}時" if d["step"] == 1 else f"{x['hour']}〜{x['hour'] + 3}時"
-            # 時間ごとの行: 判定・雷は空ける。風速は平均・最大の2列にまたがって出す
+            # 時間ごとの行: 判定は空ける。風速は平均・最大の2列にまたがって出す
             rows += (f"<tr class='hr' hidden><td class='dt'>{when}</td><td></td>"
                      f"<td>{wx(x['code'])[0]} {wx(x['code'])[1]}</td>"
                      + (f"<td>雲{x['cloud']:.0f}%</td>" if has_v and x.get("cloud") is not None else "<td></td>" if has_v else "")
                      + f"<td>{round(x['temp'])}℃</td>"
                      + ("" if compact else f"<td>{round(x['feel'])}℃</td>")
                      + f"<td colspan='{1 if compact else 2}'>{x['wind']:.0f}m/s</td>"
-                     f"<td>{x['rain']:.1f}mm</td>" + ("<td></td>" if has_t else "") + "</tr>")
+                     f"<td>{x['rain']:.1f}mm</td></tr>")
     if not m.get("access"):
         place = maplink(trailhead(m), trailhead_label(m))
     else:                       # YAMAP の駐車場(なければ登山口・駅)の位置を示す。文字は登録した登山口の名前を優先
@@ -939,7 +942,7 @@ def mt_detail(m, with_map=True, compact=False):
             + ("<th>展望</th>" if has_v else "") + "<th>山頂付近の気温</th>"
             + ("" if compact else "<th>体感温度</th>") + "<th>平均風速</th>"
             + ("" if compact else "<th>最大風速</th>")
-            + f"<th>降水量</th>{'<th>雷の確率<br><small>独自推定</small></th>' if has_t else ''}</tr>{rows}</table></div>")
+            + f"<th>降水量</th></tr>{rows}</table></div>")
 
 
 
@@ -1043,7 +1046,7 @@ def mountains_page(mts):
 <li><b class='r1'>△</b> 降水10mm未満、風速17m/s未満</li>
 <li><b class='r0'>×</b> それ以上、または雷の確率50%以上。山頂付近の積雪(5cm以上)や登山道の凍結が予想される日も一律 ×(雪山登山は対象外)</li>
 <li>体感温度(山頂付近の6〜15時の最低): 5℃未満は最高でも○、0℃未満は最高でも△、-5℃未満は ×(汗や雨で濡れた体は風で冷え、0℃より上でも低体温症になることがあるため)</li></ul>
-<p>雷の確率(独自推定。気象庁の発表ではありません): 米国の予報モデル(GFS)を条件を少しずつ変えて31通り計算したうち、6〜15時に「大気が不安定で雨が降る」時間がある割合です。20%以上で判定は最高でも△、50%以上で×。山では早めの下山を。</p>
+<p>雷の確率(独自推定。気象庁の発表ではありません): 米国の予報モデル(GFS)を条件を少しずつ変えて31通り計算したうち、6〜15時に「大気が不安定で雨が降る」時間がある割合です。1%以上の日は、詳細の日付の横に ⚡ を出します(印に触れると確率が出ます)。20%以上で判定は最高でも△、50%以上で×。山では早めの下山を。</p>
 <p>🏠 山小屋: 山頂から4km以内の、山中の山小屋と登山口にある小屋(ヤマレコの登録をもとに、温泉旅館・休憩所・廃業した小屋・避難小屋は除く)。⛺ テント場: 山小屋併設のテント場と、管理棟のあるテント場(剱沢・雷鳥沢など)、避難小屋の横のテント場(登山口のキャンプ場や、小屋も管理棟もない野営指定地は含めません)。<span class='hinan'>避</span> 避難小屋: 山頂から4km以内の避難小屋の数(ヤマレコの登録)。緊急時に使うためのもので、多くは無人です(夏だけ管理人がいる小屋もあります)。冬は雪に埋まって使えないこともあります。宿泊の計画には入れないでください。「山小屋」のボタンは、山頂か登山口の近くの小屋・宿の予約先です。予約サイト(Yamatan・モンベル・RESERVA・南アルプス市の予約)で予約できる小屋を先に、それ以外は公式ホームページ(長野県山小屋情報ポータル・OpenStreetMap などの登録)を並べています。その後ろの ⛺ は、山頂から4km以内のテント場のうち、予約先(Yamatan、またはテント場を管理する小屋の予約先・公式HP)が分かるものです。</p>
 <p>展望: 6〜12時の雲の量の平均で、◎20%未満・○50%未満・△80%未満・×それ以上(霧の時間があれば×)。眺めの目安です。</p>
 <p>🌼 花の百名山の花: 一言紹介の後ろに、その山の花と咲く時期を載せています。時期は、iNaturalist の観察記録(花が咲いていると記録されたもの)と GBIF の標本の採集日から、山に近い記録を優先して(50km → 100km → 200km)、記録の60%が入る最も短い期間を旬単位で求めました。記録した場所との高さの差(100mで2.5日)と緯度の差(1度で3日)は補正しています。記録が少ない花や、遠くの記録しかない花、実や葉の記録が混ざって時期がずれた花は YAMAP MAGAZINE「花の百名山」の開花時期のままです。今日〜表の最後の日が開花時期に入ると 🌼 を付けています。その年の雪どけや天気で前後します。花の名前を押すと写真が開きます(写真の下に撮影者・ライセンス・元のページ。Wikimedia Commons・iNaturalist の再利用が許可された写真。ツクシフウロは撮影者の許可を得た提供写真)。</p>
@@ -2107,7 +2110,7 @@ const openDetail=(tb,open)=>{const d=tb.querySelector('tr.detail'),b=tb.querySel
   d.hidden=!open;if(b)b.setAttribute('aria-expanded',String(open));};
 paintFavs();
 // 詳細の表: 各値に列の見出しをラベルとして付け(2段の見出し・2行にまたがる日付にも対応)、スマホ幅では1行を1枚のカードにする(CSS)
-const SHORT={'山頂付近の気温':'気温','雷の確率 独自推定':'雷','最大瞬間風速':'最大瞬間','波力 kW/m':'波力','0℃の高さ':'0℃高度'};
+const SHORT={'山頂付近の気温':'気温','最大瞬間風速':'最大瞬間','波力 kW/m':'波力','0℃の高さ':'0℃高度'};
 const shortLabel=s=>{s=s.replace(/\\s+/g,' ').trim();s=s.replace(/[(（][^)）]*[)）]/g,'').trim();return SHORT[s]||s;};
 document.querySelectorAll('table.sub').forEach(t=>{
   const rows=[...t.rows],head=rows.filter(r=>[...r.cells].every(c=>c.tagName==='TH'));if(!head.length)return;
