@@ -1051,9 +1051,12 @@ def list_controls(placeholder, regions, subregions, filters, sorts):
     srt = "".join(f"<option value='{v}'>{label}</option>" for v, label in sorts)
     return f"""<div class='tabs' role='tablist'>{tabs}</div>
 <input id='q' type='search' placeholder='{placeholder}' aria-label='{placeholder}' autocomplete='off'>
+<button type='button' id='ctoggle' class='csum' aria-expanded='false' aria-controls='cond'><span id='csum'></span></button>
+<div id='cond' class='cond'>
 <div class='dates' id='dates' aria-label='日付'></div>
 <div class='chips wrap regions' id='regions' aria-label='地域'>{reg}</div>
 <div class='chips wrap regions sub' id='subregions' hidden>{sub}</div>
+</div>
 <div class='frow'><button type='button' id='ftoggle' class='fbtn' aria-expanded='false'>絞り込み</button><div id='active' class='active'></div></div>
 <div id='fpanel' class='fpanel' hidden>{flt}</div>
 <div class='listbar'><span id='count'></span><label class='sortl'><span>並び順</span><select id='sort'>{srt}</select></label></div>
@@ -2130,6 +2133,14 @@ body:is(.g-mt,.g-snow,.g-surf) #q{width:100%;max-width:none;margin:0 0 8px;font-
 .cal .chip{padding:3px 0;border-radius:8px;line-height:1.15;text-align:center;font-size:13px;min-width:0}
 .cal .chip span{display:block}.cal .chip small{display:block;font-size:10px}
 .chip .sat{color:var(--sat)}.chip .sun{color:var(--sun)}.chip.on .sat,.chip.on .sun{color:var(--on-g,#fff)}
+/* スマホでは日付・地域を1行(選んでいる日付・地域)にたたみ、押すと開く。パソコンはいつも開いたまま */
+.csum{display:none}
+@media (max-width:599px){
+.csum{display:flex;align-items:center;gap:6px;width:100%;font:inherit;font-size:14px;text-align:left;padding:9px 12px;margin:0 0 8px;
+ border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);cursor:pointer}
+.csum #csum{flex:1;min-width:0}
+.csum::after{content:'変更 ▼';font-size:12px;color:var(--g);flex:none}.csum[aria-expanded='true']::after{content:'閉じる ▲'}
+.cond:not(.open){display:none}}
 .frow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 8px}
 .fbtn{font:inherit;font-size:13px;padding:7px 14px;border-radius:99px;border:1px solid var(--g);background:var(--card);color:var(--g);cursor:pointer}
 .fbtn::after{content:' ▼';font-size:10px}.fbtn[aria-expanded='true']::after{content:' ▲'}
@@ -2436,6 +2447,9 @@ let render=()=>{
   document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===st.tab)));
   $('spots').setAttribute('aria-labelledby','tab-'+st.tab);
   $('subregions').hidden=!(st.region==='近畿'||st.region.startsWith('pref:'));
+  // たたんだときの1行: 選んでいる日付・地域
+  const rc=[...document.querySelectorAll(".chip[data-g='region']")].find(c=>c.dataset.v===st.region);
+  $('csum').textContent=`📅 ${st.days.slice().sort((a,b)=>a-b).map(i=>`${G.days[i].l}(${G.days[i].w})`).join('・')}　📍 ${rc?rc.textContent:'全国'}`;
   chipsOn();
   // 選んでいる条件(地域・絞り込み・検索)をチップで出す。押すと外れる
   const act=[];
@@ -2480,6 +2494,7 @@ try{const o=JSON.parse(sessionStorage.getItem(SKEY)||'null');
     if(o.sort&&[...$('sort').options].some(x=>x.value===o.sort))st.sort=o.sort;
     $('q').value=st.q;$('sort').value=st.sort;}}catch(e){}
 const save=()=>{try{sessionStorage.setItem(SKEY,JSON.stringify({tab:st.tab,days:st.days.map(i=>G.days[i].d),region:st.region,q:st.q,f:st.f,sort:st.sort}));}catch(e){}};
+$('ctoggle').addEventListener('click',()=>{const o=$('cond').classList.toggle('open');$('ctoggle').setAttribute('aria-expanded',String(o));});
 const render0=render;render=()=>{render0();save();};
 window.onFav=render;
 render();
