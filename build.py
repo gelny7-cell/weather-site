@@ -24,7 +24,21 @@ e = html.escape
 
 
 # ---------------------------------------------------------------- 取得
+API_USE = {}     # Open-Meteo の呼び出し回数の見積もり {API: 回数}(地点ごとに、変数10・14日を1回として数える)
+
+
+def count_use(url, params):
+    if "open-meteo.com" not in url:
+        return
+    n = len(str(params.get("latitude", "")).split(","))
+    nv = sum(len(str(params[k]).split(",")) for k in ("hourly", "daily", "minutely_15") if params.get(k))
+    days = int(params.get("forecast_days", 7)) + int(params.get("past_days", 0))
+    api = url.split("//")[1].split(".")[0]
+    API_USE[api] = API_USE.get(api, 0) + n * max(1, nv / 10) * max(1, days / 14)
+
+
 def fetch(url, params, retries=3):
+    count_use(url, params)
     q = urllib.parse.urlencode(params)
     for i in range(retries):
         try:
@@ -1027,7 +1041,7 @@ def list_controls(placeholder, regions, subregions, filters, sorts):
     """3ジャンル共通の一覧の操作部分(仕様書 4): 切替・検索・日付・地域・絞り込み・件数と並び順・一覧"""
     chip = lambda group, v, label, on=False: (f"<button type='button' class='chip{' on' if on else ''}' data-g='{group}' "
                                               f"data-v='{e(v)}'>{label}</button>")
-    tabs = "".join(f"<button type='button' class='tab' role='tab' data-tab='{v}' aria-selected='false'>{label}</button>"
+    tabs = "".join(f"<button type='button' class='tab' role='tab' id='tab-{v}' aria-controls='spots' data-tab='{v}' aria-selected='false'>{label}</button>"
                    for v, label in (("rec", "おすすめ"), ("fav", "お気に入り"), ("all", "全スポット")))
     reg = "".join(chip("region", v, label, v == "") for v, label in regions)
     sub = "".join(chip("region", v, label) for v, label in subregions)
@@ -1043,7 +1057,7 @@ def list_controls(placeholder, regions, subregions, filters, sorts):
 <div class='frow'><button type='button' id='ftoggle' class='fbtn' aria-expanded='false'>絞り込み</button><div id='active' class='active'></div></div>
 <div id='fpanel' class='fpanel' hidden>{flt}</div>
 <div class='listbar'><span id='count'></span><label class='sortl'><span>並び順</span><select id='sort'>{srt}</select></label></div>
-<div id='spots' class='spots'></div>
+<div id='spots' class='spots' role='tabpanel'></div>
 <p id='empty' class='empty' hidden>条件に合うスポットがありません。絞り込み条件を変更してください。</p>"""
 
 
@@ -1961,7 +1975,7 @@ def top_page(updated):
 
 # ---------------------------------------------------------------- 共通レイアウト
 CSS = """
-:root{color-scheme:light;--bg:#f6f7f5;--card:#fff;--line:#e2e4df;--text:#14171a;--sub:#55595e;--muted:#868a8f;
+:root{color-scheme:light;--bg:#f6f7f5;--card:#fff;--line:#e2e4df;--text:#14171a;--sub:#55595e;--muted:#666a6f;
 --accent:#1f6fb2;--r3:#2F855A;--r2:#327EB5;--r1:#B7791F;--r0:#C2413B;--sat:#2a6fd6;--sun:#d03b3b;--hl:#e8f1fb;--hyaku:#c4312f;--hyaku-bg:#fdecea;--fav:#e0245e}
 @media (prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#151617;--card:#1e2022;--line:#34373a;--text:#eef0f2;
 --sub:#b9bdc2;--muted:#8c9196;--accent:#6aaee8;--r3:#47c47c;--r2:#5fa3ef;--r1:#e0a43a;--r0:#ef6b69;--sat:#6aa6f0;
@@ -2403,8 +2417,9 @@ const card=it=>{const on=isFav(it.f);
    +`<div class='spot-days n${st.days.length}'>${st.days.map(i=>`<div class='sd'><span class='sd-l ${G.days[i].c}'>${G.days[i].l}(${G.days[i].w})${K.dmark?K.dmark(it,i):''}</span>${K.day(it,i)}</div>`).join('')}</div>`
    +(st.tab==='rec'&&K.why?(w=>w?`<p class='why'>${esc(w)}</p>`:'')((it.al?`⚠️ ${it.al}が発表中。`:'')+K.why(it,st.days)):'')+`</article>`;};
 const chipsOn=()=>document.querySelectorAll('.chip[data-g]').forEach(c=>{const g=c.dataset.g,v=c.dataset.v;
-  c.classList.toggle('on',g==='date'?st.days.includes(+v):g==='region'?(v===st.region||(v==='近畿'&&st.region.startsWith('pref:'))):g.startsWith('f:')?(st.f[g.slice(2)]||'')===v:false);});
-const render=()=>{
+  const on=g==='date'?st.days.includes(+v):g==='region'?(v===st.region||(v==='近畿'&&st.region.startsWith('pref:'))):g.startsWith('f:')?(st.f[g.slice(2)]||'')===v:false;
+  c.classList.toggle('on',on);c.setAttribute('aria-pressed',String(on));});
+let render=()=>{
   let xs=st.tab==='fav'?mine():G.items;
   if(st.q)xs=xs.filter(it=>(it.n+it.y).includes(st.q));
   if(st.region)xs=xs.filter(it=>K.region(it,st.region));
@@ -2419,6 +2434,7 @@ const render=()=>{
   $('count').textContent=`${label[st.tab]} ${xs.length}件`;
   document.querySelector('.sortl').hidden=st.tab==='rec';
   document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===st.tab)));
+  $('spots').setAttribute('aria-labelledby','tab-'+st.tab);
   $('subregions').hidden=!(st.region==='近畿'||st.region.startsWith('pref:'));
   chipsOn();
   // 選んでいる条件(地域・絞り込み・検索)をチップで出す。押すと外れる
@@ -2452,6 +2468,19 @@ document.addEventListener('click',ev=>{
 });
 $('q').addEventListener('input',()=>{st.q=$('q').value.trim();render();});
 $('sort').addEventListener('change',()=>{st.sort=$('sort').value;render();});
+// 選んだ条件(切替・日付・地域・絞り込み・検索・並び順)を、このタブの間だけ覚えておく。
+// 詳細ページから「‹ 一覧」で戻っても、同じ条件で開く(日付は日にちで覚え、予報の範囲から外れた日は使わない)
+const SKEY='weather-site-list-'+G.kind;
+try{const o=JSON.parse(sessionStorage.getItem(SKEY)||'null');
+  if(o&&location.hash!=='#fav'){
+    const ds=(o.days||[]).map(d=>G.days.findIndex(x=>x.d===d)).filter(i=>i>=0);
+    if(ds.length)st.days=ds;
+    if(['rec','fav','all'].includes(o.tab))st.tab=o.tab;
+    st.region=o.region||'';st.q=o.q||'';st.f=o.f||{};
+    if(o.sort&&[...$('sort').options].some(x=>x.value===o.sort))st.sort=o.sort;
+    $('q').value=st.q;$('sort').value=st.sort;}}catch(e){}
+const save=()=>{try{sessionStorage.setItem(SKEY,JSON.stringify({tab:st.tab,days:st.days.map(i=>G.days[i].d),region:st.region,q:st.q,f:st.f,sort:st.sort}));}catch(e){}};
+const render0=render;render=()=>{render0();save();};
 window.onFav=render;
 render();
 })();
@@ -2555,6 +2584,8 @@ def main():
               "snow.html": ("スノーボード", ski_page(ski)),
               "surf.html": ("サーフィン", surf_page(spots))}
     check_output(mts, ski, spots)
+    print("Open-Meteo の回数(見積もり、地点ごとに数えた場合):",
+          {k: round(v) for k, v in API_USE.items()}, "合計", round(sum(API_USE.values())))
     for f, (title, body) in bodies.items():
         (OUT / f).write_text(layout(f, title, body, updated), encoding="utf-8")
     for old in OUT.glob("[msw]-*.html"):            # 前回の詳細ページを消してから書き出す
