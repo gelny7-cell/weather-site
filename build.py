@@ -80,9 +80,14 @@ def align(items, what):
 
 
 def hours_of(h, key, day, hours):
-    """hourly データから、指定日・指定時間帯の値だけを取り出す"""
-    return [v for t, v in zip(h["time"], h[key])
+    """hourly データから、指定日・指定時間帯の値だけを取り出す。
+    雨・雪の量は、6時間ごとの値を割り振るモデル(GSM など)でわずかにマイナスになるので、0 にそろえる"""
+    amount = key in AMOUNTS
+    return [max(v, 0) if amount else v for t, v in zip(h["time"], h[key])
             if t[:10] == day and int(t[11:13]) in hours and v is not None]
+
+
+AMOUNTS = {"precipitation", "rain", "snowfall"}
 
 
 # ---------------------------------------------------------------- 警報・注意報、火山(気象庁)
@@ -723,8 +728,20 @@ def seasons(mts):
     if not kind:
         return [{} for _ in mts]
     cap = KOYO_CAP if kind == "koyo" else SAKURA_CAP
-    res = forecast([(m["lat"], m["lon"], min(m["elev"], cap)) for m in mts],
-                   daily="temperature_2m_max,temperature_2m_min", past_days=92)
+    pts = [[m["lat"], m["lon"], min(m["elev"], cap)] for m in mts]
+    res = None
+    try:        # Open-Meteo の回数を減らすため、その日にすでに取った分(公開中のファイル)があれば使う
+        old = fetch(SITE_URL + "season_temps.json", {})[0]
+        if old.get("date") == today.isoformat() and old.get("pts") == pts:
+            res = old["res"]
+    except Exception as ex:
+        print(f"前回の桜・紅葉の気温の取得に失敗: {type(ex).__name__}")
+    if res is None:
+        res = forecast(pts, daily="temperature_2m_max,temperature_2m_min", past_days=92)
+    res = [{"daily": r["daily"]} if r else None for r in res]
+    OUT.mkdir(exist_ok=True)
+    (OUT / "season_temps.json").write_text(json.dumps({"date": today.isoformat(), "pts": pts, "res": res},
+                                                      ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     out = []
     for m, r in zip(mts, res):
         ref, zs = min(m["elev"], cap), []
@@ -1233,7 +1250,7 @@ def build_ski():
         if t is None or b is None:
             continue
         h, bh = t["hourly"], b["hourly"]
-        s["snowfall"] = [(x, v) for x, v in zip(h["time"], h["snowfall"]) if v is not None]   # 上部の1時間ごとの降雪(週末までの合計用)
+        s["snowfall"] = [(x, max(v, 0)) for x, v in zip(h["time"], h["snowfall"]) if v is not None]   # 上部の1時間ごとの降雪(週末までの合計用)
         for d in sorted({x[:10] for x in h["time"]}):
             if d < today:
                 continue
@@ -1863,7 +1880,7 @@ def top_page(updated):
     cards = ""
     for page, cls, icon, name, desc, photo in GENRES:
         has_photo = (ROOT / "data/top" / f"{photo}.jpg").exists()
-        pos = {"mountain": "center 35%", "snow": "center 40%"}.get(photo, "center")   # 写真の見せたい所(富士山と稜線、日の出とシュプール)
+        pos = {"mountain": "center 35%", "snow": "center 40%", "surf": "center 45%"}.get(photo, "center")   # 写真の見せたい所(富士山と稜線、日の出とシュプール、海とボード)
         bg = (f"<span class='gphoto' style=\"background-image:url('top/{photo}.jpg');background-position:{pos}\"></span>" if has_photo
               else f"<span class='gart'>{GENRE_ART[cls]}</span>")
         body = ("" if has_photo else f"<span class='gbody'><span class='gname'><span class='gicon' aria-hidden='true'>{icon}</span>{name}</span>"
@@ -2430,14 +2447,14 @@ def check_output(mts, ski, spots):
             for k in ("tmin", "tmax"):
                 rng("登山", m["name"], k, d[k], -50, 45)
             rng("登山", m["name"], "wind", d["wind"], 0, 80)
-            rng("登山", m["name"], "rain", d["rain"], -1, 1000)   # 予報の値はわずかにマイナスになることがある
+            rng("登山", m["name"], "rain", d["rain"], 0, 1000)
     for s in ski:
         for d in s["days"]:
             for k in ("tmin", "tmax"):
                 rng("スノーボード", s["name"], k, d[k], -50, 45)
             rng("スノーボード", s["name"], "gust", d["gust"], 0, 80)
             for k in ("snow", "snow_base", "depth", "rain"):
-                rng("スノーボード", s["name"], k, d[k], -1, 2000)
+                rng("スノーボード", s["name"], k, d[k], 0, 2000)
     for s in spots:
         for d in s["days"]:
             for x in d["slots"]:
