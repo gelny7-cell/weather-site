@@ -283,6 +283,18 @@ def dir_name(deg):
     return DIRS[round(deg / 22.5) % 16] if deg is not None else "—"
 
 
+def dir_arrow(deg, label, flip=False):
+    """向きの矢印(SVG。上が北)。flip=True は「〜から吹く」向きを、吹いていく向きにする(風)。
+    方角の文字は title と読み上げに残す"""
+    if deg is None:
+        return "—"
+    rot = (deg + (180 if flip else 0)) % 360
+    return (f"<span class='arw' title='{label}' role='img' aria-label='{label}'>"
+            f"<svg viewBox='0 0 24 24' aria-hidden='true' style='transform:rotate({rot:.0f}deg)'>"
+            "<path d='M12 3v17M5.5 9.5 12 3l6.5 6.5' fill='none' stroke='currentColor' stroke-width='2.6' "
+            "stroke-linecap='round' stroke-linejoin='round'/></svg></span>")
+
+
 def ang_diff(a, b):
     return abs((a - b + 180) % 360 - 180)
 
@@ -1702,16 +1714,16 @@ def surf_table(s):
                      if d.get("hours") else day_label(d["date"]))
             date_cell = (f"<td rowspan='{len(d['slots'])}' class='dt'>{label}</td>" if i == 0 else "")
             rows += (f"<tr>{date_cell}<td class='sl'>{sl['slot']}</td><td class='{cls}'><b>{mark}</b></td>"
-                     f"<td>{sl['swell']:.1f}m({dir_name(sl['wave_dir'])}{front(sl['wave_dir'])})</td>"
+                     f"<td>{sl['swell']:.1f}m {dir_arrow(sl['wave_dir'], dir_name(sl['wave_dir']) + 'から', True)}{front(sl['wave_dir'])}</td>"
                      f"<td>{sl['height']:.1f}m</td><td>{sl['period']:.1f}秒</td>{power(sl)}"
                      + (f"<td>{sl['tide']}</td>" if has_tide else "")
-                     + f"<td>{dir_name(sl['wind_dir'])} {sl['wind']:.1f}m/s <small>{sl['kind']}</small></td>"
+                     + f"<td>{dir_arrow(sl['wind_dir'], dir_name(sl['wind_dir']) + 'の風', True)} {sl['wind']:.1f}m/s <small>{sl['kind']}</small></td>"
                      f"<td>{wx(sl['code'])[0]}</td>{temps(sl)}</tr>")
         for x in d.get("hours", []):
             rows += (f"<tr class='hr' hidden><td class='dt'>{x['hour']}時</td><td colspan='2'></td>"
-                     f"<td>{x['swell']:.1f}m({dir_name(x['wave_dir'])}{front(x['wave_dir'])})</td><td>{x['height']:.1f}m</td>"
+                     f"<td>{x['swell']:.1f}m {dir_arrow(x['wave_dir'], dir_name(x['wave_dir']) + 'から', True)}{front(x['wave_dir'])}</td><td>{x['height']:.1f}m</td>"
                      f"<td>{x['period']:.1f}秒</td>{power(x)}" + (f"<td>{x['tide']}</td>" if has_tide else "")
-                     + f"<td>{dir_name(x['wind_dir'])} {x['wind']:.1f}m/s <small>{x['kind']}</small></td>"
+                     + f"<td>{dir_arrow(x['wind_dir'], dir_name(x['wind_dir']) + 'の風', True)} {x['wind']:.1f}m/s <small>{x['kind']}</small></td>"
                      f"<td>{wx(x['code'])[0]}</td>{temps(x)}</tr>")
     return ("<div class='scroll'><table class='sub'>"
             "<tr><th class='dt'>日付</th><th></th><th>判定</th><th>うねり</th><th>波の高さ</th><th>周期</th><th>波力<br><small>kW/m</small></th>" + ("<th>潮</th>" if has_tide else "")
@@ -1764,7 +1776,7 @@ def surf_detail(s):
             + (f"・朝の気温 {air:.0f}℃" if air is not None else "") + "から'>"
             f"ウェット予想:{wetsuit(t, air).split('(')[0]}</p>") if seas else ""
     sun = (f"<p class='intro'>本日の日の出 {s['sun'][0].lstrip('0')} ／ 日の入り {s['sun'][1]}</p>" if s.get("sun") else "")
-    facing = (f"<p class='intro'>浜の向き:{dir_name(s['facing'])}</p>" if s.get("facing") is not None else "")
+    facing = (f"<p class='intro'>浜の向き:{dir_name(s['facing'])} {dir_arrow(s['facing'], '浜から海の方')}</p>" if s.get("facing") is not None else "")
     return (f"{alert_box(s)}{intro(s)}{facing}{sun}{suit}{buttons}{surf_table(s)}"
             + (f"<p class='muted'>波は沖合({s['grid'][0]:.2f}, {s['grid'][1]:.2f})の予報</p>" if s.get("grid") else ""))
 
@@ -1802,6 +1814,7 @@ def surf_page(spots):
 <li><b class='r0'>×</b> 波力0.5未満(フラット)、または風波を含めた波が2.5mを超える荒れた海</li>
 <li>風: 5m/s以上のオンショアで一段下げ、6m/s以下のオフショアで一段上げます</li>
 <li>オフショア=陸から海へ吹く風(波の面が整いやすい)、オンショア=海から陸へ吹く風</li>
+<li>詳細の矢印は上が北です。風・うねりの矢印は風が吹いていく向き・波が進む向き、浜の向きの矢印は浜から海の方を指します(風の矢印が浜の矢印と同じ向きならオフショア)</li>
 <li>波の高さ=風波とうねりを合わせた高さ。うねり・周期=遠くから届く波(うねり)だけの高さと周期(周期が長いほど力のある波)</li>
 <li>気温は浜付近、水温は沖合の海面水温の予報</li>
 <li>潮: その時間帯にある満潮・干潮の時刻。なければ上げ潮・下げ潮(沖合の潮位の予報から求めた目安で、港の潮汐表とは数十分ずれることがあります)</li>
@@ -1899,6 +1912,7 @@ text-decoration-thickness:1px;text-underline-offset:3px}.xlink b::after{content:
 .sub .dt,.sub td.l,.grid .nm{position:sticky;left:0;z-index:1;background:var(--card)}
 tr.detail .sub .dt{background:var(--hl)}
 tr.detail td>*{position:sticky;left:8px;max-width:calc(100vw - 72px)}.sub .dt{box-shadow:1px 0 0 var(--line)}
+.arw{display:inline-block;width:1.1em;height:1.1em;vertical-align:-3px}.arw svg{width:100%;height:100%;display:block}
 .hbtn{all:unset;cursor:pointer;color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
 .hbtn[aria-expanded='false']::after{content:' ▼';font-size:10px}.hbtn[aria-expanded='true']::after{content:' ▲';font-size:10px}
 .hbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
