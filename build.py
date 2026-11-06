@@ -2519,6 +2519,11 @@ def next_update(updated):
     return (updated.hour // 3 + 1) * 3 % 24
 
 
+# ページ下の注意とデータの出典(トップページには出さない)
+FOOTER = """<footer>予報は目安です。登山・海に出る前に、気象庁の警報・注意報と現地の情報を必ず確認してください。<br>
+気象データ: <a href="https://open-meteo.com/">Open-Meteo.com</a>(<a href="https://creativecommons.org/licenses/by/4.0/deed.ja">CC BY 4.0</a>) · ゲレンデ積雪: SURF&amp;SNOW · リフトの位置: © OpenStreetMap contributors ·
+山の一覧・座標: Wikipedia「日本百名山」「花の百名山」、Wikidata、ヤマレコ「関西百名山」、YAMAP MAGAZINE「花の百名山」 · 花の写真: Wikimedia Commons、iNaturalist(撮影者・ライセンスは各写真の下)</footer>"""
+
 GENRE_CLASS = {"mountains.html": "g-mt", "snow.html": "g-snow", "surf.html": "g-surf"}
 
 
@@ -2527,7 +2532,7 @@ def layout(file, title, body, updated, nav=None):
     nav = nav or file
     bottom_line = f"<p class='muted'>サイト更新: {updated:%Y年%-m月%-d日 %H:%M}(3時間ごとに自動更新)</p>"
     top_line = f"<p class='updated muted'>サイト更新 {updated.month}/{updated.day} {updated:%H:%M} · 次の更新は{next_update(updated)}時すぎの予定</p>"
-    menu = "".join(f"<a href='{f}' class='{'on' if f == nav else ''}'>{n}</a>" for f, n in PAGES)
+    menu = "".join(f"<a href='{f}' class='{'on' if f == nav else ''}'>{n}</a>" for f, n in PAGES if f != "index.html")   # 「トップ」は出さない
     if file in GENRE_CLASS and "</h1>" in body:      # 更新時刻は一覧のジャンル名(見出し)のすぐ後ろに。詳細ページには出さない
         body = body.replace("</h1>", "</h1>" + top_line, 1) if "class='ghead'" not in body else body.replace("</div>", "</div>" + top_line, 1)
         top_line = ""
@@ -2540,9 +2545,7 @@ def layout(file, title, body, updated, nav=None):
 <meta name="apple-mobile-web-app-title" content="山と雪と波"><style>{CSS}</style></head><body class='{GENRE_CLASS.get(nav, "")}'>
 <header><nav>{menu}</nav></header>
 <main>{body}{'' if file == 'index.html' else bottom_line}</main>
-<footer>予報は目安です。登山・海に出る前に、気象庁の警報・注意報と現地の情報を必ず確認してください。<br>
-気象データ: <a href="https://open-meteo.com/">Open-Meteo.com</a>(<a href="https://creativecommons.org/licenses/by/4.0/deed.ja">CC BY 4.0</a>) · ゲレンデ積雪: SURF&amp;SNOW · リフトの位置: © OpenStreetMap contributors ·
-山の一覧・座標: Wikipedia「日本百名山」「花の百名山」、Wikidata、ヤマレコ「関西百名山」、YAMAP MAGAZINE「花の百名山」 · 花の写真: Wikimedia Commons、iNaturalist(撮影者・ライセンスは各写真の下)</footer>
+{'' if file == 'index.html' else FOOTER}
 <script>const DEFAULT_FAVS={json.dumps(default_favs(), ensure_ascii=False)};{JS}{LIST_JS}</script></body></html>"""
 
 
