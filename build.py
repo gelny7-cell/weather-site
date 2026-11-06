@@ -2067,6 +2067,7 @@ table.cardify tr.hr td[data-l]::before{font-size:10px}
 .g-surf table.cardify tr[data-dt]{border-top:1px dashed var(--line);border-radius:0 0 10px 10px;padding-top:6px}
 .g-surf table.cardify tr[data-dt]::before{content:none}
 .g-surf table.cardify td.sl{font-weight:600;font-size:14px;align-self:center}
+.g-surf table.cardify td small{white-space:nowrap}
 }
 .empty{background:var(--card);border-radius:12px;padding:16px;text-align:center;color:var(--sub)}
 .back{margin:0 0 6px;font-size:14px}.back a{display:inline-flex;align-items:center;gap:2px;text-decoration:none;padding:6px 0}.chev{width:18px;height:18px}.spoth{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
