@@ -1698,7 +1698,7 @@ def surf_table(s):
             label = (f"<button type='button' class='hbtn' aria-expanded='false'>{day_label(d['date'])}</button>"
                      if d.get("hours") else day_label(d["date"]))
             date_cell = (f"<td rowspan='{len(d['slots'])}' class='dt'>{label}</td>" if i == 0 else "")
-            rows += (f"<tr>{date_cell}<td>{sl['slot']}</td><td class='{cls}'><b>{mark}</b></td>"
+            rows += (f"<tr>{date_cell}<td class='sl'>{sl['slot']}</td><td class='{cls}'><b>{mark}</b></td>"
                      f"<td>{sl['swell']:.1f}m({dir_name(sl['wave_dir'])}{front(sl['wave_dir'])})</td>"
                      f"<td>{sl['height']:.1f}m</td><td>{sl['period']:.1f}秒</td>{power(sl)}"
                      + (f"<td>{sl['tide']}</td>" if has_tide else "")
@@ -2062,6 +2062,11 @@ table.cardify tr.hr{grid-template-columns:repeat(3,1fr);background:var(--g-card,
 table.cardify tr.hr td.dt{font-size:12px;border:0;margin:0;padding:0}
 table.cardify tr.hr td[data-l]::before{font-size:10px}
 :is(.g-snow,.g-surf) table.cardify tr.hr{grid-template-columns:1fr 1fr}
+/* サーフィン: 朝・昼の2行を日付ごとに1枚のカードにつなげる(朝の行が上半分、昼の行が下半分) */
+.g-surf table.cardify tr:has(+tr[data-dt]){border-bottom:0;border-radius:10px 10px 0 0;margin-bottom:0;padding-bottom:6px}
+.g-surf table.cardify tr[data-dt]{border-top:1px dashed var(--line);border-radius:0 0 10px 10px;padding-top:6px}
+.g-surf table.cardify tr[data-dt]::before{content:none}
+.g-surf table.cardify td.sl{font-weight:600;font-size:14px;align-self:center}
 }
 .empty{background:var(--card);border-radius:12px;padding:16px;text-align:center;color:var(--sub)}
 .back{margin:0 0 6px;font-size:14px}.back a{display:inline-flex;align-items:center;gap:2px;text-decoration:none;padding:6px 0}.chev{width:18px;height:18px}.spoth{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
