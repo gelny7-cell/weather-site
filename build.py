@@ -979,7 +979,7 @@ def day_info(days):
 
 
 def season_flags(m, d):
-    """その日の季節の印(一覧用。雷の t はこの前に付ける): k=紅葉の見ごろ s=桜の見ごろ f=花の百名山の花の時期。判定は season_mark と同じ"""
+    """その日の季節の印(一覧用。雷の t はこの前に付け、日ごとの枠の日付の横に出す): k=紅葉の見ごろ s=桜の見ごろ f=花の百名山の花の時期。判定は season_mark と同じ"""
     out = ""
     for key, ch in (("koyo", "k"), ("sakura", "s")):
         zs = m.get("season", {}).get(key, [])
@@ -2197,7 +2197,7 @@ const G=JSON.parse(el.textContent);
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const MARK=['×','△','○','◎'];
-const FLAG={t:['⚡','雷の可能性あり(独自推定)'],k:['🍁','紅葉の見ごろ(予想)'],s:['🌸','桜の見ごろ(予想)'],f:['🌼','花の百名山の花の時期']};
+const FLAG={k:['🍁','紅葉の見ごろ(予想)'],s:['🌸','桜の見ごろ(予想)'],f:['🌼','花の百名山の花の時期']};
 const sum=(a,f)=>a.reduce((s,x)=>s+f(x),0);
 // 一言コメント用: 天気アイコンの分け方と、日の呼び方(土曜・日曜、ほかは日付)
 const SUN=['☀️','🌤️','⛅'],CLOUD=['☁️','🌫️'];
@@ -2219,8 +2219,10 @@ const KINDS={
     else s1=both(days)+'雨や雪の時間あり';
     const s2=wmax>=10?`風がやや強め(最大${wmax}m/s)なので防風の備えを`:fmin<5?`体感${fmin}℃前後まで冷えるので防寒をしっかり`:ds.every(d=>d[7]>=2)?'展望も期待できそう':'';
     return s1+(s2?'。'+s2:'');},
-  sub:(it,days)=>{const fl=[...new Set(days.flatMap(i=>[...((it.d[i]||[])[4]||'')]))].sort((a,b)=>'tksf'.indexOf(a)-'tksf'.indexOf(b));
+  sub:(it,days)=>{const fl=[...new Set(days.flatMap(i=>[...((it.d[i]||[])[4]||'')]))].filter(c=>c!=='t');
     return `${it.e.toLocaleString()}m · ${esc(it.p.join('・'))}`+fl.map(c=>` <span class='fac' title='${FLAG[c][1]}' role='img' aria-label='${FLAG[c][1]}'>${FLAG[c][0]}</span>`).join('');},
+  // 雷の確率1%以上の日だけ、その日の日付の横に ⚡
+  dmark:(it,i)=>((it.d[i]||[])[4]||'').includes('t')?" <span class='fac' title='雷の可能性あり(独自推定)' role='img' aria-label='雷の可能性あり(独自推定)'>⚡</span>":'',
   day:(it,i)=>{const d=it.d[i];if(!d)return "<span class='muted'>—</span>";
     return `<b class='r${d[0]} mark'>${MARK[d[0]]}</b><span class='sd-wx'>${d[1]}</span><span class='sd-v'>${d[2]}℃ · ${d[3]}m/s</span>`;},
   region:(it,r)=>r.startsWith('pref:')?it.p.includes(r.slice(5)):r.split('|').includes(it.r),
@@ -2308,7 +2310,7 @@ const card=it=>{const on=isFav(it.f);
   return `<article class='spot'><div class='spot-top'><a class='spot-link' href='${it.u}'>${esc(it.n)}</a>${it.b||''}`
    +`<button type='button' class='heart' data-hfid='${esc(it.f)}' aria-pressed='${on}' aria-label='${esc(it.n)}をお気に入り${on?'から外す':'に追加'}'>${on?'♥':'♡'}</button></div>`
    +`<div class='spot-sub'>${K.sub(it,st.days)}</div>`
-   +`<div class='spot-days n${st.days.length}'>${st.days.map(i=>`<div class='sd'><span class='sd-l ${G.days[i].c}'>${G.days[i].l}(${G.days[i].w})</span>${K.day(it,i)}</div>`).join('')}</div>`
+   +`<div class='spot-days n${st.days.length}'>${st.days.map(i=>`<div class='sd'><span class='sd-l ${G.days[i].c}'>${G.days[i].l}(${G.days[i].w})${K.dmark?K.dmark(it,i):''}</span>${K.day(it,i)}</div>`).join('')}</div>`
    +(st.tab==='rec'&&K.why?(w=>w?`<p class='why'>${esc(w)}</p>`:'')(K.why(it,st.days)):'')+`</article>`;};
 const chipsOn=()=>document.querySelectorAll('.chip[data-g]').forEach(c=>{const g=c.dataset.g,v=c.dataset.v;
   c.classList.toggle('on',g==='date'?st.days.includes(+v):g==='region'?(v===st.region||(v==='近畿'&&st.region.startsWith('pref:'))):g.startsWith('f:')?(st.f[g.slice(2)]||'')===v:false);});
