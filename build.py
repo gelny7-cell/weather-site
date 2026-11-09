@@ -2538,6 +2538,7 @@ def layout(file, title, body, updated, nav=None):
         top_line = ""
     return f"""<!doctype html><html lang="ja"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
 <title>{title} | 山と雪と波の天気</title>
 <meta name="description" content="日本百名山・関西百名山・花の百名山の登山天気、スキー場の降雪、サーフポイントの波と風の予報をまとめたサイト">
 <link rel="icon" href="favicon.png" sizes="32x32"><link rel="apple-touch-icon" href="apple-touch-icon.png">
