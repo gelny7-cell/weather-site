@@ -2530,7 +2530,7 @@ GENRE_CLASS = {"mountains.html": "g-mt", "snow.html": "g-snow", "surf.html": "g-
 def layout(file, title, body, updated, nav=None):
     """ページの共通の枠。nav は上のメニューで選んだ表示にするページ(詳細ページはそのジャンルの一覧)"""
     nav = nav or file
-    bottom_line = f"<p class='muted'>サイト更新: {updated:%Y年%-m月%-d日 %H:%M}(3時間ごとに自動更新)</p>"
+    bottom_line = f"<p class='muted'>サイト更新: {updated.year}年{updated.month}月{updated.day}日 {updated:%H:%M}(3時間ごとに自動更新)</p>"
     top_line = f"<p class='updated muted'>サイト更新 {updated.month}/{updated.day} {updated:%H:%M} · 次の更新は{next_update(updated)}時すぎの予定</p>"
     menu = "".join(f"<a href='{f}' class='{'on' if f == nav else ''}'>{n}</a>" for f, n in PAGES if f != "index.html")   # 「トップ」は出さない
     if file in GENRE_CLASS and "</h1>" in body:      # 更新時刻は一覧のジャンル名(見出し)のすぐ後ろに。詳細ページには出さない
