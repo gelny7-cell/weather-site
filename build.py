@@ -194,8 +194,7 @@ def fid(kind, x):
 def star(kind, x):
     """詳細の一番上に出す「☆ お気に入り登録」ボタン(押すと登録済みに。登録は見ている人のブラウザに保存する)"""
     return (f"<button type='button' class='star' data-fid='{e(fid(kind, x))}' aria-pressed='false' "
-            f"aria-label='{e(x['name'])}をお気に入りに登録'>♡ お気に入りに追加</button>"
-            "<small class='favnote'>この端末のブラウザに保存</small>")
+            f"aria-label='{e(x['name'])}をお気に入りに登録(この端末のブラウザに保存)'>♡ お気に入り</button>")
 
 
 def hutlink(m):
@@ -2217,7 +2216,7 @@ const isFav=f=>favs.includes(f);
 let apply=()=>{},region='';
 // 詳細は開くまで <template> に入れておき(ページを軽くするため)、初めて開いたときに組み立てる
 const paintStars=root=>root.querySelectorAll('.star').forEach(b=>{const on=isFav(b.dataset.fid);
-  b.innerHTML=on?"<span class='favmark'>♥</span> お気に入り":'♡ お気に入りに追加';b.setAttribute('aria-pressed',String(on));});
+  b.innerHTML=on?"<span class='favmark'>♥</span> お気に入り":'♡ お気に入り';b.setAttribute('aria-pressed',String(on));});
 const paintFavs=()=>{
   paintStars(document);
   document.querySelectorAll('tbody.mt[data-fid]').forEach(b=>{b.dataset.fav=isFav(b.dataset.fid)?'1':'';});
