@@ -1143,6 +1143,7 @@ def mountains_page(mts):
 <p>🌼 花の百名山の花: 一言紹介の後ろに、その山の花と咲く時期を載せています。時期は、iNaturalist の観察記録(花が咲いていると記録されたもの)と GBIF の標本の採集日から、山に近い記録を優先して(50km → 100km → 200km)、記録の60%が入る最も短い期間を旬単位で求めました。記録した場所との高さの差(100mで2.5日)と緯度の差(1度で3日)は補正しています。記録が少ない花や、遠くの記録しかない花、実や葉の記録が混ざって時期がずれた花は YAMAP MAGAZINE「花の百名山」の開花時期のままです。今日〜表の最後の日が開花時期に入ると 🌼 を付けています。その年の雪どけや天気で前後します。花の名前を押すと写真が開きます(写真の下に撮影者・ライセンス・元のページ。Wikimedia Commons・iNaturalist の再利用が許可された写真。ツクシフウロは撮影者の許可を得た提供写真)。</p>
 <p>🌸 桜(予想): 気象庁の生物季節観測(1991〜2025年、全国のソメイヨシノ、北海道はエゾヤマザクラ)の開花日・満開日と、その気象台の毎日の気温から式を作りました。{sakura_rule(SAKURA['somei'])}です(北海道は{sakura_rule(SAKURA['ezo'])}。年ごとに分けて確かめた誤差は約3〜4日、山の桜の名所12か所の例年の見ごろとの差も約3日)。山頂付近(1,500mより高い山は1,500m付近)・中腹・麓のそれぞれの高さの気温(高さ100mで0.6℃低い)で計算し、開花〜満開の2日前を咲き始め、満開の2日前〜5日後を見ごろとしています。予報の先は平年の気温でつないでいます。</p>
 <p>🍁 紅葉(予想): 気象庁の生物季節観測(1991〜2025年。山に近い涼しい気候の55地点のかえで)の紅葉日と、その気象台の毎日の気温から式を作りました。9月1日から「{KOYO[0]}℃と平均気温の差」を毎日足し、{KOYO[1]}℃に達した日が紅葉日です(年ごとに分けて確かめた誤差は約8日)。山の木(ナナカマド・ブナ・ダケカンバなど)は街のかえでより早く色づくため、山の紅葉の名所35か所の例年の見ごろと比べて{-KOYO_SHIFT}日早め、そこから{KOYO_LEN}日間を見ごろ、その前{KOYO_EARLY}日間を色づき始めとしています(名所との差は約5日)。山頂付近(2,400mより高い山は2,400m付近)・中腹・麓のそれぞれで計算しています。山頂付近・中腹・麓の見ごろの間の日も、間の標高が見ごろとして印を付けています。</p>
+<p>詳細ページの紅葉の印は、山頂付近・中腹・麓ごとのもみじの葉の色で表しています。{momiji('#4caf50')}まだ　{momiji('#f2c200')}色づき始め　{momiji('#e0412f')}見ごろ　{momiji('#9b6b43')}見ごろ過ぎ(葉を長押しすると、見ごろの日付が出ます)</p>
 <p>❄️ 積雪あり: 山頂付近の積雪深の予報(6〜15時)が5cm以上の日。予報の格子が粗いため、稜線の吹き飛ばしや吹きだまりは表せません。雪がありそうかの目安です。</p>
 <p>🧊 凍結注意: 山頂付近の最低気温(6〜15時)が0℃以下で前日昼〜当日に雨・雪が0.5mm以上の日、または最低気温が-3℃以下の日。登山道が凍りやすいので、チェーンスパイクやアイゼンの目安に。</p>
 <p>体感温度: 山頂付近の気温と風速から求めた、6〜15時で最も低い値です(風が強いほど低くなります)。</p>
@@ -2064,7 +2065,7 @@ tr.detail .star{display:table}tr.detail .btnrow .star{display:inline-block;verti
 .favbox h3{font-size:14px;margin:4px 0}
 .intro{margin:0 0 8px;font-size:14px;color:var(--text)}
 .koyo{white-space:nowrap}.koyo .lf{display:inline-flex;flex-direction:column;align-items:center;margin-left:6px;vertical-align:middle;line-height:1}
-.koyo .gk{width:20px;height:20px}.koyo small{font-size:9px;color:var(--muted)}
+.koyo .gk{width:20px;height:20px}.note .gk{width:16px;height:16px;vertical-align:-3px;margin:0 2px}.koyo small{font-size:9px;color:var(--muted)}
 .flw{font:inherit;color:var(--accent);background:none;border:0;padding:0;text-decoration:underline dotted;text-underline-offset:3px;cursor:pointer}
 .flwimg{margin:0 0 10px}.flwimg img{display:block;width:100%;max-width:360px;height:auto;border-radius:8px}.flwimg figcaption{font-size:11px;color:var(--muted);margin-top:4px;max-width:360px}
 .fac{font-size:12px}
