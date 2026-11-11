@@ -1075,7 +1075,7 @@ def mountains_page(mts):
     for m in mts:
         url = spot_url("m", m)
         lists = [c for c, key in (("h", "百名山"), ("k", "関西百名山"), ("a", "花の百名山")) if key in m.get("lists", [])]
-        items.append({"k": m["key"], "f": fid("m", m), "n": m["name"], "y": m["yomi"], "r": m["region"], "p": m["prefs"],
+        items.append({"k": m["key"], "f": fid("m", m), "n": m["name"], "y": m["yomi"] + "".join(m.get("old_names", [])), "r": m["region"], "p": m["prefs"],
                       "e": m["elev"], "l": lists, "u": url, "b": tags(m) + alert_tags(m), "al": alert_names(m),
                       "d": [[x["score"], wx(x["code"])[0], round(x["tavg"]), round(x["wind"]), ("t" if x.get("thunder") else "") + season_flags(m, x["date"]),
                              round(x["rain"], 1), round(x["feel"]), x["view"] if x.get("view") is not None else -1,
@@ -1576,7 +1576,7 @@ def ski_page(ski):
         url = spot_url("s", s)
         r = PREF_SKI_REGION[s["pref"]]
         st0 = season_status(s, days[0])[1] if s.get("plan") else ""
-        items.append({"k": s["key"], "f": fid("s", s), "n": s["name"], "y": s.get("yomi", ""), "r": r, "ro": order.index(r),
+        items.append({"k": s["key"], "f": fid("s", s), "n": s["name"], "y": s.get("yomi", "") + "".join(s.get("old_names", [])), "r": r, "ro": order.index(r),
                       "p": s["pref"], "u": url, "b": hour_marks(s) + alert_tags(s), "al": alert_names(s), "bc": 1 if s.get("bc") else 0,
                       "ol": (st0 if st0.startswith("営業前") else ""),
                       "d": [[round(x["snow"]), wx(x["code"])[0], round(x["tmin"]), round(x["tmax"]), round(x["wind_avg"]),
@@ -1888,7 +1888,7 @@ def surf_page(spots):
     for s in spots:
         url = spot_url("w", s)
         pref = re.match(r"北海道|東京都|京都府|大阪府|.{2,3}?県", s["pref"]).group(0)
-        items.append({"k": s["key"], "f": fid("w", s), "n": s["name"], "y": s.get("yomi", ""), "r": pref, "p": s["pref"],
+        items.append({"k": s["key"], "f": fid("w", s), "n": s["name"], "y": s.get("yomi", "") + "".join(s.get("old_names", [])), "r": pref, "p": s["pref"],
                       "lon": s["lon"], "u": url, "b": facmarks(s) + alert_tags(s), "al": alert_names(s), "fc": dir_name(s["facing"]),
                       "d": [[[sl["slot"], sl["score"], round(sl["height"], 1), round(sl["swell"], 1), round(sl["period"], 1),
                               round(sl["wind"], 1), round(sl["wind_dir"]) if sl["wind_dir"] is not None else None, sl["kind"]]
@@ -2209,6 +2209,8 @@ const FKEY='weather-site-favs';
 let favs=null;
 try{favs=JSON.parse(localStorage.getItem(FKEY));}catch(e){}
 if(!Array.isArray(favs))favs=DEFAULT_FAVS.slice();
+// 名前が変わった場所のお気に入りは、新しい名前に引き継ぐ
+if(favs.some(f=>RENAMED[f])){favs=[...new Set(favs.map(f=>RENAMED[f]||f))];try{localStorage.setItem(FKEY,JSON.stringify(favs));}catch(e){}}
 try{if(!localStorage.getItem(FKEY+'-surf')){if(!favs.some(f=>f.startsWith('w:')))favs=favs.concat(DEFAULT_FAVS.filter(f=>f.startsWith('w:')));
   localStorage.setItem(FKEY+'-surf','1');localStorage.setItem(FKEY,JSON.stringify(favs));}}catch(e){}
 const isFav=f=>favs.includes(f);
@@ -2509,6 +2511,16 @@ PAGES = [("index.html", "トップ"), ("mountains.html", "登山"), ("snow.html"
          ("surf.html", "サーフィン")]
 
 
+def renamed_favs():
+    """名前が変わった場所のお気に入りを引き継ぐ表(旧 → 新)。data の old_names(以前の名前)から作る"""
+    out = {}
+    for kind, f in (("m", "mountains"), ("s", "ski"), ("w", "surf")):
+        for x in json.loads((ROOT / f"data/{f}.json").read_text(encoding="utf-8")):
+            for old in x.get("old_names", []):
+                out[fid(kind, {**x, "name": old})] = fid(kind, x)
+    return out
+
+
 def default_favs():
     """最初から入れておくお気に入り。初めて開いた人は「おすすめ」で開くよう、今は入れない
     (以前は data/favorites.json の山・スキー場・ポイントを入れていた。戻すときはこの return を外す)"""
@@ -2552,7 +2564,7 @@ def layout(file, title, body, updated, nav=None):
 <header><nav>{menu}</nav></header>
 <main>{body}{'' if file == 'index.html' else bottom_line}</main>
 {'' if file == 'index.html' else FOOTER}
-<script>const DEFAULT_FAVS={json.dumps(default_favs(), ensure_ascii=False)};{JS}{LIST_JS}</script></body></html>"""
+<script>const DEFAULT_FAVS={json.dumps(default_favs(), ensure_ascii=False)};const RENAMED={json.dumps(renamed_favs(), ensure_ascii=False)};{JS}{LIST_JS}</script></body></html>"""
 
 
 def check_output(mts, ski, spots):
