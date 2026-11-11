@@ -858,6 +858,12 @@ def season_mark(m, dates, flower=True):
     return out
 
 
+def ginkgo(color):
+    """銀杏の葉の形(紅葉の見ごろの印)。色で状態を表す"""
+    return (f"<svg class='gk' viewBox='0 0 24 24' aria-hidden='true'><path fill='{color}' d='M12 13C7 13 3 9.5 3 5.2C6 3.3 8.8 2.3 11 2.4L12 6.2 13 2.4C15.2 2.3 18 3.3 21 5.2 21 9.5 17 13 12 13Z'/>"
+            f"<path d='M12 13V22' stroke='{color}' stroke-width='1.6' stroke-linecap='round'/></svg>")
+
+
 def season_line(m):
     """詳細に出す桜・紅葉の予想(山頂付近・中腹・麓ごと)。見ごろが近いか、見ごろの所があるときだけ"""
     md = lambda x: f"{x.month}/{x.day}"
@@ -866,6 +872,21 @@ def season_line(m):
     for key, (icon, name, early) in SEASONS.items():
         zs = m.get("season", {}).get(key, [])
         if not zs or not any(season_state(z, today) in (1, 2) or 0 < (z["peak"] - today).days <= 30 for z in zs):
+            continue
+        if key == "koyo":       # 紅葉は銀杏の葉の色だけで示す(緑: まだ / 黄: 色づき始め / 赤: 見ごろ / 茶: 見ごろ過ぎ)
+            leaves, words = "", []
+            for z in zs:
+                st = season_state(z, today)
+                col, word = {None: ("#4caf50", "まだ"), 1: ("#f2c200", "色づき始め"), 2: ("#e0412f", "見ごろ"),
+                             3: ("#9b6b43", "見ごろ過ぎ")}[st]
+                if st == 2:
+                    word += f"({md(z['end'] - timedelta(days=1))}頃まで)"
+                elif st in (None, 1):
+                    word += f"({md(z['peak'])}頃から見ごろ)"
+                words.append(f"{z['name']} {word}")
+                leaves += (f"<span class='lf'>{ginkgo(col)}<small>{e(z['name'].replace('付近', ''))}</small></span>")
+            label = "紅葉(予想): " + " / ".join(words)
+            lines += f"<p class='intro'><span class='koyo' title='{e(label)}' aria-label='{e(label)}'>紅葉{leaves}</span></p>"
             continue
         parts = []
         for z in zs:
@@ -2042,6 +2063,8 @@ border:1px solid var(--line);background:var(--card);color:var(--text);box-shadow
 tr.detail .star{display:table}tr.detail .btnrow .star{display:inline-block;vertical-align:top}h3+.star{margin-top:-2px}
 .favbox h3{font-size:14px;margin:4px 0}
 .intro{margin:0 0 8px;font-size:14px;color:var(--text)}
+.koyo{white-space:nowrap}.koyo .lf{display:inline-flex;flex-direction:column;align-items:center;margin-left:6px;vertical-align:middle;line-height:1}
+.koyo .gk{width:20px;height:20px}.koyo small{font-size:9px;color:var(--muted)}
 .flw{font:inherit;color:var(--accent);background:none;border:0;padding:0;text-decoration:underline dotted;text-underline-offset:3px;cursor:pointer}
 .flwimg{margin:0 0 10px}.flwimg img{display:block;width:100%;max-width:360px;height:auto;border-radius:8px}.flwimg figcaption{font-size:11px;color:var(--muted);margin-top:4px;max-width:360px}
 .fac{font-size:12px}
