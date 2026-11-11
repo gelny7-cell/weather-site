@@ -1278,12 +1278,12 @@ def attach_plan(ski):
     (OUT / "plan.json").write_text(json.dumps(found, ensure_ascii=False), encoding="utf-8")
 
 
-def overnight_snow(h, day):
-    """前日17時〜当日8時(ゲレンデが閉まってから開くまで)の降雪量(cm)。
-    1時間ごとの値はその前の1時間の量なので、前日18時〜当日8時の値を合計する。データが欠けていれば None"""
+def overnight_snow(h, day, start=17):
+    """前日 start 時〜当日8時の降雪量(cm)。ゲレンデは17時(閉まってから開くまで)、バックカントリーは8時(24時間)。
+    1時間ごとの値はその前の1時間の量なので、前日 start+1 時〜当日8時の値を合計する。データが欠けていれば None"""
     prev = (date.fromisoformat(day) - timedelta(days=1)).isoformat()
-    vals = hours_of(h, "snowfall", prev, range(18, 24)) + hours_of(h, "snowfall", day, range(0, 9))
-    return sum(vals) if len(vals) == 15 else None
+    vals = hours_of(h, "snowfall", prev, range(start + 1, 24)) + hours_of(h, "snowfall", day, range(0, 9))
+    return sum(vals) if len(vals) == 24 - start - 1 + 9 else None
 
 
 def zero_height(t_top, t_base, top, base):
@@ -1360,14 +1360,15 @@ def build_ski():
         for d in sorted({x[:10] for x in h["time"]}):
             if d < today:
                 continue
-            night = overnight_snow(h, d)                # 上部の新雪(前日17時〜当日8時)
+            start = 8 if s.get("bc") else 17            # バックカントリーは24時間(前日8時〜当日8時)
+            night = overnight_snow(h, d, start)         # 上部の新雪
             # アイスバーン注意: 前日に上部で雨が降ったか0℃を超え(雪が湿る・解ける)、夜〜朝の上部の最低気温が-2℃以下
             # (湿った雪が凍る)で、新雪が3cm未満(新しい雪で覆われない)の日
             prev = (date.fromisoformat(d) - timedelta(days=1)).isoformat()
             thawed = (sum(hours_of(h, "rain", prev, range(0, 24))) > 0
                       or any(t > 0 for t in hours_of(h, "temperature_2m", prev, range(6, 19))))
             frozen = hours_of(h, "temperature_2m", prev, range(18, 24)) + hours_of(h, "temperature_2m", d, range(0, 9))
-            night_base = overnight_snow(bh, d)
+            night_base = overnight_snow(bh, d, start)
             depth = hours_of(h, "snow_depth", d, [9])
             v = {k: hours_of(h, k, d, open_hrs) for k in
                  ("weather_code", "temperature_2m", "wind_speed_10m", "wind_gusts_10m")}
@@ -1607,7 +1608,7 @@ def ski_detail(s, with_map=True, simple=False):
     buttons = f"<div class='btnrow'>{star('s', s)} {ski_info(s)}{link}</div>" if with_map else ""
     return (f"{alert_box(s)}{obs}"
             f"{buttons}<div class='scroll'><table class='sub'>"
-            "<tr><th rowspan='2' class='dt'>日付</th><th colspan='2'>天気・雨<br>(8〜16時)</th><th colspan='2'>新雪<br>(前日17時〜8時)</th><th rowspan='2'>積雪<br>(上部)</th>"
+            "<tr><th rowspan='2' class='dt'>日付</th><th colspan='2'>天気・雨<br>(8〜16時)</th><th colspan='2'>新雪<br>("+ ("24時間・前日8時〜8時" if s.get("bc") else "前日17時〜8時") + ")</th><th rowspan='2'>積雪<br>(上部)</th>"
             "<th rowspan='2'>気温<br>(上部)</th><th rowspan='2'>体感温度<br>(上部)</th><th rowspan='2'>0℃の高さ<br>(8〜16時)</th><th rowspan='2'>平均風速<br>(上部)</th>"
             "<th rowspan='2'>最大瞬間風速<br>(上部)</th>"
             + ("<th rowspan='2'>朝の路面<br>(下部3〜8時)</th>" if has_road else "") + "</tr>"
@@ -1648,6 +1649,7 @@ def ski_page(ski):
             + f"""
 <details class='note'><summary>判定の基準・データについて</summary><ul>
 <li>新雪: 前日17時〜当日8時(ゲレンデが閉まってから開くまで)に降る雪の量の予報</li>
+<li>バックカントリー(BC)の新雪は24時間(前日8時〜当日8時)に降る雪の量の予報</li>
 <li>積雪: 朝9時に積もっている雪の深さの予報(気象モデルの推定。実際の積雪と大きく違うことがあります)</li>
 <li>🌅 早朝営業: 平日か休日の営業開始が7時台以前のスキー場。🌙 ナイター: ナイター営業のあるスキー場(どちらもウェザーニュースの営業時間から。特定日だけのものも含みます)</li>
 <li>📷 ライブカメラ: スキー場の公式サイトが載せているカメラです(公式にないスキー場はウェザーニュースのカメラ)</li>
