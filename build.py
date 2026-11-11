@@ -1506,13 +1506,13 @@ def ski_detail(s, with_map=True, simple=False):
             rows += (f"<tr><td class='dt'>{day_label(d['date'])}</td><td>{icon} {label}{rain}</td>"
                      f"<td>{d['snow']:.0f}cm{powder}</td><td>{d['depth']:.0f}cm</td>"
                      f"<td>{round(d['tmin'])}〜{round(d['tmax'])}℃</td>"
-                     f"<td>{d['gust']:.0f}m/s" + (" <span class='tag warn'>運休注意</span>" if d["gust"] >= 20 else "")
+                     f"<td>{d['gust']:.0f}m/s" + (" <span class='tag warn'>運休注意</span>" if d["gust"] >= 18 else "")
                      + "</td>" + (f"<td>{road(d['road'])}</td>" if has_road else "") + "</tr>")
         return (alert_box(s) + "<div class='scroll'><table class='sub'><tr><th class='dt'>日付</th><th>天気</th><th>新雪</th>"
                 "<th>積雪</th><th>気温</th><th>最大瞬間風速</th>" + ("<th>朝の路面</th>" if has_road else "") + "</tr>"
                 f"{rows}</table></div>")
     def gust(g):                # 突風が強い日はゴンドラ・リフトが止まりやすい
-        return f"{g:.0f}m/s" + (" <span class='tag warn'>運休注意</span>" if g >= 20 else "")
+        return f"{g:.0f}m/s" + (" <span class='tag warn'>運休注意</span>" if g >= 18 else "")
 
     def wind(direction, speed):
         return (f"{dir_name(direction)} " if direction is not None else "") + f"{speed:.0f}m/s"
@@ -1607,7 +1607,7 @@ def ski_page(ski):
 <li>🧊 アイスバーン注意: 前日に上部で雨が降ったか0℃を超え、夜〜朝の上部の最低気温が-2℃以下で、新雪が3cm未満の日(湿った雪が凍って硬くなりやすい)</li>
 <li>体感温度: 上部の気温と風速から求めた、8〜16時で最も低い値。平均風速には風向(風が吹いてくる方角)も表示しています</li>
 <li>朝の路面: ふもと(ゲレンデ下部)の3〜8時の最低気温。<span class='frz' title='路面凍結注意' role='img' aria-label='路面凍結注意'>凍</span> 路面凍結注意(1℃以下)。冬用タイヤ・チェーンの準備の目安です(実際の路面は除雪や日当たりで変わります)</li>
-<li><span class='tag warn'>運休注意</span> 上部の最大瞬間風速が20m/s以上(ゴンドラ・リフトが止まりやすい強さ)</li>
+<li><span class='tag warn'>運休注意</span> 上部の最大瞬間風速が18m/s以上(2人乗りのリフトは18m/sを超えると止めるところが多い強さ。止める基準はスキー場やリフトの種類で違います)</li>
 <li>⚠️ 警報・注意報は、スキー場のある市町村に気象庁がいま出しているもの。🌋 は10km以内の火山に噴火警報・予報が出ているとき</li>
 <li>天気・雨・気温・0℃の高さ・平均風速・最大瞬間風速は、営業時間(8〜16時)の予報からまとめています(天気は一番多い天気。雷雨があれば雷雨。0℃の高さは最も低いもの)。平均風速は、上部の高さに近い上空(気圧面)の風です(地表の風は地形をならした値で弱く出やすいため)。最大瞬間風速が20m/s以上の日は、一覧に「💨 突風」を出します(リフトが止まりやすい目安)。0℃の高さは、上部と下部の気温から計算しています(表の気温と合うように)</li>
 <li>日付を押すと時間ごとの予報が開きます(今日は8〜21時の1時間ごと、ほかの日は9時・12時・15時)。雪・雨はその時刻までの1時間(3時間ごとの日は3時間)の合計、気温・積雪・0℃の高さ・風はその時刻の値です(風速の列は平均ではなくその時刻の風速、最大瞬間風速の列はその時刻の突風)</li>
@@ -2307,7 +2307,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const MARK=['×','△','○','◎'];
 const PRO_H=1.5,PRO_W=8;
-const GUST=20;               // スノーボード: 最大瞬間風速20m/s以上で一覧に「💨 突風」(リフトが止まりやすい目安)     // サーフィン: 波の高さ1.5m以上か風8m/s以上の時間帯があれば「中〜上級向け」(判定は変えない)
+const GUST=18;               // スノーボード: 最大瞬間風速18m/s以上で一覧に「💨 突風」(リフトが止まりやすい目安)     // サーフィン: 波の高さ1.5m以上か風8m/s以上の時間帯があれば「中〜上級向け」(判定は変えない)
 const FLAG={k:['🍁','紅葉の見ごろ(予想)'],s:['🌸','桜の見ごろ(予想)'],f:['🌼','花の百名山の花の時期']};
 const sum=(a,f)=>a.reduce((s,x)=>s+f(x),0);
 // 一言コメント用: 天気アイコンの分け方と、日の呼び方(土曜・日曜、ほかは日付)
