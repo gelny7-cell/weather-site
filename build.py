@@ -858,10 +858,10 @@ def season_mark(m, dates, flower=True):
     return out
 
 
-def ginkgo(color):
-    """銀杏の葉の形(紅葉の見ごろの印)。色で状態を表す"""
-    return (f"<svg class='gk' viewBox='0 0 24 24' aria-hidden='true'><path fill='{color}' d='M12 13C7 13 3 9.5 3 5.2C6 3.3 8.8 2.3 11 2.4L12 6.2 13 2.4C15.2 2.3 18 3.3 21 5.2 21 9.5 17 13 12 13Z'/>"
-            f"<path d='M12 13V22' stroke='{color}' stroke-width='1.6' stroke-linecap='round'/></svg>")
+def momiji(color):
+    """もみじの葉の形(紅葉の見ごろの印)。色で状態を表す"""
+    return (f"<svg class='gk' viewBox='0 0 24 24' aria-hidden='true'><path fill='{color}' d='M12 1.5l1.7 3.9 2.7-1.5-.6 3.6 3.6-.9-1.5 3.2 3.6 1.3-3.4 2.1 1.3 1.7-4.2.4.4 3.4L12 16.4l-3.6 2.3.4-3.4-4.2-.4 1.3-1.7-3.4-2.1 3.6-1.3-1.5-3.2 3.6.9-.6-3.6 2.7 1.5z'/>"
+            f"<path d='M12 15.5V22.5' stroke='{color}' stroke-width='1.6' stroke-linecap='round'/></svg>")
 
 
 def season_line(m):
@@ -873,7 +873,7 @@ def season_line(m):
         zs = m.get("season", {}).get(key, [])
         if not zs or not any(season_state(z, today) in (1, 2) or 0 < (z["peak"] - today).days <= 30 for z in zs):
             continue
-        if key == "koyo":       # 紅葉は銀杏の葉の色だけで示す(緑: まだ / 黄: 色づき始め / 赤: 見ごろ / 茶: 見ごろ過ぎ)
+        if key == "koyo":       # 紅葉はもみじの葉の色だけで示す(緑: まだ / 黄: 色づき始め / 赤: 見ごろ / 茶: 見ごろ過ぎ)
             leaves, words = "", []
             for z in zs:
                 st = season_state(z, today)
@@ -884,7 +884,7 @@ def season_line(m):
                 elif st in (None, 1):
                     word += f"({md(z['peak'])}頃から見ごろ)"
                 words.append(f"{z['name']} {word}")
-                leaves += (f"<span class='lf'>{ginkgo(col)}<small>{e(z['name'].replace('付近', ''))}</small></span>")
+                leaves += (f"<span class='lf'>{momiji(col)}<small>{e(z['name'].replace('付近', ''))}</small></span>")
             label = "紅葉(予想): " + " / ".join(words)
             lines += f"<p class='intro'><span class='koyo' title='{e(label)}' aria-label='{e(label)}'>紅葉{leaves}</span></p>"
             continue
