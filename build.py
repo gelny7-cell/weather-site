@@ -864,6 +864,19 @@ def momiji(color):
             f"<path d='M12 13V19' fill='none' stroke='{color}' stroke-width='1.6' stroke-linecap='round'/></svg>")
 
 
+def sakura_icon(color):
+    """桜の花の形(桜の見ごろの印)。色で状態を表す"""
+    petal = "M12 12.2C9.7 10.9 9.1 7.6 10.1 5.2L12 6.6 13.9 5.2C14.9 7.6 14.3 10.9 12 12.2Z"
+    return (f"<svg class='gk' viewBox='0 0 24 24' aria-hidden='true'><g fill='{color}'>"
+            + "".join(f"<path d='{petal}' transform='rotate({r} 12 12.6)'/>" for r in (0, 72, 144, 216, 288))
+            + "</g><circle cx='12' cy='12.6' r='1.3' fill='#fff' opacity='.7'/></svg>")
+
+
+# 季節の印の形と、状態ごとの色・言い方。None: まだ / 1: 色づき始め・咲き始め / 2: 見ごろ / 3: 見ごろ過ぎ
+MARKS = {"koyo": (momiji, {None: ("#4caf50", "まだ"), 1: ("#f2c200", "色づき始め"), 2: ("#e0412f", "見ごろ"), 3: ("#9b6b43", "見ごろ過ぎ")}),
+         "sakura": (sakura_icon, {None: ("#9b6b43", "つぼみ"), 1: ("#f6c6d6", "咲き始め"), 2: ("#e8608c", "見ごろ"), 3: ("#4caf50", "見ごろ過ぎ(葉桜)")})}
+
+
 def season_line(m):
     """詳細に出す桜・紅葉の予想(山頂付近・中腹・麓ごと)。見ごろが近いか、見ごろの所があるときだけ"""
     md = lambda x: f"{x.month}/{x.day}"
@@ -873,20 +886,20 @@ def season_line(m):
         zs = m.get("season", {}).get(key, [])
         if not zs or not any(season_state(z, today) in (1, 2) or 0 < (z["peak"] - today).days <= 30 for z in zs):
             continue
-        if key == "koyo":       # 紅葉はもみじの葉の色だけで示す(緑: まだ / 黄: 色づき始め / 赤: 見ごろ / 茶: 見ごろ過ぎ)
+        if key in MARKS:        # 紅葉はもみじの葉、桜は桜の花の色だけで示す(色の意味は MARKS)
+            draw, cols = MARKS[key]
             leaves, words = "", []
             for z in zs:
                 st = season_state(z, today)
-                col, word = {None: ("#4caf50", "まだ"), 1: ("#f2c200", "色づき始め"), 2: ("#e0412f", "見ごろ"),
-                             3: ("#9b6b43", "見ごろ過ぎ")}[st]
+                col, word = cols[st]
                 if st == 2:
                     word += f"({md(z['end'] - timedelta(days=1))}頃まで)"
                 elif st in (None, 1):
                     word += f"({md(z['peak'])}頃から見ごろ)"
                 words.append(f"{z['name']} {word}")
-                leaves += (f"<span class='lf'>{momiji(col)}<small>{e(z['name'].replace('付近', ''))}</small></span>")
-            label = "紅葉(予想): " + " / ".join(words)
-            lines += f"<p class='intro'><span class='koyo' title='{e(label)}' aria-label='{e(label)}'>紅葉{leaves}</span></p>"
+                leaves += (f"<span class='lf'>{draw(col)}<small>{e(z['name'].replace('付近', ''))}</small></span>")
+            label = f"{name}(予想): " + " / ".join(words)
+            lines += f"<p class='intro'><span class='koyo' title='{e(label)}' aria-label='{e(label)}'>{name}{leaves}</span></p>"
             continue
         parts = []
         for z in zs:
@@ -1142,6 +1155,7 @@ def mountains_page(mts):
 <p>展望: 6〜12時の雲の量の平均で、◎20%未満・○50%未満・△80%未満・×それ以上(霧の時間があれば×)。眺めの目安です。</p>
 <p>🌼 花の百名山の花: 一言紹介の後ろに、その山の花と咲く時期を載せています。時期は、iNaturalist の観察記録(花が咲いていると記録されたもの)と GBIF の標本の採集日から、山に近い記録を優先して(50km → 100km → 200km)、記録の60%が入る最も短い期間を旬単位で求めました。記録した場所との高さの差(100mで2.5日)と緯度の差(1度で3日)は補正しています。記録が少ない花や、遠くの記録しかない花、実や葉の記録が混ざって時期がずれた花は YAMAP MAGAZINE「花の百名山」の開花時期のままです。今日〜表の最後の日が開花時期に入ると 🌼 を付けています。その年の雪どけや天気で前後します。花の名前を押すと写真が開きます(写真の下に撮影者・ライセンス・元のページ。Wikimedia Commons・iNaturalist の再利用が許可された写真。ツクシフウロは撮影者の許可を得た提供写真)。</p>
 <p>🌸 桜(予想): 気象庁の生物季節観測(1991〜2025年、全国のソメイヨシノ、北海道はエゾヤマザクラ)の開花日・満開日と、その気象台の毎日の気温から式を作りました。{sakura_rule(SAKURA['somei'])}です(北海道は{sakura_rule(SAKURA['ezo'])}。年ごとに分けて確かめた誤差は約3〜4日、山の桜の名所12か所の例年の見ごろとの差も約3日)。山頂付近(1,500mより高い山は1,500m付近)・中腹・麓のそれぞれの高さの気温(高さ100mで0.6℃低い)で計算し、開花〜満開の2日前を咲き始め、満開の2日前〜5日後を見ごろとしています。予報の先は平年の気温でつないでいます。</p>
+<p>詳細ページの桜の印は、山頂付近・中腹・麓ごとの桜の花の色で表しています。{sakura_icon('#9b6b43')}つぼみ　{sakura_icon('#f6c6d6')}咲き始め　{sakura_icon('#e8608c')}見ごろ　{sakura_icon('#4caf50')}見ごろ過ぎ(葉桜)(花を長押しすると、見ごろの日付が出ます)</p>
 <p>🍁 紅葉(予想): 気象庁の生物季節観測(1991〜2025年。山に近い涼しい気候の55地点のかえで)の紅葉日と、その気象台の毎日の気温から式を作りました。9月1日から「{KOYO[0]}℃と平均気温の差」を毎日足し、{KOYO[1]}℃に達した日が紅葉日です(年ごとに分けて確かめた誤差は約8日)。山の木(ナナカマド・ブナ・ダケカンバなど)は街のかえでより早く色づくため、山の紅葉の名所35か所の例年の見ごろと比べて{-KOYO_SHIFT}日早め、そこから{KOYO_LEN}日間を見ごろ、その前{KOYO_EARLY}日間を色づき始めとしています(名所との差は約5日)。山頂付近(2,400mより高い山は2,400m付近)・中腹・麓のそれぞれで計算しています。山頂付近・中腹・麓の見ごろの間の日も、間の標高が見ごろとして印を付けています。</p>
 <p>詳細ページの紅葉の印は、山頂付近・中腹・麓ごとのもみじの葉の色で表しています。{momiji('#4caf50')}まだ　{momiji('#f2c200')}色づき始め　{momiji('#e0412f')}見ごろ　{momiji('#9b6b43')}見ごろ過ぎ(葉を長押しすると、見ごろの日付が出ます)</p>
 <p>❄️ 積雪あり: 山頂付近の積雪深の予報(6〜15時)が5cm以上の日。予報の格子が粗いため、稜線の吹き飛ばしや吹きだまりは表せません。雪がありそうかの目安です。</p>
