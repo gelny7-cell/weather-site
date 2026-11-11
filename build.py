@@ -463,6 +463,15 @@ def foodlink(lat, lon, pref, page):
             f"<div class='menu-list'>{items}</div></details>")
 
 
+def aroundmenu(lat, lon, pref, page, sun=None):
+    """「日の出・周辺」ボタン(押すと開く): 本日の日の出・日の入りと、温泉・飲食店・道の駅・コンビニのボタンをまとめる
+    (スマホで当日の天気が1画面に収まるよう、ボタンの段を減らすため)"""
+    head = (f"<span class='menu-sun'>本日の日の出 {sun[0].lstrip('0')} ／ 日の入り {sun[1]}</span>" if sun else "")
+    label = "☀️ 日の出・周辺" if sun else "🧭 周辺"
+    return (f" <details class='menu'><summary class='mapbtn'>{label}</summary><div class='menu-list'>{head}"
+            f"{onsenlink(lat, lon)}{foodlink(lat, lon, pref, page)}{michilink(lat, lon)}{conbilink(lat, lon)}</div></details>")
+
+
 def michilink(lat, lon):
     """その地点の周りの道の駅を Google マップで検索するボタン(道の駅は数が少ないので広めに探す)"""
     url = f"https://www.google.com/maps/search/{urllib.parse.quote('道の駅')}/@{lat},{lon},11z"
@@ -983,11 +992,10 @@ def mt_detail(m, with_map=True, compact=False):
         place = (f"<details class='menu'><summary class='mapbtn'>📍 登山口</summary>"
                  f"<div class='menu-list'>{items}</div></details>")
     near = m.get("access") or m            # 温泉は駐車場・登山口の位置(分からなければ山頂)の周りで探す
-    link = (routelinks(m) + place + " " + onsenlink(near["lat"], near["lon"])
-            + foodlink(near["lat"], near["lon"], m["prefs"][0], "mountain") + michilink(near["lat"], near["lon"])
-            + conbilink(near["lat"], near["lon"]) + " " + hutlink(m)) if with_map else ""    # 山小屋は右端
-    sun = (f"<p class='intro'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</p>"
-           if m.get("sun") else "")
+    link = (routelinks(m) + place + aroundmenu(near["lat"], near["lon"], m["prefs"][0], "mountain", m.get("sun"))
+            + " " + hutlink(m)) if with_map else ""    # 山小屋は右端
+    sun = "" if with_map else (f"<p class='intro'>本日の日の出 {m['sun'][0].lstrip('0')} ／ 日の入り {m['sun'][1]}</p>"
+                               if m.get("sun") else "")
     # スキー場と同じく、文字をまとめて上に、ボタン(お気に入り登録が先頭)をその下に
     buttons = f"<div class='btnrow'>{star('m', m)} {link}</div>" if with_map else ""
     return (f"{alert_box(m)}{intro(m)}{sun}{season_line(m)}{buttons}<div class='scroll'><table class='sub'>"
@@ -1545,7 +1553,7 @@ def ski_detail(s, with_map=True, simple=False):
     if with_map:                # 公式ページ・ゲレンデマップ(分かるスキー場だけ)・駐車場の地図
         link = ((sitelink(s["site"], "🏠 公式ページ") + " " if s.get("site") else "")
                 + (sitelink(s["map"], "🗺️ ゲレンデマップ") + " " if s.get("map") else "")
-                + camlink(s) + maplink(s.get('parking') or s['name'] + ' 第1駐車場', '駐車場') + " " + onsenlink(s["lat"], s["lon"]) + foodlink(s["lat"], s["lon"], s["pref"], "ski") + michilink(s["lat"], s["lon"]) + conbilink(s["lat"], s["lon"]) + " ")
+                + camlink(s) + maplink(s.get('parking') or s['name'] + ' 第1駐車場', '駐車場') + aroundmenu(s["lat"], s["lon"], s["pref"], "ski", s.get("sun")) + " ")
     rp = s.get("report")
     obs = ""
     if rp:                      # スキー場が報告したゲレンデの積雪(SURF&SNOW)。報告のない日は出さない
@@ -1866,8 +1874,8 @@ def wetsuit(sea, air=None):
 def surf_detail(s):
     """サーフポイントの詳細(名前を押すと開く): 注意報・紹介・ボタン(お気に入り登録が先頭)・朝昼の表"""
     pref = s["pref"][:s["pref"].index("県") + 1] if "県" in s["pref"] else s["pref"][:3]
-    buttons = (f"<div class='btnrow'>{star('w', s)} {camlink(s)}{maplink(s['parking'], '駐車場')} {onsenlink(s['lat'], s['lon'])}"
-               f"{foodlink(s['lat'], s['lon'], pref, 'surf')}{michilink(s['lat'], s['lon'])}{conbilink(s['lat'], s['lon'])}</div>")
+    buttons = (f"<div class='btnrow'>{star('w', s)} {camlink(s)}{maplink(s['parking'], '駐車場')}"
+               f"{aroundmenu(s['lat'], s['lon'], pref, 'surf', s.get('sun'))}</div>")
     seas = [sl["sea"] for d in s["days"][:1] for sl in d["slots"] if sl.get("sea") is not None]
     t = sum(seas) / len(seas) if seas else None
     air = next((sl["air"] for d in s["days"][:1] for sl in d["slots"] if sl["slot"] == "朝" and sl.get("air") is not None), None)
@@ -1875,7 +1883,7 @@ def surf_detail(s):
     suit = (f"<p class='intro' title='今日の水温 {t:.0f}℃(沖合)"
             + (f"・朝の気温 {air:.0f}℃" if air is not None else "") + "から'>"
             f"ウェット予想:{wetsuit(t, air).split('(')[0]}</p>") if seas else ""
-    sun = (f"<p class='intro'>本日の日の出 {s['sun'][0].lstrip('0')} ／ 日の入り {s['sun'][1]}</p>" if s.get("sun") else "")
+    sun = ""                    # 日の出・日の入りは「日の出・周辺」ボタンの中に出す
     facing = (f"<p class='intro'>浜の向き:{dir_name(s['facing'])} {dir_arrow(s['facing'], '浜から海の方')}</p>" if s.get("facing") is not None else "")
     return (f"{alert_box(s)}{intro(s)}{facing}{sun}{suit}{buttons}{surf_table(s)}"
             + (f"<p class='muted'>波は沖合({s['grid'][0]:.2f}, {s['grid'][1]:.2f})の予報</p>" if s.get("grid") else ""))
@@ -2169,7 +2177,7 @@ body:is(.g-mt,.g-snow,.g-surf) #q{width:100%;max-width:none;margin:0 0 8px;font-
 .warr{display:inline-block;margin-right:2px;font-weight:700;color:var(--g)}.sd-v.wind small{font-size:11px}
 .slots{flex-basis:100%;font-size:11px;color:var(--sub)}.slots b{font-size:12px;margin:0 2px 0 1px}
 .why{margin:6px 0 0;font-size:13px;color:var(--g-ink);line-height:1.5}.why::before{content:'💬 '}
-.favnote{display:inline-block;margin:0 0 8px 6px;font-size:11px;color:var(--muted);vertical-align:middle}
+.menu-sun{display:block;font-size:13px;margin:2px 0 6px}
 /* 詳細の表(スマホ): 1行を1枚のカードに。値の前に列の見出しを小さく出す。パソコンでは今の表のまま */
 @media (max-width:599px){
 .scroll:has(>table.cardify){overflow:visible}
