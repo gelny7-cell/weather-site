@@ -221,6 +221,8 @@ def intro(x):
                 f"<span class='hinan'>避</span>{len(x['shelters'])}</span>")
     text = e(x.get("intro", ""))
     flower, photo = flower_text(x)
+    if text.endswith("。") and flower.startswith("。"):     # 紹介文が句点で終わるときは、花の文の頭の句点を外す
+        flower = flower[1:]
     return (f"<p class='intro'>{text}{flower}{fac}</p>{photo}" if text or fac else "")
 
 
