@@ -2072,6 +2072,7 @@ tr.detail td>*{position:sticky;left:8px;max-width:calc(100vw - 72px)}.sub .dt{bo
 .hbtn[aria-expanded='false']::after{content:' ▼';font-size:10px}.hbtn[aria-expanded='true']::after{content:' ▲';font-size:10px}
 .hbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .g-mt table.sub tr:has(.hbtn),.g-mt table.sub tr.hr{cursor:pointer}
+.g-mt .hbtn{text-decoration:none}.g-mt .hbtn::after{content:none!important}   /* 登山はカードごと押せるので、日付の下線と▼▲は出さない */
 tr.hr td{font-size:12px;color:var(--sub);padding-top:3px;padding-bottom:3px}
 tbody[id],section[id]{scroll-margin-top:56px}   /* 上に固定したメニューに隠れないように */
 .alert{margin:6px 0;color:var(--r0);font-size:13px;font-weight:600}.alert small{font-weight:400;margin-left:4px}
