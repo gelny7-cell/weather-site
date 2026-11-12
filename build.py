@@ -1167,7 +1167,7 @@ def mountains_page(mts):
 <h2>このページについて</h2>
 <p>日本百名山(<span class='mk hyaku'></span>)・関西百名山(<span class='mk'></span>、山と溪谷社『関西百名山』)・花の百名山(<span class='mk hana'></span>、田中澄江『花の百名山』)と、これらに入っていない都道府県の最高峰・ヤマレコの人気の山(全期間の上位100)の予報です。複数に入る山は1つにまとめ、入っている一覧のバッジを全部付けています。花の百名山の尾瀬沼は燧ヶ岳(燧岳)に、久住山は九重山に、黒檜山は赤城山にまとめています。沼ノ平・雨竜沼・葦毛湿原・五色ヶ原などの湿原・高原は、その場所の標高で予報しています。
 山頂の標高での予報(6〜15時)から、登山に向いた天気かを判定しています。表は7日間で、山名を押すと最大16日間の詳細が開きます。
-詳細で今日から5日後までの日付を押すと、時間ごとの予報(今日は1時間ごと、明日〜5日後は3時間ごと。3時間ごとの行の風速・降水量はその3時間の最大・合計)が開きます。
+詳細で今日から5日後までの日付の行(スマホではカード)を押すと時間ごとの予報(今日は1時間ごと、明日〜5日後は3時間ごと。3時間ごとの行の風速・降水量はその3時間の最大・合計)が開きます(開いた時間ごとの行を押すと閉じます)。
 日の出・日の入りは本日の時刻で、平地の地平線を基準にしています(山頂ではもう少し早く昇り、遅く沈みます)。</p></details>
 """)
 
@@ -2071,6 +2071,7 @@ tr.detail td>*{position:sticky;left:8px;max-width:calc(100vw - 72px)}.sub .dt{bo
 .hbtn{all:unset;cursor:pointer;color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
 .hbtn[aria-expanded='false']::after{content:' ▼';font-size:10px}.hbtn[aria-expanded='true']::after{content:' ▲';font-size:10px}
 .hbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.g-mt table.sub tr:has(.hbtn),.g-mt table.sub tr.hr{cursor:pointer}
 tr.hr td{font-size:12px;color:var(--sub);padding-top:3px;padding-bottom:3px}
 tbody[id],section[id]{scroll-margin-top:56px}   /* 上に固定したメニューに隠れないように */
 .alert{margin:6px 0;color:var(--r0);font-size:13px;font-weight:600}.alert small{font-weight:400;margin-left:4px}
@@ -2336,7 +2337,12 @@ document.addEventListener('click',ev=>{
     if(region==='fav')apply();
     if(window.onFav)window.onFav();
     return;}
-  const hb=ev.target.closest('.hbtn');
+  // 時間ごとの予報の開閉。登山は日付の行(スマホではカード)のどこを押しても開き、開いた時間ごとの行を押すと閉じる。ほかは日付を押す
+  let hb=ev.target.closest('.hbtn');
+  if(!hb&&document.body.classList.contains('g-mt')&&!ev.target.closest('a,button,summary,details')){
+    let tr=ev.target.closest('table.sub tr');
+    while(tr&&tr.classList.contains('hr'))tr=tr.previousElementSibling;   // 時間ごとの行なら、その日の行へ
+    hb=tr&&tr.querySelector('.hbtn');}
   if(hb){const open=hb.getAttribute('aria-expanded')!=='true';
     for(let r=hb.closest('tr').nextElementSibling;r&&!r.querySelector('.hbtn');r=r.nextElementSibling)if(r.classList.contains('hr'))r.hidden=!open;
     hb.setAttribute('aria-expanded',String(open));return;}
