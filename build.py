@@ -1664,7 +1664,7 @@ def ski_page(ski):
 <li><span class='tag warn'>運休注意</span> 上部の最大瞬間風速が18m/s以上(2人乗りのリフトは18m/sを超えると止めるところが多い強さ。止める基準はスキー場やリフトの種類で違います)</li>
 <li>⚠️ 警報・注意報は、スキー場のある市町村に気象庁がいま出しているもの。🌋 は10km以内の火山に噴火警報・予報が出ているとき</li>
 <li>天気・雨・気温・0℃の高さ・平均風速・最大瞬間風速は、営業時間(8〜16時)の予報からまとめています(天気は一番多い天気。雷雨があれば雷雨。0℃の高さは最も低いもの)。平均風速は、上部の高さに近い上空(気圧面)の風です(地表の風は地形をならした値で弱く出やすいため)。最大瞬間風速が20m/s以上の日は、一覧に「💨 突風」を出します(リフトが止まりやすい目安)。0℃の高さは、上部と下部の気温から計算しています(表の気温と合うように)</li>
-<li>日付を押すと時間ごとの予報が開きます(今日は8〜21時の1時間ごと、ほかの日は9時・12時・15時)。雪・雨はその時刻までの1時間(3時間ごとの日は3時間)の合計、気温・積雪・0℃の高さ・風はその時刻の値です(風速の列は平均ではなくその時刻の風速、最大瞬間風速の列はその時刻の突風)</li>
+<li>日付の行(スマホではカード)を押すと時間ごとの予報が開き、開いた時間ごとの行を押すと閉じます(今日は8〜21時の1時間ごと、ほかの日は9時・12時・15時)。雪・雨はその時刻までの1時間(3時間ごとの日は3時間)の合計、気温・積雪・0℃の高さ・風はその時刻の値です(風速の列は平均ではなくその時刻の風速、最大瞬間風速の列はその時刻の突風)</li>
 <li><span class='tag warn'>雨</span> 雨の予報(雪質が重くなりやすい)</li>
 <li>上部・下部の標高: OpenStreetMap のリフトの位置と地形の標高から求めた値(一部は手作業で補正)。概算です</li>
 <li>スキー場の一覧・標高差: Wikipedia、Wikidata。リフトの位置: © OpenStreetMap contributors</li>
@@ -1980,7 +1980,7 @@ def surf_page(spots):
 <li>ウェット予想: 水温と朝(6〜11時)の気温それぞれから目安を出し、厚い方にしています。水温は沖合の予報なので、岸近くに合わせて1.5℃低く見ています。水温: 25℃以上 ボードショーツ・ラッシュガード、23℃以上 スプリング、20℃以上 シーガル、17℃以上 3/2mm フル、14℃以上 5/3mm フル、11℃以上 5/3mm セミドライ+ブーツ、それ未満 5mm セミドライ+ブーツ・グローブ・キャップ。朝の気温: 27℃以上 ボードショーツ、24℃以上 スプリング、20℃以上 シーガル、14℃以上 3/2mm フル、8℃以上 5/3mm フル、それ未満 5/3mm セミドライ(一般的な目安です)</li>
 <li>📷 ライブカメラ: <a href='https://www.surfers-ocean.com/'>サーファーズオーシャン</a>・<a href='https://japan.surfride.net/'>surfride.net</a> に載っているカメラのうち、ポイントかそのすぐ近くを映すものです(停止中のものは除く)。提供元のサイトが開きます</li>
 <li>一覧は選んだ日の朝・昼のよいほうの判定と、その時間帯のうねり・周期・風です。ポイント名を押すと、朝・昼の詳しい予報(最大16日間)のページに移ります</li>
-<li>今日〜明後日の日付を押すと、6〜16時の時間ごとの予報が開きます(今日・明日は1時間ごと、明後日は3時間ごと。その時刻の値)</li></ul>
+<li>今日〜明後日の日付の行(スマホではカード)を押すと、6〜16時の時間ごとの予報が開き、開いた時間ごとの行を押すと閉じます(今日・明日は1時間ごと、明後日は3時間ごと。その時刻の値)</li></ul>
 <h2>このページについて</h2>
 <p>朝(6〜11時)と昼(12〜17時)の平均です。波の高さは沖合の予報で、浜では地形や向きにより小さくなることが多いです。</p></details>
 """)
@@ -2071,8 +2071,8 @@ tr.detail td>*{position:sticky;left:8px;max-width:calc(100vw - 72px)}.sub .dt{bo
 .hbtn{all:unset;cursor:pointer;color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
 .hbtn[aria-expanded='false']::after{content:' ▼';font-size:10px}.hbtn[aria-expanded='true']::after{content:' ▲';font-size:10px}
 .hbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.g-mt table.sub tr:has(.hbtn),.g-mt table.sub tr.hr{cursor:pointer}
-.g-mt .hbtn{text-decoration:none}.g-mt .hbtn::after{content:none!important}   /* 登山はカードごと押せるので、日付の下線と▼▲は出さない */
+table.sub tr:has(.hbtn),table.sub tr.hr{cursor:pointer}
+.hbtn{text-decoration:none}.hbtn::after{content:none!important}   /* カードごと押せるので、日付の下線と▼▲は出さない */
 tr.hr td{font-size:12px;color:var(--sub);padding-top:3px;padding-bottom:3px}
 tbody[id],section[id]{scroll-margin-top:56px}   /* 上に固定したメニューに隠れないように */
 .alert{margin:6px 0;color:var(--r0);font-size:13px;font-weight:600}.alert small{font-weight:400;margin-left:4px}
@@ -2338,11 +2338,11 @@ document.addEventListener('click',ev=>{
     if(region==='fav')apply();
     if(window.onFav)window.onFav();
     return;}
-  // 時間ごとの予報の開閉。登山は日付の行(スマホではカード)のどこを押しても開き、開いた時間ごとの行を押すと閉じる。ほかは日付を押す
+  // 時間ごとの予報の開閉。日付の行(スマホではカード)のどこを押しても開き、開いた時間ごとの行を押すと閉じる
   let hb=ev.target.closest('.hbtn');
-  if(!hb&&document.body.classList.contains('g-mt')&&!ev.target.closest('a,button,summary,details')){
+  if(!hb&&!ev.target.closest('a,button,summary,details')){
     let tr=ev.target.closest('table.sub tr');
-    while(tr&&tr.classList.contains('hr'))tr=tr.previousElementSibling;   // 時間ごとの行なら、その日の行へ
+    while(tr&&(tr.classList.contains('hr')||!tr.querySelector('td.dt')))tr=tr.previousElementSibling;   // 時間ごとの行やサーフィンの昼・夕の行なら、その日の最初の行へ
     hb=tr&&tr.querySelector('.hbtn');}
   if(hb){const open=hb.getAttribute('aria-expanded')!=='true';
     for(let r=hb.closest('tr').nextElementSibling;r&&!r.querySelector('.hbtn');r=r.nextElementSibling)if(r.classList.contains('hr'))r.hidden=!open;
