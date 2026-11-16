@@ -1,5 +1,5 @@
 """山と雪と波の天気まとめ。Open-Meteo の予報を取得して public/ に静的なHTMLを書き出す。
-使い方: python build.py  (GitHub Actions で1日5回(日本時間5・9・13・17・21時)実行。Python標準ライブラリのみ)"""
+使い方: python build.py  (GitHub Actions で定期実行。シーズン中のジャンルは1日5回、シーズンオフは1日1回。Python標準ライブラリのみ)"""
 import hashlib
 import html
 import json
@@ -1184,7 +1184,7 @@ def mountains_page(mts):
 
 # ---------------------------------------------------------------- スノーボード
 SITE_URL = "https://gelny7-cell.github.io/weather-site/"
-REPORT_HOURS = (9, 12)      # SURF&SNOW の積雪情報を取り直す更新(日本時間の時)。スキー場の報告は1日1〜2回のため
+REPORT_HOURS = (9, 13)      # SURF&SNOW の積雪情報を取り直す更新(日本時間の時)。スキー場の報告は1日1〜2回のため
 
 
 def parse_report(h, today):
@@ -2603,10 +2603,53 @@ def default_favs():
             + [f"s:{n}" for n in favs.get("ski", [])] + [f"w:{n}" for n in favs.get("surf", [])])
 
 
-def next_update(updated):
-    """次の定期更新の時(日本時間の5・9・13・17・21時の15分に始まる。GitHub の定期実行は遅れることがある)"""
+# 定期更新の回数はジャンルのシーズンで変える(Open-Meteo の無料枠 1日1万回に収めるため)
+#   シーズン中: 1日5回(日本時間5・9・13・17・21時。ワークフローが RUN_KIND=regular を渡す)
+#   シーズンオフ: 1日1回(18時。RUN_KIND=evening)
+#   push・手動実行(RUN_KIND なし)は全部のジャンルを作り直す
+# 作り直さないジャンルは、公開中のサイトのページをそのまま使う
+RUN_KIND = os.environ.get("RUN_KIND", "")
+REGULAR_HOURS, EVENING_HOUR = (5, 9, 13, 17, 21), 18
+GENRE_FILE = {"m": "mountains.html", "s": "snow.html", "w": "surf.html"}
+GENRE_EXTRA = {"m": ("season_temps.json",), "s": ("snow_report.json", "plan.json"), "w": ()}   # 次の回が読む前回の結果
+
+
+def in_season(g, month):
+    """登山は通年、スノーボードは12〜3月、サーフィンは4〜11月"""
+    return {"m": True, "s": month in (12, 1, 2, 3), "w": 4 <= month <= 11}[g]
+
+
+def due(g, now):
+    """この回でそのジャンルを作り直すか"""
+    if RUN_KIND == "regular":
+        return in_season(g, now.month)
+    if RUN_KIND == "evening":
+        return not in_season(g, now.month)
+    return True
+
+
+def next_update(updated, g="m"):
+    """次の定期更新(「◯時すぎ」の文)。日本時間の各時15分に始まる。GitHub の定期実行は遅れることがある"""
     now = updated.hour * 60 + updated.minute
-    return next((h for h in (5, 9, 13, 17, 21) if h * 60 + 15 > now), 5)
+    if not in_season(g, updated.month):
+        return f"{'' if EVENING_HOUR * 60 + 15 > now else '明日'}{EVENING_HOUR}時すぎ"
+    return f"{next((h for h in REGULAR_HOURS if h * 60 + 15 > now), REGULAR_HOURS[0])}時すぎ"
+
+
+def reuse_genre(g):
+    """公開中のサイトから、そのジャンルの一覧・詳細ページと前回の結果を取ってくる。{ファイル名: 中身}"""
+    get = lambda f: urllib.request.urlopen(SITE_URL + f, timeout=30).read()
+    files = {GENRE_FILE[g]: get(GENRE_FILE[g])}
+    m = re.search(r"<script type='application/json' id='spots-data'>(.*?)</script>", files[GENRE_FILE[g]].decode("utf-8"), re.S)
+    for it in json.loads(m.group(1).replace("<\\/", "</"))["items"]:
+        if it.get("u") and it["u"] not in files:
+            files[it["u"]] = get(it["u"])
+    for f in GENRE_EXTRA[g]:
+        try:
+            files[f] = get(f)
+        except Exception as ex:
+            print(f"前回の {f} がありません: {type(ex).__name__}")
+    return files
 
 
 # ページ下の注意とデータの出典(トップページには出さない)
@@ -2620,8 +2663,11 @@ GENRE_CLASS = {"mountains.html": "g-mt", "snow.html": "g-snow", "surf.html": "g-
 def layout(file, title, body, updated, nav=None):
     """ページの共通の枠。nav は上のメニューで選んだ表示にするページ(詳細ページはそのジャンルの一覧)"""
     nav = nav or file
-    bottom_line = f"<p class='muted'>サイト更新: {updated.year}年{updated.month}月{updated.day}日 {updated:%H:%M}(1日5回、5・9・13・17・21時ごろに自動更新)</p>"
-    top_line = f"<p class='updated muted'>サイト更新 {updated.month}/{updated.day} {updated:%H:%M} · 次の更新は{next_update(updated)}時すぎの予定</p>"
+    g = next((k for k, f in GENRE_FILE.items() if f == nav), "m")
+    how = ("1日5回、" + "・".join(map(str, REGULAR_HOURS)) + "時ごろ" if in_season(g, updated.month)
+           else f"シーズンオフのため1日1回、{EVENING_HOUR}時ごろ")
+    bottom_line = f"<p class='muted'>サイト更新: {updated.year}年{updated.month}月{updated.day}日 {updated:%H:%M}({how}に自動更新)</p>"
+    top_line = f"<p class='updated muted'>サイト更新 {updated.month}/{updated.day} {updated:%H:%M} · 次の更新は{next_update(updated, g)}の予定</p>"
     menu = "".join(f"<a href='{f}' class='{'on' if f == nav else ''}'>{n}</a>" for f, n in PAGES if f != "index.html")   # 「トップ」は出さない
     if file in GENRE_CLASS and "</h1>" in body:      # 更新時刻は一覧のジャンル名(見出し)のすぐ後ろに。詳細ページには出さない
         body = body.replace("</h1>", "</h1>" + top_line, 1) if "class='ghead'" not in body else body.replace("</div>", "</div>" + top_line, 1)
@@ -2644,6 +2690,8 @@ def check_output(mts, ski, spots):
     """公開する前の値のチェック。おかしければ例外にして、公開をやめ前回のサイトを残す(Actions の実行は失敗になる)"""
     bad = []
     for what, items, src in (("登山", mts, "mountains"), ("スノーボード", ski, "ski"), ("サーフィン", spots, "surf")):
+        if items is None:       # この回は作り直さないジャンル
+            continue
         total = len(json.loads((ROOT / f"data/{src}.json").read_text(encoding="utf-8")))
         if len(items) < total * 0.8:
             bad.append(f"{what}: 予報が取れたのが{len(items)}/{total}地点")
@@ -2652,20 +2700,20 @@ def check_output(mts, ski, spots):
     def rng(what, name, key, v, lo, hi):
         if v is not None and not lo <= v <= hi:
             bad.append(f"{what} {name} {key}={v}")
-    for m in mts:
+    for m in mts or []:
         for d in m["days"]:
             for k in ("tmin", "tmax"):
                 rng("登山", m["name"], k, d[k], -50, 45)
             rng("登山", m["name"], "wind", d["wind"], 0, 80)
             rng("登山", m["name"], "rain", d["rain"], 0, 1000)
-    for s in ski:
+    for s in ski or []:
         for d in s["days"]:
             for k in ("tmin", "tmax"):
                 rng("スノーボード", s["name"], k, d[k], -50, 45)
             rng("スノーボード", s["name"], "gust", d["gust"], 0, 80)
             for k in ("snow", "snow_base", "depth", "rain"):
                 rng("スノーボード", s["name"], k, d[k], 0, 2000)
-    for s in spots:
+    for s in spots or []:
         for d in s["days"]:
             for x in d["slots"]:
                 rng("サーフィン", s["name"], "height", x["height"], 0, 15)
@@ -2677,20 +2725,38 @@ def check_output(mts, ski, spots):
 
 def main():
     updated = datetime.now(JST)
-    mts, ski, spots = build_mountains(), build_ski(), build_surf()
+    reused = {}             # 作り直さないジャンルの、公開中のページ {ファイル名: 中身}
+    build_g = {g: due(g, updated) for g in GENRE_FILE}
+    for g in GENRE_FILE:
+        if not build_g[g]:
+            try:
+                reused.update(reuse_genre(g))
+                print(f"{GENRE_FILE[g]}: この回は作り直さず、公開中のページを使う")
+            except Exception as ex:      # 公開中のページが読めなければ作り直す
+                print(f"{GENRE_FILE[g]}: 公開中のページが読めないので作り直す: {type(ex).__name__}")
+                build_g[g] = True
+    mts = build_mountains() if build_g["m"] else None
+    ski = build_ski() if build_g["s"] else None
+    spots = build_surf() if build_g["w"] else None
     alerts, volcanoes = fetch_alerts(), fetch_volcanoes()
-    attach_alerts(mts, alerts, volcanoes, True, "mountain")
-    attach_alerts(ski, alerts, volcanoes, True, "ski")
-    attach_alerts(spots, alerts, volcanoes, False, "surf")
-    surf_alert_cap(spots)
+    if mts is not None:
+        attach_alerts(mts, alerts, volcanoes, True, "mountain")
+    if ski is not None:
+        attach_alerts(ski, alerts, volcanoes, True, "ski")
+    if spots is not None:
+        attach_alerts(spots, alerts, volcanoes, False, "surf")
+        surf_alert_cap(spots)
     for prefix, items in (("m", mts), ("s", ski), ("w", spots)):   # 行の id(トップページの「詳細」のリンク先)
-        for i, x in enumerate(items):
+        for i, x in enumerate(items or []):
             x["key"] = f"{prefix}{i}"
     OUT.mkdir(exist_ok=True)
-    bodies = {"index.html": ("トップ", top_page(updated)),
-              "mountains.html": ("登山天気", mountains_page(mts)),
-              "snow.html": ("スノーボード", ski_page(ski)),
-              "surf.html": ("サーフィン", surf_page(spots))}
+    bodies = {"index.html": ("トップ", top_page(updated))}
+    if mts is not None:
+        bodies["mountains.html"] = ("登山天気", mountains_page(mts))
+    if ski is not None:
+        bodies["snow.html"] = ("スノーボード", ski_page(ski))
+    if spots is not None:
+        bodies["surf.html"] = ("サーフィン", surf_page(spots))
     check_output(mts, ski, spots)
     print("Open-Meteo の回数(見積もり、地点ごとに数えた場合):",
           {k: round(v) for k, v in API_USE.items()}, "合計", round(sum(API_USE.values())))
@@ -2700,6 +2766,8 @@ def main():
         old.unlink()
     for f, (title, body, nav) in SPOT_PAGES.items():
         (OUT / f).write_text(layout(f, title, body, updated, nav), encoding="utf-8")
+    for f, data in reused.items():                  # 作り直さなかったジャンルは公開中のページのまま
+        (OUT / f).write_bytes(data)
     shutil.rmtree(OUT / "d", ignore_errors=True)    # 以前の詳細の置き場(今はスポットごとのページ)
     (OUT / "manifest.webmanifest").write_text(json.dumps({     # ホーム画面に追加したときの名前・アイコン
         "name": "山と雪と波の天気", "short_name": "山と雪と波", "start_url": "./index.html", "display": "standalone",
