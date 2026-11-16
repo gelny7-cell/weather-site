@@ -602,6 +602,40 @@ MT_MODELS = [("jma_msm", 3, range(0, 3)),
              ("jma_gsm", 11, range(6, 11))]
 
 
+MT_CACHE_HOURS = 10    # UKMO・GSM を取り直す間隔(時間)。1日5回の更新のうち5時・17時ごろの2回だけ取ることになる
+
+
+def mt_extra(points, hourly):
+    """登山の補助の予報モデル(MT_MODELS の順)。MSM は毎回取る。UKMO・GSM はモデル自体の更新が1日2〜4回なので、
+    前回取った分(公開中の mt_models.json)が MT_CACHE_HOURS 以内ならそれを使う(Open-Meteo の回数を1回あたり約630回減らす)"""
+    now, cached = datetime.now(JST), None
+    try:
+        c = fetch(SITE_URL + "mt_models.json", {})[0]
+        if (c.get("pts") == json.loads(json.dumps(points)) and c.get("hourly") == hourly
+                and now - datetime.fromisoformat(c["at"]) < timedelta(hours=MT_CACHE_HOURS)):
+            cached = c
+    except Exception as ex:
+        print(f"前回の補助モデルの予報がありません: {type(ex).__name__}")
+    out, save = [], {}
+    for model, n, use in MT_MODELS:
+        if model != "jma_msm" and cached and model in cached["res"]:
+            out.append(cached["res"][model])
+            continue
+        r = forecast(points, hourly=hourly, models=model, forecast_days=n)
+        out.append(r)
+        if model != "jma_msm":      # 使う日の1日前から残す(翌日に読んでも足りるように)
+            first = (now.date() + timedelta(days=use.start - 1)).isoformat()
+            save[model] = [None if x is None else {"hourly": {k: [v for t, v in zip(x["hourly"]["time"], vs) if t[:10] >= first]
+                                                               for k, vs in x["hourly"].items()}} for x in r]
+    if cached:
+        print(f"補助モデル: UKMO・GSM は {cached['at'][11:16]} に取った分を使う")
+    # 次の回が読めるように、使った分を公開するファイルにも書く(取り直していなければ前回の分をそのまま)
+    keep = cached or {"at": now.isoformat(timespec="minutes"), "pts": points, "hourly": hourly, "res": save}
+    OUT.mkdir(exist_ok=True)
+    (OUT / "mt_models.json").write_text(json.dumps(keep, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    return out
+
+
 def wind_chill(t, v):
     """体感温度(℃)。気温 t(℃)と風速 v(m/s)から、カナダ気象局などが使う式で求める。
     気温が10℃を超えるときや風が弱いときは、気温のまま"""
@@ -766,6 +800,29 @@ def warm_day(s, d0, f):
     return None
 
 
+def season_temps(pts, old, today):
+    """桜・紅葉の予想に使う、過去92日と先16日の最高・最低気温。
+    前の日までの分(公開中の season_temps.json、3日以内)がある地点は、直近3日と先の予報だけ取ってつなぐ。
+    ない地点(山を足したとき・シーズンの始め)だけ92日分を取る。Open-Meteo の回数は 1日約2,450回 → 約430回"""
+    daily, start = "temperature_2m_max,temperature_2m_min", (today - timedelta(days=92)).isoformat()
+    prev = {}
+    if old and old.get("date", "") >= (today - timedelta(days=3)).isoformat() and len(old.get("pts", [])) == len(old.get("res", [])):
+        prev = {tuple(p): r for p, r in zip(old["pts"], old["res"]) if r and r["daily"]["time"] and r["daily"]["time"][0] <= start}
+    near = [i for i, p in enumerate(pts) if tuple(p) in prev]
+    full = [i for i, p in enumerate(pts) if tuple(p) not in prev]
+    res = [None] * len(pts)
+    for i, r in zip(full, forecast([pts[i] for i in full], daily=daily, past_days=92) if full else []):
+        res[i] = r
+    for i, r in zip(near, forecast([pts[i] for i in near], daily=daily, past_days=3) if near else []):
+        if not r:
+            continue
+        o, n = prev[tuple(pts[i])]["daily"], r["daily"]
+        keep = [k for k, d in enumerate(o["time"]) if start <= d < n["time"][0]]   # 前回の分のうち、今回取った日より前
+        res[i] = {"daily": {key: [o[key][k] for k in keep] + n[key] for key in ("time", "temperature_2m_max", "temperature_2m_min")}}
+    print(f"桜・紅葉の気温: 92日分を取った地点 {len(full)}、前回の分につないだ地点 {len(near)}")
+    return res
+
+
 def seasons(mts):
     """山ごとの桜・紅葉の予想 {"koyo"/"sakura": [{key, name, elev, early, peak, end}]}(early〜peak が色づき始め・咲き始め、
     peak〜end が見ごろ)。紅葉は9〜12月、桜は2〜6月だけ計算する"""
@@ -775,7 +832,7 @@ def seasons(mts):
         return [{} for _ in mts]
     cap = KOYO_CAP if kind == "koyo" else SAKURA_CAP
     pts = [[m["lat"], m["lon"], min(m["elev"], cap)] for m in mts]
-    res = None
+    res, old = None, None
     try:        # Open-Meteo の回数を減らすため、その日にすでに取った分(公開中のファイル)があれば使う
         old = fetch(SITE_URL + "season_temps.json", {})[0]
         if old.get("date") == today.isoformat() and old.get("pts") == pts:
@@ -783,7 +840,7 @@ def seasons(mts):
     except Exception as ex:
         print(f"前回の桜・紅葉の気温の取得に失敗: {type(ex).__name__}")
     if res is None:
-        res = forecast(pts, daily="temperature_2m_max,temperature_2m_min", past_days=92)
+        res = season_temps(pts, old, today)
     res = [{"daily": r["daily"]} if r else None for r in res]
     OUT.mkdir(exist_ok=True)
     (OUT / "season_temps.json").write_text(json.dumps({"date": today.isoformat(), "pts": pts, "res": res},
@@ -933,7 +990,7 @@ def build_mountains():
     hourly = ",".join(["temperature_2m", "precipitation", "weather_code", "cloud_cover"]
                       + [f"wind_speed_{p}hPa" for p, _ in LEVELS])
     res = forecast(points, hourly=hourly + ",snow_depth", daily="sunrise,sunset")   # 積雪はおまかせのモデルだけで見る
-    extra = [forecast(points, hourly=hourly, models=model, forecast_days=n) for model, n, _ in MT_MODELS]
+    extra = mt_extra(points, hourly)
     probs = thunder_prob(mts)
     sea = seasons(mts)
     today = datetime.now(JST).date()
@@ -2611,7 +2668,7 @@ def default_favs():
 RUN_KIND = os.environ.get("RUN_KIND", "")
 REGULAR_HOURS, OFFSEASON_HOUR = (5, 9, 13, 17, 21), 6
 GENRE_FILE = {"m": "mountains.html", "s": "snow.html", "w": "surf.html"}
-GENRE_EXTRA = {"m": ("season_temps.json",), "s": ("snow_report.json", "plan.json"), "w": ()}   # 次の回が読む前回の結果
+GENRE_EXTRA = {"m": ("season_temps.json", "mt_models.json"), "s": ("snow_report.json", "plan.json"), "w": ()}   # 次の回が読む前回の結果
 
 
 def in_season(g, month):
