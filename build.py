@@ -8,6 +8,7 @@ import shutil
 import math
 import re
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import date, datetime, timedelta
@@ -45,10 +46,19 @@ def fetch(url, params, retries=3):
             with urllib.request.urlopen(f"{url}?{q}", timeout=60) as r:
                 d = json.load(r)
             return d if isinstance(d, list) else [d]
-        except Exception:
+        except Exception as ex:
+            # 失敗の理由をログに残す(Open-Meteo は {"reason": "..."} を返す)
+            why = type(ex).__name__
+            if isinstance(ex, urllib.error.HTTPError):
+                try:
+                    why = f"HTTP {ex.code} {json.loads(ex.read().decode('utf-8', 'ignore')).get('reason', '')}"
+                except Exception:
+                    why = f"HTTP {ex.code}"
+            print(f"  取得に失敗({i + 1}回目): {why}")
             if i == retries - 1:
                 raise
-            time.sleep(10 * (i + 1))
+            # 回数の上限(429: 1分あたり等)のときは、上限が戻るまで長めに待つ。呼び出し回数は増えない(断られた分を後でやり直すだけ)
+            time.sleep(70 * (i + 1) if getattr(ex, "code", None) == 429 else 10 * (i + 1))
 
 
 def forecast(points, **params):
