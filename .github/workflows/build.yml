@@ -1,10 +1,10 @@
-# 3時間ごとに予報を取得してHTMLを作り直し、GitHub Pages に公開する
+# 日本時間 6・10・14・18・22時(4時間ごと、夜中は止める)に予報を取得してHTMLを作り直し、GitHub Pages に公開する
+# Open-Meteo の無料枠(1日1万回)に収めるため1日5回(1回約1,950回 × 5 ≒ 9,800回)
 name: build-and-deploy
 
 on:
   schedule:
-    - cron: "15 */3 * * *"     # UTC。日本時間でも3時間ごと
-    - cron: "0 11 * * 5"       # 金曜 20:00(日本時間)。スキー場の営業予定(オープン・クローズ)を見直す
+    - cron: "15 1,5,9,13,21 * * *"   # UTC。日本時間の 10:15・14:15・18:15・22:15・6:15
   push:
     branches: [main]
   workflow_dispatch:            # 手動実行(Actions の画面から)
@@ -26,9 +26,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python build.py
-        env:                    # 金曜20時の回だけ、営業予定を SURF&SNOW で見直す
-          PLAN_REFRESH: ${{ github.event.schedule == '0 11 * * 5' && '1' || '' }}
+      # 金曜18時の定期実行の回だけ、スキー場の営業予定(オープン・クローズ)を SURF&SNOW で見直す
+      # (定期実行は遅れることがあるので、日本時間の金曜17〜21時に始まった回を対象にする)
+      - run: |
+          h=$(TZ=Asia/Tokyo date +%H); d=$(TZ=Asia/Tokyo date +%u)
+          if [ "${{ github.event_name }}" = schedule ] && [ "$d" = 5 ] && [ "$h" -ge 17 ] && [ "$h" -le 21 ]; then export PLAN_REFRESH=1; fi
+          python build.py
       - uses: actions/upload-pages-artifact@v3
         with:
           path: public

@@ -4,7 +4,7 @@
 
 - `build.py` … Open-Meteo から予報を取得して `public/` にHTMLを書き出す(Python標準ライブラリのみ)
 - `data/` … 地点の一覧(山・スキー場・サーフポイント)。地点の追加・修正はここを編集する
-- `.github/workflows/build.yml` … GitHub Actions で3時間ごとにビルドし、GitHub Pages に公開する
+- `.github/workflows/build.yml` … GitHub Actions で1日5回(日本時間6・10・14・18・22時)ビルドし、GitHub Pages に公開する
 - `preview.py` … 開発用。`python3 build.py && python3 preview.py` でサーバー内だけで確認する
 - `mock_build.py` … 見た目の確認用。作り物の予報で `public/` を書き出す(外部にアクセスしない)。`python mock_build.py && python preview.py`
 
