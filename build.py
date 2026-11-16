@@ -2604,8 +2604,9 @@ def default_favs():
 
 
 def next_update(updated):
-    """次の定期更新の時(日本時間の0・3・6…時の15分に始まる。GitHub の定期実行は遅れることがある)"""
-    return (updated.hour // 3 + 1) * 3 % 24
+    """次の定期更新の時(日本時間の6・10・14・18・22時の15分に始まる。GitHub の定期実行は遅れることがある)"""
+    now = updated.hour * 60 + updated.minute
+    return next((h for h in (6, 10, 14, 18, 22) if h * 60 + 15 > now), 6)
 
 
 # ページ下の注意とデータの出典(トップページには出さない)
