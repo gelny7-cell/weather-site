@@ -1,5 +1,5 @@
 """山と雪と波の天気まとめ。Open-Meteo の予報を取得して public/ に静的なHTMLを書き出す。
-使い方: python build.py  (GitHub Actions で1日5回(日本時間6・10・14・18・22時)実行。Python標準ライブラリのみ)"""
+使い方: python build.py  (GitHub Actions で1日5回(日本時間5・9・13・17・21時)実行。Python標準ライブラリのみ)"""
 import hashlib
 import html
 import json
@@ -1233,7 +1233,7 @@ def attach_report(ski):
 
 
 SEASON = "2026-2027"
-# 営業予定(オープン・クローズ)を SURF&SNOW で見直すのは週1回(金曜18時の定期実行。ワークフローが PLAN_REFRESH=1 を渡す)。
+# 営業予定(オープン・クローズ)を SURF&SNOW で見直すのは週1回(金曜17時の定期実行。ワークフローが PLAN_REFRESH=1 を渡す)。
 # ほかの回は、公開中のサイトの plan.json(前回見直した結果)を使う
 PLAN_REFRESH = os.environ.get("PLAN_REFRESH") == "1"
 
@@ -2604,9 +2604,9 @@ def default_favs():
 
 
 def next_update(updated):
-    """次の定期更新の時(日本時間の6・10・14・18・22時の15分に始まる。GitHub の定期実行は遅れることがある)"""
+    """次の定期更新の時(日本時間の5・9・13・17・21時の15分に始まる。GitHub の定期実行は遅れることがある)"""
     now = updated.hour * 60 + updated.minute
-    return next((h for h in (6, 10, 14, 18, 22) if h * 60 + 15 > now), 6)
+    return next((h for h in (5, 9, 13, 17, 21) if h * 60 + 15 > now), 5)
 
 
 # ページ下の注意とデータの出典(トップページには出さない)
@@ -2620,7 +2620,7 @@ GENRE_CLASS = {"mountains.html": "g-mt", "snow.html": "g-snow", "surf.html": "g-
 def layout(file, title, body, updated, nav=None):
     """ページの共通の枠。nav は上のメニューで選んだ表示にするページ(詳細ページはそのジャンルの一覧)"""
     nav = nav or file
-    bottom_line = f"<p class='muted'>サイト更新: {updated.year}年{updated.month}月{updated.day}日 {updated:%H:%M}(1日5回、6・10・14・18・22時ごろに自動更新)</p>"
+    bottom_line = f"<p class='muted'>サイト更新: {updated.year}年{updated.month}月{updated.day}日 {updated:%H:%M}(1日5回、5・9・13・17・21時ごろに自動更新)</p>"
     top_line = f"<p class='updated muted'>サイト更新 {updated.month}/{updated.day} {updated:%H:%M} · 次の更新は{next_update(updated)}時すぎの予定</p>"
     menu = "".join(f"<a href='{f}' class='{'on' if f == nav else ''}'>{n}</a>" for f, n in PAGES if f != "index.html")   # 「トップ」は出さない
     if file in GENRE_CLASS and "</h1>" in body:      # 更新時刻は一覧のジャンル名(見出し)のすぐ後ろに。詳細ページには出さない
