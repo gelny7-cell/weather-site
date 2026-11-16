@@ -1233,7 +1233,7 @@ def attach_report(ski):
 
 
 SEASON = "2026-2027"
-# 営業予定(オープン・クローズ)を SURF&SNOW で見直すのは週1回(金曜17時の定期実行。ワークフローが PLAN_REFRESH=1 を渡す)。
+# 営業予定(オープン・クローズ)を SURF&SNOW で見直すのは週1回(金曜17時(シーズンオフは金曜6時)の定期実行。ワークフローが PLAN_REFRESH=1 を渡す)。
 # ほかの回は、公開中のサイトの plan.json(前回見直した結果)を使う
 PLAN_REFRESH = os.environ.get("PLAN_REFRESH") == "1"
 
@@ -2605,11 +2605,11 @@ def default_favs():
 
 # 定期更新の回数はジャンルのシーズンで変える(Open-Meteo の無料枠 1日1万回に収めるため)
 #   シーズン中: 1日5回(日本時間5・9・13・17・21時。ワークフローが RUN_KIND=regular を渡す)
-#   シーズンオフ: 1日1回(18時。RUN_KIND=evening)
+#   シーズンオフ: 1日1回(6時。RUN_KIND=offseason。朝のうちに今日からの予報にする)
 #   push・手動実行(RUN_KIND なし)は全部のジャンルを作り直す
 # 作り直さないジャンルは、公開中のサイトのページをそのまま使う
 RUN_KIND = os.environ.get("RUN_KIND", "")
-REGULAR_HOURS, EVENING_HOUR = (5, 9, 13, 17, 21), 18
+REGULAR_HOURS, OFFSEASON_HOUR = (5, 9, 13, 17, 21), 6
 GENRE_FILE = {"m": "mountains.html", "s": "snow.html", "w": "surf.html"}
 GENRE_EXTRA = {"m": ("season_temps.json",), "s": ("snow_report.json", "plan.json"), "w": ()}   # 次の回が読む前回の結果
 
@@ -2623,7 +2623,7 @@ def due(g, now):
     """この回でそのジャンルを作り直すか"""
     if RUN_KIND == "regular":
         return in_season(g, now.month)
-    if RUN_KIND == "evening":
+    if RUN_KIND == "offseason":
         return not in_season(g, now.month)
     return True
 
@@ -2632,7 +2632,7 @@ def next_update(updated, g="m"):
     """次の定期更新(「◯時すぎ」の文)。日本時間の各時15分に始まる。GitHub の定期実行は遅れることがある"""
     now = updated.hour * 60 + updated.minute
     if not in_season(g, updated.month):
-        return f"{'' if EVENING_HOUR * 60 + 15 > now else '明日'}{EVENING_HOUR}時すぎ"
+        return f"{'' if OFFSEASON_HOUR * 60 + 15 > now else '明日'}{OFFSEASON_HOUR}時すぎ"
     return f"{next((h for h in REGULAR_HOURS if h * 60 + 15 > now), REGULAR_HOURS[0])}時すぎ"
 
 
@@ -2665,7 +2665,7 @@ def layout(file, title, body, updated, nav=None):
     nav = nav or file
     g = next((k for k, f in GENRE_FILE.items() if f == nav), "m")
     how = ("1日5回、" + "・".join(map(str, REGULAR_HOURS)) + "時ごろ" if in_season(g, updated.month)
-           else f"シーズンオフのため1日1回、{EVENING_HOUR}時ごろ")
+           else f"シーズンオフのため1日1回、{OFFSEASON_HOUR}時ごろ")
     bottom_line = f"<p class='muted'>サイト更新: {updated.year}年{updated.month}月{updated.day}日 {updated:%H:%M}({how}に自動更新)</p>"
     top_line = f"<p class='updated muted'>サイト更新 {updated.month}/{updated.day} {updated:%H:%M} · 次の更新は{next_update(updated, g)}の予定</p>"
     menu = "".join(f"<a href='{f}' class='{'on' if f == nav else ''}'>{n}</a>" for f, n in PAGES if f != "index.html")   # 「トップ」は出さない

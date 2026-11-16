@@ -1,7 +1,7 @@
 # 予報を取得してHTMLを作り直し、GitHub Pages に公開する
 # Open-Meteo の無料枠(1日1万回)に収めるため、更新の回数をジャンルのシーズンで変える(どのジャンルを作り直すかは build.py が決める)
 #   シーズン中のジャンル: 1日5回(日本時間 5・9・13・17・21時)
-#   シーズンオフのジャンル: 1日1回(18時)。スノーボードは12〜3月、サーフィンは4〜11月がシーズン。登山は通年
+#   シーズンオフのジャンル: 1日1回(6時)。スノーボードは12〜3月、サーフィンは4〜11月がシーズン。登山は通年
 # 見積もり(1回あたり 登山 約1,030回・スノーボード 約820回・サーフィン 約100回)
 #   12〜3月: 5 ×(登山+スノーボード)+ サーフィン ≒ 9,350回/日
 #   4〜11月: 5 ×(登山+サーフィン)+ スノーボード ≒ 6,500回/日
@@ -10,7 +10,7 @@ name: build-and-deploy
 on:
   schedule:
     - cron: "15 0,4,8,12,20 * * *"   # UTC。日本時間の 9:15・13:15・17:15・21:15・5:15(シーズン中のジャンル)
-    - cron: "15 9 * * *"             # UTC。日本時間の 18:15(シーズンオフのジャンル)
+    - cron: "15 21 * * *"            # UTC。日本時間の 6:15(シーズンオフのジャンル)
   push:
     branches: [main]
   workflow_dispatch:            # 手動実行(Actions の画面から)
@@ -32,12 +32,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      # 金曜17時(シーズンオフは18時)の定期実行の回だけ、スキー場の営業予定(オープン・クローズ)を SURF&SNOW で見直す
+      # スキー場の営業予定(オープン・クローズ)を SURF&SNOW で見直すのは週1回: 金曜17時の回(シーズンオフは金曜6時の回)
       # (定期実行は遅れることがあるので、日本時間の金曜16〜20時に始まった回を対象にする。スキー場を作り直さない回では使われない)
       - run: |
-          h=$(TZ=Asia/Tokyo date +%H); d=$(TZ=Asia/Tokyo date +%u)
-          if [ "${{ github.event_name }}" = schedule ] && [ "$d" = 5 ] && [ "$h" -ge 16 ] && [ "$h" -le 20 ]; then export PLAN_REFRESH=1; fi
-          export RUN_KIND=${{ github.event_name == 'schedule' && (github.event.schedule == '15 9 * * *' && 'evening' || 'regular') || '' }}
+          export RUN_KIND=${{ github.event_name == 'schedule' && (github.event.schedule == '15 21 * * *' && 'offseason' || 'regular') || '' }}
+          h=$(TZ=Asia/Tokyo date +%-H); d=$(TZ=Asia/Tokyo date +%u)
+          if [ "${{ github.event_name }}" = schedule ] && [ "$d" = 5 ] && { [ "$RUN_KIND" = offseason ] || { [ "$h" -ge 16 ] && [ "$h" -le 20 ]; }; }; then export PLAN_REFRESH=1; fi
           python build.py
       - uses: actions/upload-pages-artifact@v3
         with:
